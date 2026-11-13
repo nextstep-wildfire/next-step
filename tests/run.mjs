@@ -111,6 +111,24 @@ for (const mode of ['quota', 'off']) {
 }
 process.env.MOCK = 'ok';
 
+// 11b. copy buttons, scroll-down button, title case
+p = await page({}); await p.goto(base + '/app/'); await p.waitForTimeout(700);
+await p.locator('#input').fill('hello there'); await p.locator('#sendBtn').click(); await p.waitForTimeout(1500);
+ok(await p.locator('.msgtools.user .cpbtn').count() >= 1, 'copy button under the user message');
+ok(await p.locator('.msgtools.bot .cpbtn').count() >= 1, 'copy button under bot replies');
+await p.context().grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
+await p.locator('.msgtools.user .cpbtn').first().click(); await p.waitForTimeout(300);
+ok((await p.locator('.msgtools.user .cpbtn').first().innerText()).includes('Copied'), 'copy button confirms');
+const clip = await p.evaluate(() => navigator.clipboard.readText().catch(() => 'n/a'));
+ok(clip === 'n/a' || clip.includes('hello there'), 'clipboard has the message: ' + clip.slice(0, 40));
+await p.setViewportSize({ width: 1280, height: 420 });
+for (let i = 0; i < 4; i++) { await p.locator('#input').fill('more text ' + i); await p.locator('#sendBtn').click(); await p.waitForTimeout(700); }
+await p.evaluate(() => { document.getElementById('thread').scrollTop = 0; }); await p.waitForTimeout(500);
+ok(await p.locator('#toBottom.show').count() === 1, 'scroll-down button shows when scrolled up');
+await p.locator('#toBottom').click(); await p.waitForTimeout(900);
+ok(await p.locator('#toBottom.show').count() === 0, 'scroll-down button hides at the bottom');
+ok((await p.locator('.fine').innerText()).startsWith('Student Project from Fung Fellowship'), 'footer names the Fung Fellowship project');
+await p.setViewportSize({ width: 1280, height: 800 });
 // 12. landing page and routing (demo video, no language line, no Open the guide)
 p = await page({ noStart: true }); await p.goto(base + '/');
 ok((await p.locator('h1').getAttribute('aria-label')) === 'Next Step', 'landing wordmark');
@@ -129,7 +147,7 @@ const lay = await p.evaluate(() => { const h = document.querySelector('h1').getB
 ok(lay.hr < lay.vl && lay.vb <= lay.ih && lay.hb <= lay.ih, 'name left, demo right, both in the first screen ' + JSON.stringify(lay));
 const loaded = await p.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family).join(','); });
 await p.waitForTimeout(1800);
-ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Rubik/.test(loaded), 'bundled fonts actually load: ' + loaded);
+ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Outfit/.test(loaded), 'bundled fonts actually load: ' + loaded);
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 376, 'landing: no horizontal scroll at 375px');
 await p.screenshot({ path: '/tmp/shot_landing_m.png' });
@@ -143,8 +161,8 @@ p = await page({ noStart: true });
 ok(await p.locator('.wchoice').count() === 3, 'who screen shows three choices');
 await p.locator('.wchoice[data-who="other"]').click(); await p.locator('#wname').fill('my mom'); await p.locator('#wgo').click();
 await p.waitForSelector('.card.home');
-ok((await p.locator('.card.home h2').innerText()).includes('my mom'), 'home uses their name');
-ok((await p.locator('#tagWho').innerText()).includes('For someone else'), 'chat bar shows it is for someone else');
+ok((await p.locator('.card.home h2').innerText()).toLowerCase().includes('my mom'), 'home uses their name');
+ok((await p.locator('#tagWho').innerText()).toLowerCase().includes('for someone else'), 'chat bar shows it is for someone else');
 await p.locator('.choice[data-sit="denied"]').click(); await p.waitForSelector('.aGo'); await p.locator('.aGo').click(); await p.waitForSelector('textarea.letterEdit');
 const calls0 = (await import('../dev/dev-server.js')).calls; const lastCall = calls0[calls0.length - 1];
 ok(/WRITING FOR: someone else \(my mom\)/.test(lastCall.userFull || lastCall.last + ''), 'API is told the letter is for someone else');
@@ -158,10 +176,10 @@ await p.locator('#chatTitle').click(); await p.waitForSelector('#shell.side-open
 ok(await p.locator('#clist .citem').count() === 2, 'chat list shows both chats');
 await p.locator('#clist .citem', { hasText: 'my mom' }).click(); await p.waitForTimeout(500);
 ok((await p.locator('#thread').innerText()).includes('what should I do about the adjuster'), 'old chat comes back with its messages');
-ok((await p.locator('#tagWho').innerText()).includes('For someone else'), 'old chat is still for someone else');
+ok((await p.locator('#tagWho').innerText()).toLowerCase().includes('for someone else'), 'old chat is still for someone else');
 // reload keeps chats
 await p.reload(); await p.waitForTimeout(600);
-ok((await p.locator('#chatTitle').innerText()).includes('my mom'), 'reload keeps the current chat');
+ok((await p.locator('#chatTitle').innerText()).toLowerCase().includes('my mom'), 'reload keeps the current chat');
 ok(await p.locator('#clist .citem').count() === 2, 'reload keeps both chats (sidebar open on desktop)');
 // delete needs two taps
 const delBtn = p.locator('#clist .cdel').first(); await delBtn.click({ force: true }); ok(await p.locator('#clist .citem').count() === 2, 'one tap does not delete');

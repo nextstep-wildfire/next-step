@@ -24,7 +24,7 @@ cdp.on('Page.screencastFrame', async (f) => {
 await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: 1280, maxHeight: 800, everyNthFrame: 1 });
 await p.goto('http://localhost:8811/app/');
 await p.addStyleTag({ content: `
-  #demoCap { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 99; background: #f2994a; color: #1a1004; font: 500 17px/1.2 Rubik, system-ui, sans-serif; padding: 11px 20px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .35s ease; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+  #demoCap { position: fixed; left: 50%; top: 66px; transform: translateX(-50%); z-index: 99; background: #f2994a; color: #1a1004; font: 500 17px/1.2 Outfit, system-ui, sans-serif; padding: 11px 20px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .35s ease; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
   #demoCap.on { opacity: 1; }
   #demoTap { position: fixed; z-index: 100; width: 22px; height: 28px; margin: 0; pointer-events: none; left: 640px; top: 600px; transition: left .7s cubic-bezier(.3,.7,.2,1), top .7s cubic-bezier(.3,.7,.2,1), transform .15s ease, opacity .3s; opacity: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); transform-origin: 0 0; }
   #demoTap.on { opacity: 1; } #demoTap.press { transform: scale(.82); }

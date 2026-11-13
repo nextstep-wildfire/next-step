@@ -1,12 +1,12 @@
-/* Charcoal and amber. Dark is the default; light is a toggle. Wordmark: Cinzel. Headings: EB Garamond. Body: Rubik. Both are bundled, no outside requests. */
+/* Charcoal and amber. Dark is the default; light is a toggle. Wordmark: Cinzel. Headings: EB Garamond. Body: Outfit. Both are bundled, no outside requests. */
 @view-transition { navigation: auto; }
 @font-face { font-family: "Cinzel"; src: url("/fonts/cinzel.woff2") format("woff2"); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: "EB Garamond"; src: url("/fonts/garamond.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
-@font-face { font-family: "Rubik"; src: url("/fonts/rubik.woff2") format("woff2"); font-weight: 300 900; font-display: swap; }
+@font-face { font-family: "Outfit"; src: url("/fonts/outfit.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
   --bg: #121212; --grad: none; --ink: #f4efe8; --muted: #b3aba0; --faint: #9a9288; --line: #35322f;
   --box: #1e1c1a; --tag: #1b1a18; --tag-line: #3a3733; --btn: #f2994a; --btn-ink: #1a1004; --accent-soft: #2a2622; --warm: #f2994a;
-  --font-body: "Rubik", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-body: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-head: "EB Garamond", Garamond, "Palatino Linotype", Georgia, serif;
   --font-caps: "Cinzel", "Trajan Pro", "Times New Roman", serif;
   color-scheme: dark;
@@ -150,7 +150,7 @@ form button { width: 38px; height: 38px; border-radius: 50%; border: 0; backgrou
 p.ask { font-weight: 600; margin: 14px 0 8px; }
 .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0 0 12px; }
 .choice { font: inherit; text-align: left; color: var(--ink); background: var(--bg); border: 1px solid var(--tag-line); border-radius: 16px; padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
-.choice b { font-size: 18px; } .choice small { color: var(--muted); font-size: 13px; }
+.choice b { font-size: 21px; } .choice small { color: var(--muted); font-size: 16px; line-height: 1.35; }
 .choice:hover { border-color: var(--btn); transform: translateY(-1px); }
 .lbl { font-size: 13.5px; font-weight: 600; color: var(--ink); margin-top: 4px; }
 .fld details { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
@@ -274,3 +274,16 @@ body { animation: pagein .45s ease both; }
 /* short footer */
 .fine { font-size: 11px; line-height: 1.4; padding: 6px 0 10px; color: var(--faint); }
 .shell.side-open #newChatBtn { display: none; }
+
+/* v6: copy buttons, scroll-down button */
+.msgtools { display: flex; margin: -8px 0 0; padding: 0 6px; }
+.msgtools.bot { align-self: flex-start; } .msgtools.user { align-self: flex-end; }
+.cpbtn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--faint); background: transparent; border: 0; border-radius: 8px; padding: 5px 8px; cursor: pointer; opacity: .75; transition: opacity .2s, color .2s, background-color .2s; }
+.cpbtn:hover, .cpbtn:focus-visible { opacity: 1; color: var(--ink); background: var(--accent-soft); }
+.cpbtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cpbtn.done { color: var(--warm); opacity: 1; }
+#toBottom { position: fixed; z-index: 30; left: 50%; bottom: 150px; transform: translate(-50%, 8px); width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--box); color: var(--ink); display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; padding: 0; }
+#toBottom.show { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+#toBottom:hover { border-color: var(--btn); }
+#toBottom svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { #toBottom { transition: none; } }

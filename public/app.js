@@ -179,7 +179,7 @@
     troubleQ: ['I am sorry you are dealing with this. What did your insurer do?', 'Lamento que esté pasando por esto. ¿Qué hizo su aseguradora?', '很抱歉您正在经历这些。保险公司做了什么？'],
     something: ['Something else', 'Otra cosa', '其他情况'],
     nextTimeline: ['Your insurer should acknowledge a claim within 15 days of notice, and accept or deny it within 40 days after proof of claim [10]. Put every request in writing and keep your own copies.', 'Su aseguradora debe acusar recibo del reclamo dentro de los 15 días siguientes al aviso, y aceptarlo o rechazarlo dentro de los 40 días posteriores a la prueba del reclamo [10]. Ponga cada solicitud por escrito y guarde sus propias copias.', '保险公司应在收到通知后 15 天内确认理赔，并在收到理赔证明后 40 天内接受或拒绝 [10]。请把每个请求都写成书面形式，并保留自己的副本。'],
-    footer: ['Student prototype with The After Collective. Not legal or insurance advice.', 'Prototipo estudiantil con The After Collective. No es asesoría legal ni de seguros.', '与 The After Collective 合作的学生原型。不构成法律或保险建议。'],
+    footer: ['Student Project from Fung Fellowship. Not legal or insurance advice.', 'Proyecto Estudiantil de Fung Fellowship. No es asesoría legal ni de seguros.', 'Fung Fellowship 学生项目。不构成法律或保险建议。'],
     reportBtn: ['Report a problem', 'Informar de un problema', '报告问题'],
     msgPh: ['Tell me what happened…', 'Cuénteme qué pasó…', '告诉我发生了什么……'],
     send: ['Send', 'Enviar', '发送'],

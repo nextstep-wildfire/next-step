@@ -75,5 +75,5 @@ The automated test needs Playwright installed: `npm i -D playwright`, then `npx 
 
 - `/` is the landing page (`public/index.html`, `landing.css`).
 - `/app/` is the guide (`public/app/index.html`, `app.css`, `app.js`). `/app/?lang=es` and `?lang=zh` open it in Spanish or Chinese.
-- Fonts are bundled in `public/fonts` (Cinzel for the wordmark, EB Garamond for headings, Rubik for body). No outside requests.
+- Fonts are bundled in `public/fonts` (Cinzel for the wordmark, EB Garamond for headings, Outfit for body). No outside requests.
 - Each chat (for me, for someone close, just learning) is saved on the device only, under the key `next-step-v4`.
