@@ -9,7 +9,7 @@ import { handle } from '../lib/core.js';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const SOURCES = JSON.parse(fs.readFileSync(path.join(root, 'sources.json'), 'utf8'));
 const port = Number(process.argv[2] || 8788);
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain', '.woff2': 'font/woff2' };
 export const calls = [];
 
 const mockAI = {
@@ -39,7 +39,9 @@ const server = http.createServer(async (req, res) => {
     const r = await handle(request, env, SOURCES);
     res.writeHead(r.status, Object.fromEntries(r.headers)); res.end(await r.text()); return;
   }
-  let p = path.join(root, url.pathname === '/' ? 'index.html' : url.pathname);
+  let p = path.join(root, url.pathname);
+  if (url.pathname.endsWith('/')) p = path.join(p, 'index.html');
+  else if (fs.existsSync(p) && fs.statSync(p).isDirectory()) { res.writeHead(301, { location: url.pathname + '/' + url.search }); res.end(); return; }
   if (!p.startsWith(root) || !fs.existsSync(p)) { res.writeHead(404); res.end('not found'); return; }
   res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(fs.readFileSync(p));
 });

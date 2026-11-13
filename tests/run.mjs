@@ -13,7 +13,9 @@ async function page(opts) {
   const ctx = await browser.newContext(opts || {});
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(String(e))); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-  await p.goto(base + '/'); p.errs = errs; return p;
+  await p.goto(base + '/app/'); p.errs = errs; p.errs.push = p.errs.push;
+  if (!(opts && opts.noStart)) { await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home'); }
+  return p;
 }
 const chip = (p, name) => p.locator('#chips button', { hasText: name }).first();
 const lastBot = (p) => p.locator('#thread .msg.bot').last();
@@ -21,7 +23,7 @@ const lastBot = (p) => p.locator('#thread .msg.bot').last();
 // 1. home
 let p = await page();
 ok(await p.locator('.choice').count() === 3, 'home shows three choices');
-ok(await p.locator('#chips button').count() >= 6, 'home shows quick chips');
+ok(await p.locator('#chips button').count() === 4, 'home shows four quiet chips');
 // 2. letter flow with AI
 await p.locator('.choice[data-sit="quiet"]').click();
 await p.locator('.aN').fill('My adjuster has not answered for 7 weeks.');
@@ -37,7 +39,7 @@ ok((await p.locator('.lOut').innerText()).length > 5, 'copy gives feedback');
 await chip(p, 'Make it shorter').click(); await p.waitForSelector('textarea.letterEdit');
 ok(true, 'shorter regenerates');
 // drawer saves the letter
-await p.locator('#checkBtn').click();
+await p.locator('#menuBtn').click(); await p.locator('#checkBtn').click();
 ok((await p.locator('#drawerBody').innerText()).includes('Request regarding'), 'letter saved in My claim');
 await p.locator('#closeD').click();
 // 3. free typing, AI answer with citation and action chip
@@ -62,7 +64,7 @@ await p.context().close();
 
 // 6. languages
 for (const [l, word] of [['es', 'Dígale'], ['zh', '用书面形式']]) {
-  p = await page(); await p.locator('#langSeg button[data-lang="' + l + '"]').click();
+  p = await page({ noStart: true }); await p.locator('#menuBtn').click(); await p.locator('#langSeg button[data-lang="' + l + '"]').click(); await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home');
   ok((await p.locator('.card.home h2').innerText()).includes(word), 'home in ' + l);
   await p.locator('.choice[data-sit="low"]').click(); await p.waitForSelector('.aGo');
   await p.locator('.aGo').click(); await p.waitForSelector('textarea.letterEdit');
@@ -88,7 +90,7 @@ await p.context().close();
 p = await page(); await chip(p, 'Explain insurance words').click(); await p.waitForSelector('dl.words');
 ok((await p.locator('dl.words').innerText()).includes('Deductible'), 'words card');
 await p.context().close();
-p = await page(); await chip(p, 'I need a place to stay').click(); await p.waitForSelector('.card .steps');
+p = await page(); await chip(p, 'More').click(); await chip(p, 'I need a place to stay').click(); await p.waitForSelector('.card .steps');
 ok((await p.locator('#thread').innerText()).includes('1-800-621-3362'), 'stay card has FEMA number');
 await p.context().close();
 
@@ -108,8 +110,62 @@ for (const mode of ['quota', 'off']) {
   await p.context().close();
 }
 process.env.MOCK = 'ok';
+
+// 12. landing page and routing
+p = await page({ noStart: true }); await p.goto(base + '/');
+ok((await p.locator('h1').innerText()).includes('one clear step'), 'landing headline');
+ok((await p.locator('a.btn').getAttribute('href')) === '/app/', 'Start leads to the app');
+ok(await p.locator('footer a[href="tel:18009274357"]').count() === 1, 'landing has the CDI number');
+const fam = await p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
+ok(/Archivo/.test(fam), 'landing headline uses Archivo');
+const loaded = await p.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family).join(','); });
+ok(/Archivo/.test(loaded) && /Inter/.test(loaded), 'bundled fonts actually load: ' + loaded);
+await p.setViewportSize({ width: 375, height: 700 });
+ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 376, 'landing: no horizontal scroll at 375px');
+await p.screenshot({ path: '/tmp/shot_landing_m.png' });
+await p.setViewportSize({ width: 1280, height: 800 }); await p.screenshot({ path: '/tmp/shot_landing.png' });
+await p.locator('a.btn').click(); await p.waitForSelector('.card.who');
+ok(true, 'Start opens the who-is-this-for screen');
+await p.context().close();
+
+// 13. who is this for, separate chats, letters on behalf
+p = await page({ noStart: true });
+ok(await p.locator('.wchoice').count() === 3, 'who screen shows three choices');
+await p.locator('.wchoice[data-who="other"]').click(); await p.locator('#wname').fill('my mom'); await p.locator('#wgo').click();
+await p.waitForSelector('.card.home');
+ok((await p.locator('.card.home h2').innerText()).includes('my mom'), 'home uses their name');
+ok((await p.locator('#tagWho').innerText()).includes('For someone else'), 'chat bar shows it is for someone else');
+await p.locator('.choice[data-sit="denied"]').click(); await p.waitForSelector('.aGo'); await p.locator('.aGo').click(); await p.waitForSelector('textarea.letterEdit');
+const calls0 = (await import('../dev/dev-server.js')).calls; const lastCall = calls0[calls0.length - 1];
+ok(/WRITING FOR: someone else \(my mom\)/.test(lastCall.userFull || lastCall.last + ''), 'API is told the letter is for someone else');
+await p.locator('#input').fill('what should I do about the adjuster'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
+// new chat for myself
+await p.locator('#newChatBtn').click(); await p.waitForSelector('.card.who');
+await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home');
+ok((await p.locator('#thread').innerText()).indexOf('my mom') === -1, 'new chat starts clean');
+await p.locator('#input').fill('my own claim was denied'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
+await p.locator('#chatTitle').click(); await p.waitForSelector('#chatsOv.open');
+ok(await p.locator('#clist .citem').count() === 2, 'chat list shows both chats');
+await p.locator('#clist .citem', { hasText: 'my mom' }).click(); await p.waitForTimeout(500);
+ok((await p.locator('#thread').innerText()).includes('what should I do about the adjuster'), 'old chat comes back with its messages');
+ok((await p.locator('#tagWho').innerText()).includes('For someone else'), 'old chat is still for someone else');
+// reload keeps chats
+await p.reload(); await p.waitForTimeout(600);
+ok((await p.locator('#chatTitle').innerText()).includes('my mom'), 'reload keeps the current chat');
+await p.locator('#chatTitle').click(); ok(await p.locator('#clist .citem').count() === 2, 'reload keeps both chats');
+// delete needs two taps
+const delBtn = p.locator('#clist .cdel').first(); await delBtn.click(); ok(await p.locator('#clist .citem').count() === 2, 'one tap does not delete');
+await p.locator('#clist .cdel[data-arm="1"]').click(); ok(await p.locator('#clist .citem').count() === 1, 'second tap deletes');
+ok(p.errs.length === 0, 'no page errors in chats: ' + p.errs.join(' | '));
+await p.context().close();
+
+// 14. light theme still readable
+p = await page(); await p.locator('#menuBtn').click(); await p.locator('#themeBtn').click();
+ok((await p.evaluate(() => document.documentElement.getAttribute('data-theme'))) === 'light', 'theme toggles to light');
+await p.screenshot({ path: '/tmp/shot_app_light.png' }); await p.context().close();
+p = await page(); await p.screenshot({ path: '/tmp/shot_app_dark.png' }); await p.context().close();
 // 11. adjuster stage exists for owners
-p = await page(); await p.locator('#checkBtn').click();
+p = await page(); await p.locator('#menuBtn').click(); await p.locator('#checkBtn').click();
 ok((await p.locator('#drawerBody').innerText()).includes('adjuster is coming'), 'adjuster visit stage listed');
 await p.screenshot({ path: '/tmp/shot_drawer.png' }); await p.context().close();
 await browser.close(); server.close();

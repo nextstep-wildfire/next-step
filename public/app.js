@@ -7,7 +7,7 @@
   var start = Date.now();
   var events = [];
   var KEY = 'next-step-v3'; var _nop = {};
-  var state = { lang: 'en', role: null, chat: [], stage: null, stressAsked: false, stress: 'not asked', typed: [], steps: [], misses: 0, done: {}, seen: {}, contacts: [], letters: [], plan: null, touched: false, reporting: false, lastChips: null, loops: 0 };
+  var state = { lang: 'en', who: 'me', whoName: '', chatId: null, role: null, chat: [], stage: null, stressAsked: false, stress: 'not asked', typed: [], steps: [], misses: 0, done: {}, seen: {}, contacts: [], letters: [], plan: null, touched: false, reporting: false, lastChips: null, loops: 0 };
 
   /* ---------- language ---------- */
   var LOCALES = { en: 'en-US', es: 'es-US', zh: 'zh-CN' };
@@ -17,11 +17,56 @@
   function T(a, b, c) { return state.lang === 'es' ? b : (state.lang === 'zh' ? c : a); }
   function fmtS(s, v) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return v && v[k] != null ? v[k] : m; }); }
 
-  function save() { try { localStorage.setItem(KEY, JSON.stringify({ lang: state.lang, role: state.role, done: state.done, seen: state.seen, contacts: state.contacts, letters: state.letters, plan: state.plan })); } catch (e) {} }
+  /* ---------- chats: each topic or person gets its own chat, saved on this device only ---------- */
+  var STORE = 'next-step-v4';
+  var store = { chats: [], cur: null };
+  var CHAT_FIELDS = ['who', 'whoName', 'role', 'done', 'seen', 'contacts', 'letters', 'plan'];
+  var MAX_CHATS = 12;
+  function newId() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+  function curChat() { for (var i = 0; i < store.chats.length; i++) if (store.chats[i].id === store.cur) return store.chats[i]; return null; }
+  function resetChatState() {
+    state.who = 'me'; state.whoName = ''; state.role = null; state.done = {}; state.seen = {}; state.contacts = []; state.letters = []; state.plan = null;
+    state.chat = []; state.stage = null; state.typed = []; state.steps = []; state.misses = 0; state.stress = 'not asked'; state.stressAsked = false;
+    state.touched = false; state.lastChips = null; state.loops = 0; state.reporting = false;
+  }
+  function applyChat(c) {
+    resetChatState();
+    state.who = c.who === 'other' || c.who === 'explore' ? c.who : 'me'; state.whoName = c.whoName || '';
+    state.role = c.role === 'own' || c.role === 'rent' ? c.role : null;
+    state.done = c.done || {}; state.seen = c.seen || {}; state.contacts = c.contacts || []; state.letters = c.letters || []; state.plan = c.plan || null;
+    state.chat = (c.ai || []).slice(-12); state.chatId = c.id; state.touched = !!(c.tx && c.tx.length);
+  }
+  function snap() {
+    var out = [];
+    Array.prototype.forEach.call(thread.children, function (m) {
+      if (!m.classList.contains('msg') || m.classList.contains('typing') || m.classList.contains('note') || m.classList.contains('home') || m.classList.contains('who')) return;
+      if (m.querySelector('textarea, input')) return;
+      var tx = (m.innerText || m.textContent || '').trim().replace(/\n{3,}/g, '\n\n').slice(0, 900);
+      if (tx) out.push({ r: m.classList.contains('user') ? 'u' : 'b', t: tx });
+    });
+    return out.slice(-60);
+  }
+  function save() {
+    try {
+      var c = curChat();
+      if (c) { CHAT_FIELDS.forEach(function (k) { c[k] = state[k]; }); c.ai = state.chat.slice(-12); c.tx = snap(); c.ts = Date.now(); }
+      localStorage.setItem(STORE, JSON.stringify({ lang: state.lang, cur: store.cur, chats: store.chats }));
+    } catch (e) {}
+  }
   (function loadSaved() {
-    var s = null; try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
-    if (s) { if (s.lang && LOCALES[s.lang]) state.lang = s.lang; if (s.done) state.done = s.done; if (s.seen) state.seen = s.seen; if (s.contacts) state.contacts = s.contacts; if (s.letters) state.letters = s.letters; if (s.plan) state.plan = s.plan; if (s.role === 'own' || s.role === 'rent') state.role = s.role; }
-    else { var nl = (navigator.language || 'en').toLowerCase(); if (nl.indexOf('es') === 0) state.lang = 'es'; else if (nl.indexOf('zh') === 0) state.lang = 'zh'; }
+    var s = null, old = null;
+    try { s = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {}
+    if (!s) { try { old = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {} }
+    if (s) {
+      if (s.lang && LOCALES[s.lang]) state.lang = s.lang;
+      if (Array.isArray(s.chats)) store.chats = s.chats; store.cur = s.cur || null;
+    } else if (old) {
+      if (old.lang && LOCALES[old.lang]) state.lang = old.lang;
+      var has = (old.done && Object.keys(old.done).length) || (old.letters && old.letters.length) || (old.contacts && old.contacts.length) || old.plan;
+      if (has) { var m = { id: newId(), who: 'me', whoName: '', role: old.role, done: old.done || {}, seen: old.seen || {}, contacts: old.contacts || [], letters: old.letters || [], plan: old.plan || null, ai: [], tx: [], ts: Date.now() }; store.chats.push(m); store.cur = m.id; }
+    } else { var nl = (navigator.language || 'en').toLowerCase(); if (nl.indexOf('es') === 0) state.lang = 'es'; else if (nl.indexOf('zh') === 0) state.lang = 'zh'; }
+    var q = /[?&]lang=(en|es|zh)\b/.exec(location.search); if (q) state.lang = q[1];
+    var c = curChat(); if (c) applyChat(c); else store.cur = null;
   })();
 
   /* Sources: a small set of public pages, summarized in our own words. Answers may only use these notes. */
@@ -370,6 +415,19 @@
     document.getElementById('themeBtn').setAttribute('aria-label', T('Switch light or dark theme', 'Cambiar entre tema claro y oscuro', '切换浅色或深色主题'));
     document.getElementById('langSeg').setAttribute('aria-label', T('Language', 'Idioma', '语言'));
     document.querySelectorAll('#langSeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === state.lang ? 'true' : 'false'); });
+    (function () { var nb = document.getElementById('newChatBtn'), nt = T('New chat', 'Nuevo chat', '新聊天'); nb.innerHTML = '<span class="plus" aria-hidden="true">+</span><span class="nct">' + esc(nt) + '</span>'; nb.setAttribute('aria-label', nt); })();
+    document.getElementById('miChats').textContent = T('Your chats', 'Sus chats', '您的聊天');
+    document.getElementById('miCheck').textContent = T('My checklist', 'Mi lista de pasos', '我的清单');
+    document.getElementById('miHelp').textContent = T('How this works', 'Cómo funciona', '使用说明');
+    document.getElementById('miLang').textContent = T('Language', 'Idioma', '语言');
+    document.getElementById('miTheme').textContent = T('Light or dark', 'Claro u oscuro', '浅色或深色');
+    document.getElementById('menuBtn').setAttribute('aria-label', T('Menu', 'Menú', '菜单'));
+    document.getElementById('cTitle').textContent = T('Your chats', 'Sus chats', '您的聊天');
+    document.getElementById('cSub').textContent = T('One chat per person or situation. Saved on this device only.', 'Un chat por persona o situación. Se guardan solo en este dispositivo.', '每个人或每种情况一个聊天。仅保存在此设备上。');
+    document.getElementById('newFromList').textContent = T('Start a new chat', 'Empezar un chat nuevo', '开始新聊天');
+    document.getElementById('closeC').setAttribute('aria-label', T('Close', 'Cerrar', '关闭'));
+    if (typeof setChatbar === 'function') setChatbar();
+    if (chatsOv && chatsOv.classList.contains('open')) renderChats();
     input.setAttribute('placeholder', T('Message', 'Mensaje', '输入消息'));
     input.setAttribute('aria-label', T('Message', 'Mensaje', '输入消息'));
     document.getElementById('sendBtn').setAttribute('aria-label', T('Send', 'Enviar', '发送'));
@@ -391,7 +449,7 @@
   function setLang(l) {
     if (l === state.lang) return;
     state.lang = l; save(); applyLang(); log('language', l);
-    if (!state.touched) { thread.innerHTML = ''; chips.innerHTML = ''; intro(); return; }
+    if (!state.touched) { thread.innerHTML = ''; chips.innerHTML = ''; renderStart(); setChatbar(); return; }
     thread.appendChild(el('div', 'msg note', esc(t('langChanged'))));
     scroll();
     if (state.lastChips) setChips(state.lastChips);
@@ -464,17 +522,38 @@
       b.setAttribute('aria-pressed', (r === 'unsure' ? !state.role : state.role === r) ? 'true' : 'false');
     });
   }
+  function homeT() {
+    var n = state.whoName, w = state.who;
+    if (w === 'other') {
+      return {
+        title: T('What is happening with ' + (n ? n + '’s' : 'their') + ' claim?', '¿Qué está pasando con el reclamo de ' + (n || 'esa persona') + '?', (n || '对方') + '的理赔现在是什么情况？'),
+        sub: T('You are helping, so answers talk about them, not you. Letters will say you are writing on their behalf.', 'Usted está ayudando, así que las respuestas hablan de esa persona, no de usted. Las cartas dirán que escribe en su nombre.', '您在帮助对方，所以回答会以对方为主。信件会注明您是代对方来写的。'),
+        roleLabel: T('Do they own or rent?', '¿Es propietario(a) o inquilino(a)?', '对方是房主还是租客？'),
+        own: T('They own', 'Propietario(a)', '房主'), rent: T('They rent', 'Inquilino(a)', '租客'), unsure: t('role_unsure'),
+        prompt: T('What did their insurer do?', '¿Qué hizo su aseguradora?', '对方的保险公司做了什么？'),
+        c: { denied: [t('c_denied'), T('Their claim was denied', 'Su reclamo fue rechazado', '对方的理赔被拒绝')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), T('No answer from the adjuster', 'El ajustador no responde', '理赔员没有回复')] }
+      };
+    }
+    return {
+      title: w === 'explore' ? T('What would you like to understand?', '¿Qué le gustaría entender?', '您想了解什么？') : t('homeTitle'),
+      sub: w === 'explore' ? T('No claim needed. Pick a topic below, or ask anything in the box.', 'No necesita un reclamo. Elija un tema abajo o pregunte lo que quiera en el cuadro.', '不需要已有理赔。选择下面的主题，或在输入框里随便问。') : t('homeSub'),
+      roleLabel: t('roleLabel'), own: t('role_own'), rent: t('role_rent'), unsure: t('role_unsure'),
+      prompt: t('homePrompt'),
+      c: { denied: [t('c_denied'), t('c_denied_s')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), t('c_quiet_s')] }
+    };
+  }
   function homeCard() {
+    var H = homeT();
     var c = el('div', 'msg bot card home');
-    c.innerHTML = '<h2>' + esc(t('homeTitle')) + '</h2><p class="small">' + esc(t('homeSub')) + '</p>' +
-      '<div class="rolerow" role="group" aria-label="' + esc(t('roleLabel')) + '"><span>' + esc(t('roleLabel')) + '</span>' +
-      ['own', 'rent', 'unsure'].map(function (r) { return '<button type="button" class="rolebtn" data-role="' + r + '" aria-pressed="false">' + esc(t('role_' + r)) + '</button>'; }).join('') + '</div>' +
-      '<p class="ask">' + esc(t('homePrompt')) + '</p>' +
+    c.innerHTML = '<h2>' + esc(H.title) + '</h2><p class="small">' + esc(H.sub) + '</p>' +
+      '<p class="ask">' + esc(H.prompt) + '</p>' +
       '<div class="choices">' + ['denied', 'low', 'quiet'].map(function (s) {
-        return '<button type="button" class="choice" data-sit="' + s + '"><b>' + esc(t('c_' + s)) + '</b><small>' + esc(t('c_' + s + '_s')) + '</small></button>';
+        return '<button type="button" class="choice" data-sit="' + s + '"><b>' + esc(H.c[s][0]) + '</b><small>' + esc(H.c[s][1]) + '</small></button>';
       }).join('') + '</div>' +
-      '<p class="small">' + esc(t('homeMore')) + '</p><p class="small faint">' + esc(t('homeTime')) + '</p>' +
-      '<div class="inl"><button type="button" class="chip" id="sampleBtn">' + esc(t('sample')) + '</button></div>';
+      '<p class="small">' + esc(t('homeMore')) + '</p>' +
+      '<div class="rolerow" role="group" aria-label="' + esc(H.roleLabel) + '"><span>' + esc(H.roleLabel) + '</span>' +
+      ['own', 'rent', 'unsure'].map(function (r) { return '<button type="button" class="rolebtn" data-role="' + r + '" aria-pressed="false">' + esc(H[r]) + '</button>'; }).join('') + '</div>' +
+      (state.who === 'other' ? '' : '<div class="inl"><button type="button" class="chip" id="sampleBtn">' + esc(t('sample')) + '</button></div>');
     thread.appendChild(c); paintRoles(); scroll();
   }
   thread.addEventListener('click', function (e) {
@@ -482,19 +561,34 @@
     if (rb) {
       var r = rb.getAttribute('data-role'); state.role = r === 'unsure' ? null : r; save(); paintRoles(); log('role', r); return;
     }
+    var wc = e.target.closest('.wchoice');
+    if (wc) {
+      var wk = wc.getAttribute('data-who');
+      if (wk === 'other') { var wn = thread.querySelector('.whoname'); wn.hidden = false; thread.querySelectorAll('.wchoice').forEach(function (x) { x.setAttribute('aria-pressed', x === wc ? 'true' : 'false'); }); var wi = document.getElementById('wname'); if (wi) wi.focus(); }
+      else startChat(wk, '');
+      return;
+    }
+    if (e.target.id === 'wgo') { var wv = document.getElementById('wname'); startChat('other', wv ? wv.value : ''); return; }
     var ch = e.target.closest('.choice');
     if (ch) { var s = ch.getAttribute('data-sit'); log('home choice', s); user(t('c_' + s)); askFlow(s); return; }
     if (e.target.id === 'sampleBtn') { log('sample'); user(t('sampleNotes')); askFlow('quiet', { notes: t('sampleNotes') }); }
   });
+  thread.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'wname') { e.preventDefault(); startChat('other', e.target.value); } });
   function homeChips() {
     return [
-      [t('cSmoke'), function () { chooseStage(isRent() ? 'sm' : 'sm'); }],
-      [t('cStart'), function () { chooseStage(isRent() ? 'r1' : 's1'); }],
+      [t('cStart'), function () { chooseStage(isRent() ? 'r1' : 's1'); }, 'primary'],
+      [t('cWriteLetter'), function () { askFlow('other'); }],
+      [t('cWords'), function () { wordsFlow(); }],
+      [T('More', 'Más', '更多'), function () { setChips(moreChips); }]
+    ];
+  }
+  function moreChips() {
+    return [
+      [t('cSmoke'), function () { chooseStage('sm'); }],
       [t('cStay'), function () { helpFlow('stay'); }],
       [t('cGov'), function () { helpFlow('gov'); }],
-      [t('cWords'), function () { wordsFlow(); }],
       [t('cWalk'), function () { bot('<p>' + esc(t('whatNext')) + '</p>', function () { setChips(stageChips); }); }],
-      [t('cWriteLetter'), function () { askFlow('other'); }]
+      [t('back'), function () { setChips(homeChips); }]
     ];
   }
   function intro() {
@@ -502,6 +596,97 @@
     homeCard();
     setChips(homeChips);
   }
+
+  /* ---------- who is this for, new chat, switching ---------- */
+  var chatsOv = document.getElementById('chatsOv');
+  function chatTitle(c) {
+    var n = c.whoName;
+    if (c.who === 'other') return n ? T(n + '’s claim', 'Reclamo de ' + n, n + '的理赔') : T('Someone close to me', 'Alguien cercano', '我身边的人');
+    if (c.who === 'explore') return T('Just learning', 'Solo informándome', '只是了解一下');
+    return T('My claim', 'Mi reclamo', '我的理赔');
+  }
+  function setChatbar() {
+    var c = curChat(), bar = document.getElementById('chatbar'), tg = document.getElementById('tagWho');
+    if (!c) { bar.hidden = true; return; }
+    bar.hidden = false;
+    var b = document.getElementById('chatTitle'); b.textContent = chatTitle(c); b.setAttribute('aria-label', T('Your chats. Current: ', 'Sus chats. Actual: ', '您的聊天。当前：') + chatTitle(c));
+    tg.hidden = c.who === 'me';
+    tg.textContent = c.who === 'other' ? T('For someone else', 'Para otra persona', '为他人') : T('Exploring', 'Explorando', '了解中');
+  }
+  function whoCard() {
+    chips.innerHTML = ''; state.lastChips = null;
+    var opts = [
+      ['me', T('Me', 'Yo', '我自己'), T('My own home and claim', 'Mi propia vivienda y reclamo', '我自己的住房和理赔')],
+      ['other', T('Someone close to me', 'Alguien cercano', '我身边的人'), T('Family, a friend, a neighbor', 'Familia, un amigo, un vecino', '家人、朋友或邻居')],
+      ['explore', T('Just learning', 'Solo informándome', '只是了解一下'), T('No claim yet, or just curious', 'Aún sin reclamo, o solo curiosidad', '还没有理赔，或只是好奇')]
+    ];
+    var c = el('div', 'msg bot card who');
+    c.innerHTML = '<h2>' + esc(T('Who is this for?', '¿Para quién es esto?', '这是为谁准备的？')) + '</h2>' +
+      '<p class="small">' + esc(T('Pick one. You can start a new chat any time for a different situation.', 'Elija una. Puede empezar un chat nuevo cuando quiera para otra situación.', '请选一个。遇到不同的情况时，随时可以新开一个聊天。')) + '</p>' +
+      '<div class="choices">' + opts.map(function (o) { return '<button type="button" class="choice wchoice" data-who="' + o[0] + '"><b>' + esc(o[1]) + '</b><small>' + esc(o[2]) + '</small></button>'; }).join('') + '</div>' +
+      '<div class="whoname" hidden><label class="lbl" for="wname">' + esc(T('What should I call them? (optional)', '¿Cómo los llamo? (opcional)', '我该怎么称呼对方？（可选）')) + '</label>' +
+      '<input id="wname" class="wname" type="text" maxlength="40" autocomplete="off" placeholder="' + esc(T('my mom', 'mi mamá', '我妈妈')) + '">' +
+      '<div class="btnrow"><button type="button" class="bigbtn" id="wgo">' + esc(T('Continue', 'Continuar', '继续')) + '</button></div></div>';
+    thread.appendChild(c); scroll();
+  }
+  function startChat(who, name) {
+    var c = { id: newId(), who: who, whoName: (name || '').trim().slice(0, 40), role: null, done: {}, seen: {}, contacts: [], letters: [], plan: null, ai: [], tx: [], ts: Date.now() };
+    store.chats.push(c);
+    while (store.chats.length > MAX_CHATS) { var di = store.chats.findIndex(function (x) { return x.id !== c.id; }); if (di < 0) break; store.chats.splice(di, 1); }
+    store.cur = c.id; applyChat(c);
+    thread.innerHTML = ''; chips.innerHTML = '';
+    setChatbar(); log('chat started', who); save(); updateChecks(); intro();
+  }
+  function hasContent(c) { return (c.tx && c.tx.length) || Object.keys(c.done || {}).length || (c.letters && c.letters.length) || (c.contacts && c.contacts.length) || c.plan; }
+  function newChat() {
+    save();
+    var c = curChat();
+    if (c && !hasContent(c)) store.chats = store.chats.filter(function (x) { return x.id !== c.id; });
+    store.cur = null; resetChatState(); state.chatId = null;
+    thread.innerHTML = ''; chips.innerHTML = '';
+    save(); setChatbar(); updateChecks(); closeChats(); closeMenu(); whoCard(); log('new chat');
+  }
+  function restoreTx(c) {
+    (c.tx || []).forEach(function (m) { var d = el('div', 'msg restored ' + (m.r === 'u' ? 'user' : 'bot')); d.style.whiteSpace = 'pre-wrap'; d.textContent = m.t; thread.appendChild(d); });
+  }
+  function resumeChat(c) {
+    thread.innerHTML = ''; chips.innerHTML = '';
+    restoreTx(c);
+    if (c.tx && c.tx.length) { thread.appendChild(el('div', 'msg note', esc(T('Earlier messages are shown as text. Pick up where you left off.', 'Los mensajes anteriores se muestran como texto. Continúe donde lo dejó.', '之前的消息以文字显示。请从上次停下的地方继续。')))); setChips(homeChips); scroll(); }
+    else intro();
+  }
+  function switchChat(id) {
+    if (id === store.cur) { closeChats(); return; }
+    save();
+    var cur = curChat();
+    if (cur && !hasContent(cur)) store.chats = store.chats.filter(function (x) { return x.id !== cur.id; });
+    var c = null; store.chats.forEach(function (x) { if (x.id === id) c = x; });
+    if (!c) return;
+    store.cur = id; applyChat(c); setChatbar(); updateChecks(); closeChats(); resumeChat(c); log('chat opened', c.who);
+    if (drawerOv.classList.contains('open')) renderDrawer();
+  }
+  function deleteChat(id) {
+    store.chats = store.chats.filter(function (x) { return x.id !== id; });
+    if (store.cur === id) { store.cur = null; resetChatState(); state.chatId = null; thread.innerHTML = ''; chips.innerHTML = ''; setChatbar(); updateChecks(); whoCard(); }
+    save(); renderChats(); log('chat deleted');
+  }
+  function renderChats() {
+    var ul = document.getElementById('clist'); ul.innerHTML = '';
+    store.chats.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }).forEach(function (c) {
+      var li = el('li', c.id === store.cur ? 'cur' : '');
+      var who = c.who === 'other' ? T('For someone else', 'Para otra persona', '为他人') : (c.who === 'explore' ? T('Exploring', 'Explorando', '了解中') : T('For me', 'Para mí', '为我自己'));
+      var when = c.ts ? new Date(c.ts).toLocaleDateString(LOCALES[state.lang], { month: 'short', day: 'numeric' }) : '';
+      li.innerHTML = '<button type="button" class="citem" data-id="' + esc(c.id) + '"><span class="ct">' + esc(chatTitle(c)) + '</span><span class="cs">' + esc(who + (when ? ' · ' + when : '')) + '</span></button>' +
+        '<button type="button" class="cdel" data-del="' + esc(c.id) + '">' + esc(T('Delete', 'Eliminar', '删除')) + '</button>';
+      ul.appendChild(li);
+    });
+    if (!store.chats.length) ul.appendChild(el('li', 'cs', esc(T('No chats yet.', 'Aún no hay chats.', '还没有聊天。'))));
+  }
+  function openChats() { save(); renderChats(); closeMenu(); chatsOv.classList.add('open'); document.getElementById('closeC').focus(); }
+  function closeChats() { chatsOv.classList.remove('open'); }
+  var menuEl = document.getElementById('menu'), menuBtn = document.getElementById('menuBtn');
+  function closeMenu() { menuEl.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); }
+  function renderStart() { if (curChat()) intro(); else whoCard(); }
 
   function roleChips() {
     setChips(function () {
@@ -700,7 +885,7 @@
   function claimSummary(short) {
     var st = state.stage && byId(state.stage) ? stageLabel(state.stage) : T('No stage chosen yet', 'Aún sin etapa', '尚未选择阶段');
     var home = state.role === 'rent' ? T('Renter', 'Inquilino(a)', '租客') : (state.role === 'own' ? T('Homeowner', 'Propietario(a)', '房主') : T('Not said', 'No indicado', '未说明'));
-    var lines = [t('summaryTitle'), T('Home: ', 'Vivienda: ', '住房：') + home, T('Where I am: ', 'Dónde estoy: ', '目前阶段：') + st];
+    var lines = [t('summaryTitle'), (state.who === 'other' ? T('For: ', 'Para: ', '对象：') + (state.whoName || T('someone close to me', 'alguien cercano', '我身边的人')) : ''), T('Home: ', 'Vivienda: ', '住房：') + home, T('Where I am: ', 'Dónde estoy: ', '目前阶段：') + st];
     if (state.typed.length) lines.push(T('What I said: ', 'Lo que dije: ', '我说过：') + state.typed.slice(-2).join(' / ').slice(0, 300));
     if (!short) {
       listIds().concat(['ad']).forEach(function (id) { if (state.seen[id] && byId(id)) { var s = stats(id); lines.push('- ' + stageLabel(id) + ': ' + s.d + '/' + s.n); } });
@@ -708,7 +893,7 @@
       if (state.letters.length) { lines.push(T('Letters written:', 'Cartas escritas:', '已写的信件：')); state.letters.forEach(function (l) { lines.push('  ' + l.d + ' | ' + l.sub); }); }
       if (state.plan) lines.push('', state.plan);
     }
-    return lines.join('\n');
+    return lines.filter(function (x) { return x !== ''; }).join('\n');
   }
   function openHandoff(src) {
     state.misses = 0; log('handoff opened', src || 'header'); state.touched = true;
@@ -828,12 +1013,16 @@
     var out = [];
     out.push('Subject: ' + SIT_SUBJECT[o.sit] + (o.claim ? ' - Claim ' + o.claim : ''));
     out.push(''); out.push('Dear Claims Team,'); out.push('');
-    out.push('I am writing about my claim for my ' + (isRent() ? 'rental home' : 'home') + ', which was affected by the California wildfire.');
-    var ctx = { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' }[o.sit];
+    var oth = o.who === 'other'; var pn = o.whoName || '[policyholder name]';
+    if (oth) out.push('I am writing on behalf of ' + pn + ' about their claim for their ' + (isRent() ? 'rental home' : 'home') + ', which was affected by the California wildfire.');
+    else out.push('I am writing about my claim for my ' + (isRent() ? 'rental home' : 'home') + ', which was affected by the California wildfire.');
+    var ctx = (oth ? { denied: 'They received your decision on the claim.', low: 'They received your settlement offer on the claim.', quiet: 'They have not received a response to their recent requests.', smoke: 'Their home is still standing, but smoke and ash got in.', other: '' } : { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' })[o.sit];
     if (ctx) out.push(ctx);
     if (o.notes) { out.push(''); out.push('In my own words: ' + o.notes.trim().slice(0, 900)); }
     if (o.paste) { out.push(''); out.push('Your message included: "' + o.paste.trim().slice(0, 500) + '"'); }
-    out.push(''); out.push(o.ask); out.push('');
+    out.push(''); out.push(o.ask);
+    if (oth) out.push('Please also tell me in writing what you need from ' + pn + ' so I can discuss this claim with you.');
+    out.push('');
     out.push('Please reply in writing by [date]. I am keeping a record of all communication on this claim.'); out.push('');
     out.push('Thank you,'); out.push(o.name || '[your name]');
     return out.join('\n');
@@ -866,9 +1055,9 @@
         var sel = w.querySelector('.ak:checked'); var key = sel ? sel.value : asks[0][0];
         var askText = '';
         if (key === 'x') { askText = ox.value.trim(); if (!askText) { var er = w.querySelector('.aErr'); er.textContent = t('needOther'); er.hidden = false; ox.focus(); return; } if (!/[.?!]$/.test(askText)) askText += '.'; if (!/^please/i.test(askText)) askText = 'Please ' + askText.charAt(0).toLowerCase() + askText.slice(1); }
-        else askText = (asks.filter(function (a) { return a[0] === key; })[0] || asks[0])[1];
+        else { askText = (asks.filter(function (a) { return a[0] === key; })[0] || asks[0])[1]; if (state.who === 'other') askText = askText.replace(/\bfrom me\b/g, 'from them').replace(/\bmy\b/g, 'their'); }
         w.querySelector('.aErr').hidden = true;
-        var o = { sit: sit, sitLabel: L(SIT_LABEL[sit]), role: state.role, ask: askText, notes: w.querySelector('.aN').value.trim(), paste: w.querySelector('.aP').value.trim(), name: w.querySelector('.aNm').value.trim(), claim: w.querySelector('.aC').value.trim(), insurer: w.querySelector('.aI').value.trim() };
+        var o = { sit: sit, who: state.who === 'other' ? 'other' : 'me', whoName: state.whoName, sitLabel: L(SIT_LABEL[sit]), role: state.role, ask: askText, notes: w.querySelector('.aN').value.trim(), paste: w.querySelector('.aP').value.trim(), name: w.querySelector('.aNm').value.trim(), claim: w.querySelector('.aC').value.trim(), insurer: w.querySelector('.aI').value.trim() };
         state.touched = true; log('letter requested', sit + '/' + key);
         showLetter(w.querySelector('.aOut'), o, false);
       });
@@ -904,7 +1093,7 @@
       });
     };
     if (Date.now() < aiUntil) { done(letterTemplate(o), true); return; }
-    api({ mode: 'letter', lang: state.lang, sit: o.sit, sitLabel: o.sitLabel, role: o.role, ask: o.ask, notes: o.notes, paste: o.paste, name: o.name, claim: o.claim, insurer: o.insurer, short: short })
+    api({ mode: 'letter', lang: state.lang, who: o.who, whoName: o.whoName, sit: o.sit, sitLabel: o.sitLabel, role: o.role, ask: o.ask, notes: o.notes, paste: o.paste, name: o.name, claim: o.claim, insurer: o.insurer, short: short })
       .then(function (r) { done(r.text, false); log('letter live', r.text.length + ' chars'); })
       .catch(function (err) { noteAiDown(err && err.code); done(letterTemplate(o), true); });
   }
@@ -1039,7 +1228,7 @@
     var m = el('div', 'msg bot ai typing', '•••'); thread.appendChild(m); scroll();
     var stage = state.stage && byId(state.stage) ? L(byId(state.stage).label) : '';
     var msgs = state.chat.slice(-6).concat([{ role: 'user', content: txt }]);
-    api({ mode: 'chat', lang: state.lang, role: state.role, stageLabel: stage, stress: state.stress, messages: msgs })
+    api({ mode: 'chat', lang: state.lang, role: state.role, who: state.who, whoName: state.whoName, stageLabel: stage, stress: state.stress, messages: msgs })
       .then(function (r) {
         var out = renderAI(r.text);
         m.className = 'msg bot ai'; m.innerHTML = out.html; scroll();
@@ -1123,7 +1312,7 @@
   /* Theme: follows the device by default, with a toggle. */
   var root = document.documentElement;
   var saved = null; try { saved = localStorage.getItem('cr-theme'); } catch (e) {}
-  root.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
+  root.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
   document.getElementById('themeBtn').addEventListener('click', function () {
     var cur = root.getAttribute('data-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     var next = cur === 'dark' ? 'light' : 'dark';
@@ -1134,13 +1323,39 @@
   /* Researcher log: press Ctrl+Shift+L to show or hide. */
   document.addEventListener('keydown', function (e) {
     if (e.ctrlKey && e.shiftKey && (e.key === 'L' || e.key === 'l')) { e.preventDefault(); document.getElementById('logwrap').classList.toggle('open'); }
-    if (e.key === 'Escape') { overlay.classList.remove('open'); drawerOv.classList.remove('open'); }
+    if (e.key === 'Escape') { overlay.classList.remove('open'); drawerOv.classList.remove('open'); closeChats(); closeMenu(); }
   });
   document.getElementById('copyLog').addEventListener('click', function () {
     try { navigator.clipboard.writeText(events.join('\n')).then(function () {}, function () {}); } catch (err) {}
   });
 
+  /* Menu, chats and saving */
+  menuBtn.addEventListener('click', function (e) { e.stopPropagation(); var open = !menuEl.classList.contains('open'); menuEl.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+  menuEl.addEventListener('click', function (e) { if (e.target.closest('.mi')) closeMenu(); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.tools')) closeMenu(); });
+  document.getElementById('newChatBtn').addEventListener('click', newChat);
+  document.getElementById('newFromList').addEventListener('click', newChat);
+  document.getElementById('chatsBtn').addEventListener('click', openChats);
+  document.getElementById('chatTitle').addEventListener('click', openChats);
+  document.getElementById('closeC').addEventListener('click', closeChats);
+  chatsOv.addEventListener('click', function (e) { if (e.target === chatsOv) closeChats(); });
+  document.getElementById('clist').addEventListener('click', function (e) {
+    var d = e.target.closest('.cdel');
+    if (d) {
+      if (d.getAttribute('data-arm')) deleteChat(d.getAttribute('data-del'));
+      else { d.setAttribute('data-arm', '1'); d.textContent = T('Tap again to delete', 'Toque otra vez para eliminar', '再点一次即可删除'); }
+      return;
+    }
+    var it = e.target.closest('.citem'); if (it) switchChat(it.getAttribute('data-id'));
+  });
+  var saveTimer = null;
+  new MutationObserver(function () { clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }).observe(thread, { childList: true });
+  window.addEventListener('pagehide', save);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') save(); });
+
   applyLang();
   log('session started', 'lang ' + state.lang);
-  intro();
+  var bootChat = curChat();
+  setChatbar();
+  if (bootChat) resumeChat(bootChat); else whoCard();
 })();

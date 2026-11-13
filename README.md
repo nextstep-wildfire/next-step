@@ -70,3 +70,10 @@ The automated test needs Playwright installed: `npm i -D playwright`, then `npx 
 - Source notes were last updated Nov 7, 2026 and have not been reviewed by an insurance professional.
 - Talk to a person shows real public phone numbers. A helper who follows up with the person is not built, and the page says so.
 - Mobile homes and condos are not checked.
+
+## Pages (v4)
+
+- `/` is the landing page (`public/index.html`, `landing.css`).
+- `/app/` is the guide (`public/app/index.html`, `app.css`, `app.js`). `/app/?lang=es` and `?lang=zh` open it in Spanish or Chinese.
+- Fonts are bundled in `public/fonts` (Archivo for headings, Inter for body). No outside requests.
+- Each chat (for me, for someone close, just learning) is saved on the device only, under the key `next-step-v4`.

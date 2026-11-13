@@ -4,56 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Next Step: help with a wildfire insurance claim</title>
+<title>Next Step: one clear step at a time after a wildfire</title>
 <meta name="description" content="A free guide for California wildfire survivors dealing with a home insurance claim. A student prototype. Not legal advice.">
-<link rel="stylesheet" href="app.css">
+<link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/landing.css">
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="brand">
-      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-9 7 9"/><path d="M3 19h18"/></svg></span>
-      <h1>Next Step</h1>
-    </div>
-    <div class="tools">
-      <div class="seg" role="group" id="langSeg">
-        <button type="button" data-lang="en" aria-pressed="true" title="English" lang="en">EN</button>
-        <button type="button" data-lang="es" aria-pressed="false" title="Español" lang="es">ES</button>
-        <button type="button" data-lang="zh" aria-pressed="false" title="中文" lang="zh">中文</button>
-      </div>
-      <button class="icon-btn" id="checkBtn" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.5l3 3 5-6"/></svg>
-        <span class="badge" id="badge" hidden>0</span>
-      </button>
-      <button class="icon-btn" id="helpBtn" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1 1-1.1 1.8"/><path d="M12 17h.01"/></svg>
-      </button>
-      <button class="icon-btn" id="themeBtn" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-      </button>
-      <button class="pill" id="humanBtn" type="button">Talk to a person</button>
-    </div>
-  </header>
-  <div id="thread" role="log" aria-live="polite"></div>
-  <div id="chips"></div>
-  <form id="form" autocomplete="off">
-    <input type="text" id="input" aria-label="Message" placeholder="Message">
-    <button type="submit" id="sendBtn" aria-label="Send">&#8593;</button>
-  </form>
-  <p class="fine"><span id="fineTxt"></span> <button type="button" id="reportBtn" hidden></button></p>
-  <div id="logwrap"><button type="button" id="copyLog" class="chip">Copy log</button><pre id="logOut"></pre></div>
-</div>
+<header class="top">
+  <a class="brand" href="/" aria-label="Next Step home"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-9 7 9"/><path d="M3 19h18"/></svg></span><b>Next Step</b></a>
+  <nav><a href="/app/" class="navlink">Open the guide</a></nav>
+</header>
 
-<div class="overlay right" id="drawerOv">
-  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
-    <div class="dhead"><h2 id="dTitle"></h2><button type="button" class="icon-btn" id="closeD"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="sub" id="dSub" style="color:var(--muted);font-size:13.5px;margin:0 0 14px"></p>
-    <div id="drawerBody"></div>
-    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button type="button" class="chip primary" id="copySummary"></button><button type="button" class="chip" id="copyList"></button></div>
-  </aside>
-</div>
+<main>
+  <section class="hero">
+    <p class="eyebrow">For California wildfire survivors</p>
+    <h1>Your insurance claim, <span class="hl">one clear step</span> at a time.</h1>
+    <p class="lede">Next Step explains where you are, writes the letter to your insurer with one clear ask, and points you to a real person when you need one.</p>
+    <div class="cta">
+      <a class="btn" href="/app/">Start</a>
+      <span class="micro">Free. No sign-in. Also in <a href="/app/?lang=es">Español</a> and <a href="/app/?lang=zh">中文</a>.</span>
+    </div>
+  </section>
 
-<noscript><p style="padding:24px;font-family:sans-serif">Next Step needs JavaScript. For help now, call the California Department of Insurance at 1-800-927-4357.</p></noscript>
-<script src="app.js" defer></script>
+  <section class="peek" aria-label="Example">
+    <div class="bub you">They denied my claim and I don’t know what to do.</div>
+    <div class="bub bot">That’s hard. You can ask them, in writing, to explain the decision and name the policy sections it relies on. Want me to write that letter?</div>
+  </section>
+
+  <section class="three">
+    <div><span class="n">01</span><h2>Know what comes next</h2><p>Plain steps for where you are in the claim, with the source beside every fact.</p></div>
+    <div><span class="n">02</span><h2>Write the letter</h2><p>One short letter with one clear ask, in your words. Edit it, copy it, send it.</p></div>
+    <div><span class="n">03</span><h2>One chat per situation</h2><p>Helping a parent or a neighbor? Start a separate chat for each person, so nothing gets mixed up.</p></div>
+  </section>
+
+  <section class="not">
+    <h2>What this is not</h2>
+    <p>A student prototype built with The After Collective. It is not legal or insurance advice, and it can be wrong. Your notes and letters stay on your device.</p>
+  </section>
+</main>
+
+<footer>
+  <p class="need">Need a person now?</p>
+  <ul>
+    <li><a href="tel:18009274357">California Department of Insurance <b>1-800-927-4357</b></a></li>
+    <li><a href="tel:18006213362">FEMA <b>1-800-621-3362</b></a></li>
+    <li><a href="tel:911">Emergency <b>911</b></a></li>
+    <li><a href="tel:988">Crisis line, call or text <b>988</b></a></li>
+  </ul>
+</footer>
+<script src="/landing.js" defer></script>
 </body>
 </html>

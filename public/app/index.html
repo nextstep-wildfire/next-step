@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Next Step: guide</title>
+<meta name="description" content="A free guide for California wildfire survivors dealing with a home insurance claim. A student prototype. Not legal advice.">
+<link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <a href="/" aria-label="Next Step home">
+        <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-9 7 9"/><path d="M3 19h18"/></svg></span>
+        <h1>Next Step</h1>
+      </a>
+    </div>
+    <div class="tools">
+      <button class="pill" id="newChatBtn" type="button">New chat</button>
+      <button class="pill solid" id="humanBtn" type="button">Talk to a person</button>
+      <button class="icon-btn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></svg>
+        <span class="badge" id="badge" hidden>0</span>
+      </button>
+      <div class="menu" id="menu" role="menu">
+        <button class="mi" id="chatsBtn" type="button" role="menuitem"><span id="miChats">Your chats</span></button>
+        <button class="mi" id="checkBtn" type="button" role="menuitem"><span id="miCheck">My checklist</span></button>
+        <button class="mi" id="helpBtn" type="button" role="menuitem"><span id="miHelp">How this works</span></button>
+        <hr>
+        <div class="mrow"><span id="miLang">Language</span>
+          <div class="seg" role="group" id="langSeg">
+            <button type="button" data-lang="en" aria-pressed="true" title="English" lang="en">EN</button>
+            <button type="button" data-lang="es" aria-pressed="false" title="Español" lang="es">ES</button>
+            <button type="button" data-lang="zh" aria-pressed="false" title="中文" lang="zh">中文</button>
+          </div>
+        </div>
+        <button class="mi" id="themeBtn" type="button" role="menuitem"><span id="miTheme">Light or dark</span></button>
+      </div>
+    </div>
+  </header>
+  <div class="chatbar" id="chatbar" hidden>
+    <button type="button" id="chatTitle"></button>
+    <span class="tagwho" id="tagWho" hidden></span>
+  </div>
+  <div id="thread" role="log" aria-live="polite"></div>
+  <div id="chips"></div>
+  <form id="form" autocomplete="off">
+    <input type="text" id="input" aria-label="Message" placeholder="Message">
+    <button type="submit" id="sendBtn" aria-label="Send">&#8593;</button>
+  </form>
+  <p class="fine"><span id="fineTxt"></span> <button type="button" id="reportBtn" hidden></button></p>
+  <div id="logwrap"><button type="button" id="copyLog" class="chip">Copy log</button><pre id="logOut"></pre></div>
+</div>
+
+<div class="overlay right" id="drawerOv">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="dhead"><h2 id="dTitle"></h2><button type="button" class="icon-btn" id="closeD"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="sub" id="dSub" style="color:var(--muted);font-size:13.5px;margin:0 0 14px"></p>
+    <div id="drawerBody"></div>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button type="button" class="chip primary" id="copySummary"></button><button type="button" class="chip" id="copyList"></button></div>
+  </aside>
+</div>
+
+<div class="overlay left" id="chatsOv">
+  <aside class="drawer leftd" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+    <div class="dhead"><h2 id="cTitle">Your chats</h2><button type="button" class="icon-btn" id="closeC"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="sub" id="cSub" style="color:var(--muted);font-size:13.5px;margin:0"></p>
+    <ul class="clist" id="clist"></ul>
+    <div class="btnrow"><button type="button" class="bigbtn" id="newFromList"></button></div>
+  </aside>
+</div>
+
+<noscript><p style="padding:24px;font-family:sans-serif">Next Step needs JavaScript. For help now, call the California Department of Insurance at 1-800-927-4357.</p></noscript>
+<script src="/app.js" defer></script>
+</body>
+</html>
