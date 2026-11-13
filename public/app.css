@@ -4,16 +4,16 @@
 @font-face { font-family: "EB Garamond"; src: url("/fonts/garamond.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
 @font-face { font-family: "Outfit"; src: url("/fonts/outfit.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
-  --bg: #121212; --grad: none; --ink: #f4efe8; --muted: #b3aba0; --faint: #9a9288; --line: #35322f;
-  --box: #1e1c1a; --tag: #1b1a18; --tag-line: #3a3733; --btn: #f2994a; --btn-ink: #1a1004; --accent-soft: #2a2622; --warm: #f2994a;
+  --bg: #0D0C0C; --grad: radial-gradient(900px 520px at 0% 0%, rgba(193,125,83,.20), transparent 62%), radial-gradient(700px 420px at 100% 100%, rgba(126,81,56,.14), transparent 65%); --ink: #f3e8de; --muted: #c2afa0; --faint: #9b8777; --line: #3b2b22;
+  --box: #1D1511; --tag: #17110e; --tag-line: #4a3226; --btn: #C17D53; --btn-ink: #140d09; --accent-soft: #2E221C; --warm: #C17D53;
   --font-body: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-head: "EB Garamond", Garamond, "Palatino Linotype", Georgia, serif;
   --font-caps: "Cinzel", "Trajan Pro", "Times New Roman", serif;
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #faf7f2; --ink: #1e1b18; --muted: #5e564e; --faint: #6f665c; --line: #e3dbd0;
-  --box: #ffffff; --tag: #f1ebe2; --tag-line: #ddd3c5; --btn: #1e1b18; --btn-ink: #faf7f2; --accent-soft: #f1e6d6; --warm: #a8520a; color-scheme: light;
+  --bg: #f7f0ea; --ink: #2E221C; --muted: #6b564a; --faint: #7b665a; --line: #e4d5ca;
+  --box: #ffffff; --tag: #f1e6dc; --tag-line: #dccabc; --btn: #7E5138; --btn-ink: #fff6ee; --accent-soft: #efdfd2; --warm: #7E5138; --grad: radial-gradient(900px 520px at 0% 0%, rgba(193,125,83,.16), transparent 62%); color-scheme: light;
 }
 h2, h3, .choice b { font-family: var(--font-head); font-weight: 700; letter-spacing: 0; }
 h2 { font-size: 1.12em; }
