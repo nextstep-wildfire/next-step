@@ -46,12 +46,14 @@ const tap = async (loc) => {
 };
 await p.waitForTimeout(900);
 await p.waitForSelector('.card.home'); await cap('1  Pick what happened'); await p.waitForTimeout(2400);
+await tap(p.locator('.rolebtn[data-role="own"]')); await p.waitForTimeout(900);
 await tap(p.locator('.choice[data-sit="quiet"]')); await p.waitForTimeout(1500);
 await cap('2  Tell it in your own words'); await p.waitForTimeout(1200);
 const notes = p.locator('.aN'); await tap(notes);
 await notes.pressSequentially('I reported my claim in January and sent photos. My adjuster has not answered my calls or emails for 7 weeks.', { delay: 28 });
 await p.waitForTimeout(700);
 await cap('3  Pick one clear ask'); await p.waitForTimeout(2300);
+await tap(p.locator('.fld label.ck').first()); await p.waitForTimeout(600);
 await tap(p.locator('.aGo'));
 await p.waitForSelector('textarea.letterEdit'); await p.waitForTimeout(600);
 await cap('4  Edit it, copy it, send it'); await p.waitForTimeout(3600);

@@ -127,6 +127,7 @@
     askOtherPh: ['What do you want them to do?', '¿Qué quiere que hagan?', '您希望他们做什么？'],
     lblPaste: ['Add the insurer’s message (optional)', 'Agregar el mensaje de la aseguradora (opcional)', '添加保险公司的来信（可选）'],
     phPaste: ['Paste the key lines from their letter or email', 'Pegue las líneas clave de su carta o correo', '粘贴来信或邮件中的关键内容'],
+    lblMore: ['Add more details (optional)', 'Agregar más detalles (opcional)', '添加更多信息（可选）'],
     lblDetails: ['Add your details (optional)', 'Agregar sus datos (opcional)', '添加您的信息（可选）'],
     phName: ['Your name', 'Su nombre', '您的姓名'],
     phClaim: ['Claim number', 'Número de reclamo', '理赔编号'],
@@ -134,6 +135,7 @@
     privNote: ['Please leave out Social Security and bank account numbers.', 'Por favor no incluya números de Seguro Social ni de cuentas bancarias.', '请不要填写社会安全号码或银行账号。'],
     writeLetter: ['Write my letter', 'Escribir mi carta', '生成我的信'],
     back: ['Back', 'Volver', '返回'],
+    needAsk: ['Pick the one thing you want them to do.', 'Elija lo que quiere que hagan.', '请选择您希望他们做的一件事。'],
     needOther: ['Please write what you want them to do.', 'Por favor escriba qué quiere que hagan.', '请写下您希望他们做什么。'],
     writing: ['Writing your letter', 'Escribiendo su carta', '正在写您的信'],
     letterTitle: ['Your letter', 'Su carta', '您的信'],
@@ -219,7 +221,7 @@
     ],
     low: [
       ['a1', 'Please explain in writing how you calculated the offer, line by line, and what it does not include.', M('Show how the number was figured, line by line', 'Mostrar cómo se calculó la cifra, partida por partida', '逐项说明金额是怎么算出来的')],
-      ['a2', 'Please review the contractor estimate(s) I am sending with this letter and tell me in writing what differs from your estimate.', M('Review my contractor estimate', 'Revisar el presupuesto de mi contratista', '审查我的承包商报价')],
+      ['a2', 'Please review the second contractor estimate I am sending with this letter and tell me in writing what differs from your estimate.', M('Get a second contractor estimate', 'Obtener un segundo presupuesto de contratista', '获取第二份承包商报价')],
       ['a3', 'Please confirm in writing the policy limits that apply to my dwelling, belongings and living expenses.', M('Confirm my policy limits', 'Confirmar los límites de mi póliza', '确认我的保单额度')]
     ],
     quiet: [
@@ -561,6 +563,8 @@
     var H = homeT();
     var c = el('div', 'msg bot card home');
     c.innerHTML = '<h2>' + esc(H.title) + '</h2><p class="small">' + esc(H.sub) + '</p>' +
+      '<div class="rolerow" role="group" aria-label="' + esc(H.roleLabel) + '"><span>' + esc(H.roleLabel) + '</span>' +
+      ['own', 'rent'].map(function (r) { return '<button type="button" class="rolebtn" data-role="' + r + '" aria-pressed="false">' + esc(H[r]) + '</button>'; }).join('') + '</div>' +
       '<div class="choices">' + H.keys.map(function (s) {
         return '<button type="button" class="choice" data-sit="' + s + '"><b>' + esc(H.c[s][0]) + '</b><small>' + esc(H.c[s][1]) + '</small></button>';
       }).join('') + '</div>' +
@@ -571,7 +575,7 @@
   thread.addEventListener('click', function (e) {
     var rb = e.target.closest('.rolebtn');
     if (rb) {
-      var r = rb.getAttribute('data-role'); state.role = r === 'unsure' ? null : r; save(); paintRoles(); log('role', r); return;
+      var r = rb.getAttribute('data-role'); state.role = (r === 'unsure' || state.role === r) ? null : r; save(); paintRoles(); log('role', r); return;
     }
     var wc = e.target.closest('.wchoice');
     if (wc) {
@@ -1064,15 +1068,13 @@
       var w = el('div', 'msg bot card');
       var asks = ASKS[sit];
       var radios = asks.map(function (a, i) {
-        return '<label class="ck"><input type="radio" name="ask' + uid + '" class="ak" value="' + a[0] + '"' + (i === 0 ? ' checked' : '') + '><span>' + esc(L(a[2])) + '</span></label>';
+        return '<label class="ck"><input type="radio" name="ask' + uid + '" class="ak" value="' + a[0] + '"><span>' + esc(L(a[2])) + '</span></label>';
       }).join('') + '<label class="ck"><input type="radio" name="ask' + uid + '" class="ak" value="x"><span>' + esc(t('askOtherLabel')) + '</span></label>' +
         '<input type="text" class="aX" maxlength="200" placeholder="' + esc(t('askOtherPh')) + '" aria-label="' + esc(t('askOtherPh')) + '" hidden>';
       w.innerHTML = '<div class="fld"><p class="small">' + esc(t('askIntro')) + '</p>' +
         '<label class="lbl">' + esc(t('lblNotes')) + '</label><textarea class="aN" maxlength="1200" placeholder="' + esc(t(I['phNotes_' + sit] ? 'phNotes_' + sit : 'phNotes')) + '"></textarea>' +
-        '<div class="rolerow" role="group" aria-label="' + esc(t('roleLabel')) + '"><span>' + esc(t('roleLabel')) + '</span>' + ['own', 'rent', 'unsure'].map(function (r) { return '<button type="button" class="rolebtn" data-role="' + r + '" aria-pressed="false">' + esc(t('role_' + r)) + '</button>'; }).join('') + '</div>' +
         '<label class="lbl">' + esc(t('lblAsk')) + '</label>' + radios +
-        '<details><summary>' + esc(t('lblPaste')) + '</summary><textarea class="aP" maxlength="1500" placeholder="' + esc(t('phPaste')) + '" aria-label="' + esc(t('lblPaste')) + '"></textarea></details>' +
-        '<details><summary>' + esc(t('lblDetails')) + '</summary><div class="two"><input type="text" class="aNm" maxlength="60" placeholder="' + esc(t('phName')) + '" aria-label="' + esc(t('phName')) + '"><input type="text" class="aC" maxlength="40" placeholder="' + esc(t('phClaim')) + '" aria-label="' + esc(t('phClaim')) + '"></div><input type="text" class="aI" maxlength="60" placeholder="' + esc(t('phInsurer')) + '" aria-label="' + esc(t('phInsurer')) + '"></details>' +
+        '<details><summary>' + esc(t('lblMore')) + '</summary><label class="lbl">' + esc(t('lblPaste')) + '</label><textarea class="aP" maxlength="1500" placeholder="' + esc(t('phPaste')) + '" aria-label="' + esc(t('lblPaste')) + '"></textarea><div class="two"><input type="text" class="aNm" maxlength="60" placeholder="' + esc(t('phName')) + '" aria-label="' + esc(t('phName')) + '"><input type="text" class="aC" maxlength="40" placeholder="' + esc(t('phClaim')) + '" aria-label="' + esc(t('phClaim')) + '"></div><input type="text" class="aI" maxlength="60" placeholder="' + esc(t('phInsurer')) + '" aria-label="' + esc(t('phInsurer')) + '"></details>' +
         '<p class="small faint">' + esc(t('privNote')) + '</p>' +
         '<div class="inl"><button type="button" class="chip primary aGo">' + esc(t('writeLetter')) + '</button></div><p class="small err aErr" role="alert" hidden></p></div><div class="aOut"></div>';
       thread.appendChild(w); paintRoles();
@@ -1081,7 +1083,9 @@
       w.addEventListener('change', function (e) { if (e.target.classList.contains('ak')) { ox.hidden = e.target.value !== 'x'; if (!ox.hidden) ox.focus(); } });
       scroll();
       w.querySelector('.aGo').addEventListener('click', function () {
-        var sel = w.querySelector('.ak:checked'); var key = sel ? sel.value : asks[0][0];
+        var sel = w.querySelector('.ak:checked');
+        if (!sel) { var er0 = w.querySelector('.aErr'); er0.textContent = t('needAsk'); er0.hidden = false; return; }
+        var key = sel.value;
         var askText = '';
         if (key === 'x') { askText = ox.value.trim(); if (!askText) { var er = w.querySelector('.aErr'); er.textContent = t('needOther'); er.hidden = false; ox.focus(); return; } if (!/[.?!]$/.test(askText)) askText += '.'; if (!/^please/i.test(askText)) askText = 'Please ' + askText.charAt(0).toLowerCase() + askText.slice(1); }
         else { askText = (asks.filter(function (a) { return a[0] === key; })[0] || asks[0])[1]; if (state.who === 'other') askText = askText.replace(/\bfrom me\b/g, 'from them').replace(/\bmy\b/g, 'their'); }
