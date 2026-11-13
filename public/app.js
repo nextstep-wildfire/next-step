@@ -1053,7 +1053,6 @@
     if (o.notes) { out.push(''); out.push('In my own words: ' + o.notes.trim().slice(0, 900)); }
     if (o.paste) { out.push(''); out.push('Your message included: "' + o.paste.trim().slice(0, 500) + '"'); }
     out.push(''); out.push(o.ask);
-    if (oth) out.push('Please also tell me in writing what you need from ' + pn + ' so I can discuss this claim with you.');
     out.push('');
     out.push('Please reply in writing within 15 calendar days of receiving this letter. I am keeping a record of all communication on this claim.'); out.push('');
     out.push('Thank you,'); out.push(o.name || '[your name]');

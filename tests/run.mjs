@@ -178,6 +178,9 @@ ok(true, 'Start opens the situation screen');
 await p.context().close();
 
 // 13. who is this for, separate chats, letters on behalf
+{ const { letterSystemPrompt } = await import('../lib/core.js'); const sp = letterSystemPrompt({ who: 'other' });
+  ok(!/what it needs from the policyholder/.test(sp) && /Do NOT add any extra request/.test(sp), 'someone-else letter prompt allows only the one ask');
+  ok(/Use ONLY the facts the person gave/.test(sp) && /eager/.test(sp), 'letter prompt forbids invented feelings and facts'); }
 p = await page({ noStart: true });
 await p.locator('#menuBtn').click(); await p.locator('#otherBtn').click(); await p.waitForSelector('.card.who');
 ok(await p.locator('.wchoice').count() === 3, 'helping someone else opens the three-choice who screen');
