@@ -86,6 +86,8 @@
     c_stay_s: ['Hotel, rent and living costs', 'Hotel, renta y gastos de vida', '酒店、租金和生活费'],
     c_smoke: ['Smoke or ash damage', 'Daño por humo o ceniza', '烟灰损害'],
     c_smoke_s: ['My home is still standing', 'Mi vivienda sigue en pie', '房子还在'],
+    c_words: ['Explain insurance words', 'Explicar términos de seguros', '解释保险术语'],
+    c_words_s: ['Deductible, ALE, depreciation', 'Deducible, ALE, depreciación', '免赔额、ALE、折旧'],
     helpOther: ['Helping someone else, or just learning?', '¿Ayuda a otra persona, o solo se informa?', '在帮别人，或只是想了解？'],
     c_denied: ['They said no', 'Dijeron que no', '他们拒赔了'],
     c_denied_s: ['My claim was denied', 'Mi reclamo fue rechazado', '我的理赔被拒绝'],
@@ -434,7 +436,8 @@
     document.getElementById('menuBtn').setAttribute('aria-label', T('Menu', 'Menú', '菜单'));
     document.getElementById('cTitle').textContent = T('Chats', 'Chats', '聊天');
     document.getElementById('sideBtn').setAttribute('aria-label', T('Open chats', 'Abrir chats', '打开聊天列表'));
-    document.getElementById('newFromList').textContent = '+  ' + T('New chat', 'Nuevo chat', '新聊天');
+    document.getElementById('newFromList').innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>' + esc(T('New chat', 'Nuevo chat', '新聊天')) + '</span>';
+    document.getElementById('miOther').textContent = T('Helping someone else', 'Ayudar a otra persona', '帮助他人');
     document.getElementById('closeC').setAttribute('aria-label', T('Close chats', 'Cerrar chats', '关闭聊天列表'));
     if (typeof setChatbar === 'function') setChatbar();
     renderChats();
@@ -550,8 +553,8 @@
       sub: w === 'explore' ? T('No claim needed. Pick a topic below, or ask anything in the box.', 'No necesita un reclamo. Elija un tema abajo o pregunte lo que quiera en el cuadro.', '不需要已有理赔。选择下面的主题，或在输入框里随便问。') : t('homeSub'),
       roleLabel: t('roleLabel'), own: t('role_own'), rent: t('role_rent'), unsure: t('role_unsure'),
       prompt: t('homePrompt'),
-      keys: w === 'explore' ? ['denied', 'low', 'quiet'] : ['start', 'stay', 'smoke', 'denied', 'low', 'quiet'],
-      c: { start: [t('c_start'), t('c_start_s')], stay: [t('c_stay'), t('c_stay_s')], smoke: [t('c_smoke'), t('c_smoke_s')], denied: [t('c_denied'), t('c_denied_s')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), t('c_quiet_s')] }
+      keys: w === 'explore' ? ['denied', 'low', 'quiet'] : ['start', 'stay', 'denied', 'low', 'quiet', 'words'],
+      c: { words: [t('c_words'), t('c_words_s')], start: [t('c_start'), t('c_start_s')], stay: [t('c_stay'), t('c_stay_s')], smoke: [t('c_smoke'), t('c_smoke_s')], denied: [t('c_denied'), t('c_denied_s')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), t('c_quiet_s')] }
     };
   }
   function homeCard() {
@@ -564,9 +567,7 @@
       '<div class="choices">' + H.keys.map(function (s) {
         return '<button type="button" class="choice" data-sit="' + s + '"><b>' + esc(H.c[s][0]) + '</b><small>' + esc(H.c[s][1]) + '</small></button>';
       }).join('') + '</div>' +
-      '<p class="small">' + esc(t('homeMore')) + '</p>' +
-      '<div class="inl">' + (state.who === 'other' ? '' : '<button type="button" class="chip" id="sampleBtn">' + esc(t('sample')) + '</button>') +
-      (state.who === 'me' ? '<button type="button" class="chip" id="whoBtn">' + esc(t('helpOther')) + '</button>' : '') + '</div>';
+      '';
     thread.appendChild(c); paintRoles();
     if (thread.children.length === 1) thread.scrollTop = 0; else scroll();
   }
@@ -589,6 +590,7 @@
       if (s === 'start') { user(t('cStart')); chooseStage(isRent() ? 'r1' : 's1'); }
       else if (s === 'stay') { user(t('cStay')); helpFlow('stay'); }
       else if (s === 'smoke') { user(t('cSmoke')); chooseStage('sm'); }
+      else if (s === 'words') { user(t('cWords')); wordsFlow(); }
       else { user(t('c_' + s)); askFlow(s); }
       return;
     }
@@ -616,7 +618,7 @@
   function intro() {
     state.stage = null;
     homeCard();
-    setChips(homeChips);
+    chips.innerHTML = ''; state.lastChips = null;
   }
 
   /* ---------- who is this for, new chat, switching ---------- */
@@ -682,7 +684,7 @@
   function resumeChat(c) {
     thread.innerHTML = ''; chips.innerHTML = '';
     restoreTx(c);
-    if (c.tx && c.tx.length) { thread.appendChild(el('div', 'msg note', esc(T('Earlier messages are shown as text. Pick up where you left off.', 'Los mensajes anteriores se muestran como texto. Continúe donde lo dejó.', '之前的消息以文字显示。请从上次停下的地方继续。')))); setChips(homeChips); scroll(); }
+    if (c.tx && c.tx.length) { thread.appendChild(el('div', 'msg note', esc(T('Earlier messages are shown as text. Pick up where you left off.', 'Los mensajes anteriores se muestran como texto. Continúe donde lo dejó.', '之前的消息以文字显示。请从上次停下的地方继续。')))); homeCard(); chips.innerHTML = ''; state.lastChips = null; }
     else intro();
   }
   function switchChat(id) {
@@ -1371,6 +1373,7 @@
   menuEl.addEventListener('click', function (e) { if (e.target.closest('.mi')) closeMenu(); });
   document.addEventListener('click', function (e) { if (!e.target.closest('.menuwrap')) closeMenu(); });
   document.getElementById('newChatBtn').addEventListener('click', newChat);
+  document.getElementById('otherBtn').addEventListener('click', function () { newChat(); thread.innerHTML = ''; whoCard(); log('who picker'); });
   document.getElementById('newFromList').addEventListener('click', newChat);
   sideBtn.addEventListener('click', function () { setSide(true, true); });
   document.getElementById('sideBack').addEventListener('click', function () { setSide(false, false); });
