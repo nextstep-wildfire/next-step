@@ -300,6 +300,6 @@ body { animation: pagein .45s ease both; }
 .lcopy { position: absolute; right: 10px; bottom: 10px; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border-radius: 9px; border: 0; background: transparent; color: var(--faint); opacity: .75; transition: opacity .2s, background-color .2s, color .2s; }
 .lcopy:hover, .lcopy:focus-visible { opacity: 1; color: var(--ink); background: var(--accent-soft); }
 .lcopy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-#toast { position: fixed; z-index: 60; left: 50%; bottom: 96px; transform: translate(-50%, 10px); background: var(--ink); color: var(--bg); padding: 9px 18px; border-radius: 999px; font-size: 14.5px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+#toast { position: fixed; z-index: 60; left: 50%; top: 76px; transform: translate(-50%, -10px); background: var(--ink); color: var(--bg); padding: 9px 18px; border-radius: 999px; font-size: 14.5px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
