@@ -124,8 +124,9 @@ ok(await p.locator('#demo source').getAttribute('src') === '/demo/next-step-demo
 ok((await p.locator('body').innerText()).indexOf('Español') === -1 && (await p.locator('body').innerText()).indexOf('Open the guide') === -1, 'no language line or Open the guide');
 const fam = await p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
 ok(/Cinzel/.test(fam), 'wordmark uses Cinzel');
-const cx = await p.evaluate(() => { const r = document.querySelector('h1').getBoundingClientRect(); return Math.abs((r.left + r.right) / 2 - innerWidth / 2); });
-ok(cx < 6, 'wordmark is centered (off by ' + Math.round(cx) + 'px)');
+await p.waitForTimeout(1500);
+const lay = await p.evaluate(() => { const h = document.querySelector('h1').getBoundingClientRect(), v = document.querySelector('.hero .phone').getBoundingClientRect(); return { hr: h.right, vl: v.left, vb: v.bottom, hb: h.bottom, ih: innerHeight }; });
+ok(lay.hr < lay.vl && lay.vb <= lay.ih && lay.hb <= lay.ih, 'name left, demo right, both in the first screen ' + JSON.stringify(lay));
 const loaded = await p.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family).join(','); });
 await p.waitForTimeout(1800);
 ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Literata/.test(loaded), 'bundled fonts actually load: ' + loaded);
