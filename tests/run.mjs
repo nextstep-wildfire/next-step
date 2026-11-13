@@ -34,8 +34,9 @@ ok(/Dear Claims Team/.test(letter) && /written update on my claim status/.test(l
 ok(!/My adjuster has not answered for 7 weeks\./.test(letter), 'letter is reworded, not pasted');
 ok((await p.locator('#thread').innerText()).indexOf('standard template') === -1, 'no fallback note when AI works');
 await p.locator('textarea.letterEdit').fill(letter + '\nEDITED');
-await chip(p, 'Copy letter').click(); await p.waitForTimeout(300);
-ok((await p.locator('.lOut').innerText()).length > 5, 'copy gives feedback');
+await p.locator('.lcopy').click(); await p.waitForTimeout(300);
+ok((await p.locator('#toast.show').innerText()).includes('Copied'), 'copy gives feedback (Copied! toast)');
+ok(await chip(p, 'Copy letter').count() === 0, 'no separate Copy letter button');
 await chip(p, 'Make it shorter').click(); await p.waitForSelector('textarea.letterEdit');
 ok(true, 'shorter regenerates');
 // drawer saves the letter
@@ -118,7 +119,7 @@ ok(await p.locator('.msgtools.user .cpbtn').count() >= 1, 'copy button under the
 ok(await p.locator('.msgtools.bot .cpbtn').count() >= 1, 'copy button under bot replies');
 await p.context().grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
 await p.locator('.msgtools.user .cpbtn').first().click(); await p.waitForTimeout(300);
-ok((await p.locator('.msgtools.user .cpbtn').first().innerText()).includes('Copied'), 'copy button confirms');
+ok(await p.locator('.msgtools.user .cpbtn.done').count() === 1, 'copy button confirms with a check');
 const clip = await p.evaluate(() => navigator.clipboard.readText().catch(() => 'n/a'));
 ok(clip === 'n/a' || clip.includes('hello there'), 'clipboard has the message: ' + clip.slice(0, 40));
 await p.setViewportSize({ width: 1280, height: 420 });

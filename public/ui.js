@@ -53,16 +53,16 @@
       if (m.classList.contains('typing') || m.classList.contains('note') || m.classList.contains('home') || m.classList.contains('who')) return;
       if (m.querySelector('textarea, input')) return;
       var nx = m.nextElementSibling;
-      if (nx && nx.classList.contains('msgtools')) { var b0 = nx.firstChild; if (b0 && !b0.classList.contains('done')) { var l0 = labels()[0]; b0.setAttribute('aria-label', l0); b0.lastChild.textContent = l0; } return; }
+      if (nx && nx.classList.contains('msgtools')) { var b0 = nx.firstChild; if (b0 && !b0.classList.contains('done')) b0.setAttribute('aria-label', labels()[0]); return; }
       if (!(m.textContent || '').trim()) return;
       var tools = document.createElement('div'); tools.className = 'msgtools ' + (m.classList.contains('user') ? 'user' : 'bot');
       var b = document.createElement('button'); b.type = 'button'; b.className = 'cpbtn'; b.setAttribute('aria-label', labels()[0]);
-      b.innerHTML = ICON + '<span>' + labels()[0] + '</span>';
+      b.innerHTML = ICON; b.title = labels()[0];
       b.addEventListener('click', function () {
         var msg = tools.previousElementSibling; if (!msg) return;
         copyText(textOf(msg), function () {
-          b.classList.add('done'); b.innerHTML = CHECK + '<span>' + labels()[1] + '</span>'; b.setAttribute('aria-label', labels()[1]);
-          setTimeout(function () { b.classList.remove('done'); b.innerHTML = ICON + '<span>' + labels()[0] + '</span>'; b.setAttribute('aria-label', labels()[0]); }, 1600);
+          b.classList.add('done'); b.innerHTML = CHECK; b.setAttribute('aria-label', labels()[1]);
+          setTimeout(function () { b.classList.remove('done'); b.innerHTML = ICON; b.setAttribute('aria-label', labels()[0]); }, 1400);
         });
       });
       tools.appendChild(b); m.after(tools);

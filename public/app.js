@@ -1073,8 +1073,8 @@
     var done = function (text, fallback) {
       var box = out;
       box.innerHTML = '<h3 class="lh">' + esc(t('letterTitle')) + '</h3><p class="small">' + esc(fallback ? t('fallbackNote') : t('letterNote')) + '</p>' +
-        '<textarea class="letterEdit" rows="14" aria-label="' + esc(t('letterTitle')) + '"></textarea><p class="small faint">' + esc(t('letterEditHint')) + '</p><div class="lOut"></div>';
-      var ta = box.querySelector('.letterEdit'); ta.value = text; ta.style.height = Math.min(420, Math.max(220, text.split('\n').length * 22)) + 'px';
+        '<div class="lwrap"><textarea class="letterEdit" rows="14" aria-label="' + esc(t('letterTitle')) + '"></textarea><button type="button" class="lcopy" aria-label="' + esc(t('copyLetter')) + '" title="' + esc(t('copyLetter')) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg></button></div><p class="small faint">' + esc(t('letterEditHint')) + '</p><div class="lOut"></div>';
+      var ta = box.querySelector('.letterEdit'); box.querySelector('.lcopy').addEventListener('click', function () { copyLetter(ta, box.querySelector('.lOut')); }); ta.value = text; ta.style.height = Math.min(420, Math.max(220, text.split('\n').length * 22)) + 'px';
       var saved = false;
       function store() {
         var m = ta.value.match(/^Subject:\s*(.*)$/m); var rec = { d: new Date().toLocaleDateString(LOCALES[state.lang], { month: 'short', day: 'numeric' }), sub: m ? m[1].slice(0, 80) : SIT_SUBJECT[o.sit], text: ta.value };
@@ -1084,8 +1084,8 @@
       store(); ta.addEventListener('input', function () { store(); });
       scroll();
       setChips(function () {
-        var l = [[t('copyLetter'), function () { copyLetter(ta, box.querySelector('.lOut')); }, 'primary']];
-        if (!fallback) l.push([t('shorter'), function () { showLetter(out, o, true); }]);
+        var l = [];
+        if (!fallback) l.push([t('shorter'), function () { showLetter(out, o, true); }, 'primary']);
         if (o.paste) l.push([t('explainMsg'), function () { explainMsg(o, box.querySelector('.lOut')); }]);
         l.push([t('changeAsk'), function () { askFlow(o.sit, { notes: o.notes }); }]);
         l.push([t('logIt'), function () {
@@ -1101,9 +1101,15 @@
       .then(function (r) { done(r.text, false); log('letter live', r.text.length + ' chars'); })
       .catch(function (err) { noteAiDown(err && err.code); done(letterTemplate(o), true); });
   }
+  var toastTimer = null;
+  function toast(msg) {
+    var d = document.getElementById('toast');
+    if (!d) { d = document.createElement('div'); d.id = 'toast'; d.setAttribute('role', 'status'); document.body.appendChild(d); }
+    d.textContent = msg; d.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { d.classList.remove('show'); }, 1600);
+  }
   function copyLetter(ta, msgBox) {
     var v = ta.value;
-    var ok = function () { msgBox.innerHTML = '<p class="small">' + esc(t('copiedMsg')) + '</p>'; scroll(); log('letter copied'); };
+    var ok = function () { toast(T('Copied!', '¡Copiado!', '已复制！')); log('letter copied'); };
     var fail = function () { try { ta.focus(); ta.select(); document.execCommand('copy'); ok(); } catch (e) { msgBox.innerHTML = '<p class="small">' + esc(t('copyFail')) + '</p>'; } };
     try { navigator.clipboard.writeText(v).then(ok, fail); } catch (e) { fail(); }
   }

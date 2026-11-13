@@ -56,7 +56,7 @@ await cap('3  Pick one clear ask'); await p.waitForTimeout(2300);
 await tap(p.locator('.aGo'));
 await p.waitForSelector('textarea.letterEdit'); await p.waitForTimeout(600);
 await cap('4  Edit it, copy it, send it'); await p.waitForTimeout(3600);
-const copy = p.locator('#chips button', { hasText: 'Copy letter' }); if (await copy.count()) await tap(copy.first());
+const copy = p.locator('.lcopy'); if (await copy.count()) await tap(copy.first());
 await p.waitForTimeout(2200);
 await p.evaluate(() => { document.getElementById('demoCap').classList.remove('on'); document.getElementById('demoTap').classList.remove('on'); });
 await p.waitForTimeout(700);
