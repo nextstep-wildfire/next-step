@@ -74,7 +74,7 @@
   /* ---------- v3 interface text (English, Spanish, Chinese) ---------- */
   var I = {
     homeTitle: ['What did your insurer do?', '¿Qué hizo su aseguradora?', '保险公司做了什么？'],
-    homeSub: ['Your insurer said no, offered less, or went quiet? Pick what happened and I will help you write them one message. Free guide for California wildfire homeowners and renters. General information, not legal advice.', '¿Su aseguradora dijo que no, ofreció menos o dejó de responder? Elija lo que pasó y le ayudo a escribirles un mensaje. Guía gratuita para propietarios e inquilinos afectados por incendios en California. Información general, no asesoría legal.', '保险公司拒赔、赔得太少，还是不回复了？选一个发生的情况，我帮您给他们写一条信息。为受加州野火影响的房主和租客提供的免费指南。仅为一般信息，不构成法律建议。'],
+    homeSub: ['Your insurer said no, offered less, or went quiet? Pick what happened, or explain it in your own words in the box below, and I will help you write them one message. Free guide for California wildfire homeowners and renters. General information, not legal advice.', '¿Su aseguradora dijo que no, ofreció menos o dejó de responder? Elija lo que pasó, o explíquelo con sus propias palabras en el cuadro de abajo, y le ayudo a escribirles un mensaje. Guía gratuita para propietarios e inquilinos afectados por incendios en California. Información general, no asesoría legal.', '保险公司拒赔、赔得太少，还是不回复了？选一个发生的情况，或在下方输入框里用自己的话说明，我帮您给他们写一条信息。为受加州野火影响的房主和租客提供的免费指南。仅为一般信息，不构成法律建议。'],
     roleLabel: ['I am a', 'Soy', '我是'],
     role_own: ['Homeowner', 'Propietario(a)', '房主'],
     role_rent: ['Renter', 'Inquilino(a)', '租客'],
@@ -846,7 +846,7 @@
   function frustrated() {
     log('frustration offer');
     bot('<p>' + esc(T('That sounds frustrating, and I am sorry. I am happy to keep going with you, or I can connect you with a person. You choose.', 'Eso suena frustrante, y lo siento. Con gusto sigo con usted, o puedo conectarle con una persona. Usted elige.', '这听起来很让人沮丧，我很抱歉。我很乐意继续陪您，也可以帮您联系真人。由您选择。')) + '</p>', function () {
-      setChips(function () { return [[T('Keep going with you', 'Seguir con usted', '继续和您聊'), function () { state.misses = 0; (state.stage ? afterStep : function () { setChips(stageChips); })(); }], [T('Connect me to a person', 'Conectarme con una persona', '帮我联系真人'), function () { openHandoff('frustration'); }]]; });
+      setChips(function () { return [[T('Keep going with you', 'Seguir con usted', '继续和您聊'), function () { state.misses = 0; (state.stage ? afterStep : function () { setChips(sitChips); })(); }], [T('Connect me to a person', 'Conectarme con una persona', '帮我联系真人'), function () { openHandoff('frustration'); }]]; });
     });
   }
 
@@ -1149,6 +1149,10 @@
       msgBox.innerHTML = '<div class="msg bot ai" style="max-width:100%;white-space:pre-wrap">' + esc(r.text) + '</div>'; scroll();
     }).catch(function (err) { noteAiDown(err && err.code); msgBox.innerHTML = '<p class="small">' + esc(t('explainFail')) + '</p>'; });
   }
+  function sitChips() {
+    var pre = lastTyped();
+    return ['denied', 'low', 'quiet'].map(function (k) { return [t('c_' + k), function () { askFlow(k, pre); }, k === 'denied' ? '' : '']; }).concat([[t('cPerson'), function () { openHandoff('choices'); }]]);
+  }
   function lastTyped() { var x = state.typed.length ? state.typed[state.typed.length - 1] : ''; return x && x.length <= 1200 ? { notes: x } : {}; }
   function replyFlow() { askFlow(SIT_STAGE_REV[state.stage] || 'other'); }
   var SIT_STAGE_REV = { td: 'denied', tl: 'low', ts: 'quiet', sm: 'smoke' };
@@ -1189,7 +1193,7 @@
   }
   function scripted(t) {
     var x = t.toLowerCase();
-    if (/^\s*(hi|hello|hey|hola|buenas|你好|您好)/.test(x)) return bot('<p>' + esc(T('Hello. Where are you in your claim right now?', 'Hola. ¿En qué punto está su reclamo ahora?', '您好。您的理赔目前进行到哪一步？')) + '</p>', function () { setChips(stageChips); });
+    if (/^\s*(hi|hello|hey|hola|buenas|你好|您好)/.test(x)) return bot('<p>' + esc(T('Hello. What did your insurer do?', 'Hola. ¿Qué hizo su aseguradora?', '您好。保险公司做了什么？')) + '</p>', function () { setChips(sitChips); });
     if (/(thank|gracias|谢谢|多谢)/.test(x)) return bot('<p>' + esc(T('You are welcome. Tell me if you want to keep going or switch to something else.', 'De nada. Dígame si quiere seguir o cambiar a otra cosa.', '不客气。您想继续还是换个话题，告诉我就好。')) + '</p>', function () { setChips(state.stage && byId(state.stage) ? function () { return [[T('Back to my step', 'Volver a mi paso', '回到我的步骤'), function () { afterStep(); }], [T('Pick a stage', 'Elegir una etapa', '选择阶段'), function () { setChips(stageChips); }]]; } : stageChips); });
     if (/(smoke|ash|soot|contaminat|humo|ceniza|hollín|hollin|烟|灰)/.test(x)) return suggest('sm');
     if (/(denied|deny|denegad|rechaz|low offer|underpa|lowball|not responding|no respond|ghost|trouble|dispute|appeal|negaron|oferta baja|被拒|拒赔|拒绝|赔得太少|赔付过低|没有回复|不回复)/.test(x)) return trouble();
@@ -1202,7 +1206,7 @@
     if (/(just happened|evacuat|first|report|start|acaba de|evacu|primero|reportar|刚刚|撤离|报案)/.test(x)) return suggest('s1');
     if (/(deadline|how long|time limit|plazo|cuánto tiempo|截止|多久|时限)/.test(x)) return bot('<p>' + esc(T('Deadlines depend on your policy and state. Ask your insurer to point to the exact section in writing, or call the California Department of Insurance at 1-800-927-4357.', 'Los plazos dependen de su póliza y de su estado. Pida a su aseguradora que indique por escrito la sección exacta, o llame al Departamento de Seguros de California al 1-800-927-4357.', '时限取决于您的保单和所在州。请让保险公司以书面形式指出具体条款，或致电加州保险局 1-800-927-4357。')) + '</p>' + srcRow([2]), function () { setChips(function () { return [[T('Talk to a person', 'Hablar con una persona', '联系真人'), function () { openHandoff('deadline'); }], [T('Pick a stage', 'Elegir una etapa', '选择阶段'), function () { setChips(stageChips); }]]; }); });
     if (/(scam|fake|legit|trust|spam|estafa|fraude|诈骗|骗)/.test(x)) return bot('<p>' + esc(T('Good instinct. Only use phone numbers and links from your insurer’s own letters or official government sites. I cannot check individual providers.', 'Buen instinto. Use solo números de teléfono y enlaces de las cartas de su propia aseguradora o de sitios oficiales del gobierno. No puedo verificar a proveedores individuales.', '您的警觉很对。请只使用保险公司自己来信中的电话和链接，或政府官方网站。我无法核实个别服务提供者。')) + '</p>', function () { setChips(function () { return [[T('Talk to a person', 'Hablar con una persona', '联系真人'), function () { openHandoff('trust'); }], [T('Pick a stage', 'Elegir una etapa', '选择阶段'), function () { setChips(stageChips); }]]; }); });
-    if (/(help|impact|affected|lost|burn|palisades|altadena|eaton|wildfire|fire|house|home|ayuda|incendio|casa|perd|帮助|火灾|房子|家)/.test(x)) return bot('<p>' + esc(T('I am sorry you are dealing with this. Where are you in your claim right now?', 'Lamento que esté pasando por esto. ¿En qué punto está su reclamo ahora?', '很抱歉您正在经历这些。您的理赔目前进行到哪一步？')) + '</p>', function () { setChips(stageChips); });
+    if (/(help|impact|affected|lost|burn|palisades|altadena|eaton|wildfire|fire|house|home|ayuda|incendio|casa|perd|帮助|火灾|房子|家)/.test(x)) return bot('<p>' + esc(T('I am sorry you are dealing with this. What did your insurer do?', 'Lamento que esté pasando por esto. ¿Qué hizo su aseguradora?', '很抱歉您正在经历这些。保险公司做了什么？')) + '</p>', function () { setChips(sitChips); });
     state.misses++; log('fallback', 'miss ' + state.misses);
     if (state.misses >= 2) {
       return bot('<p>' + esc(T('I am not getting this right. I can keep trying with you, or I can bring in a person so you do not have to keep explaining. You choose.', 'No estoy entendiendo bien. Puedo seguir intentándolo con usted, o puedo llamar a una persona para que no tenga que seguir explicando. Usted elige.', '我没能理解好。我可以继续和您一起尝试，也可以请真人加入，这样您就不必反复解释。由您选择。')) + '</p>', function () {
@@ -1240,8 +1244,9 @@
   function afterAI(extra) {
     setChips(function () {
       var l = (extra || []).slice();
-      if (state.stage && byId(state.stage)) l.push([T('Back to my step', 'Volver a mi paso', '回到我的步骤'), function () { afterStep(); }]); else l.push([T('Pick a stage', 'Elegir una etapa', '选择阶段'), function () { setChips(stageChips); }]);
-      l.push([T('Talk to a person', 'Hablar con una persona', '联系真人'), function () { openHandoff('after-ai'); }]);
+      if (state.stage && byId(state.stage)) l.push([T('Back to my step', 'Volver a mi paso', '回到我的步骤'), function () { afterStep(); }]);
+      var hasPerson = l.some(function (c) { return c[0] === t('cPerson'); });
+      if (!hasPerson) l.push([T('Talk to a person', 'Hablar con una persona', '联系真人'), function () { openHandoff('after-ai'); }]);
       return l;
     });
   }
@@ -1255,6 +1260,7 @@
       return [[t('showSteps') + ': ' + stageLabel(rid), function () { chooseStage(rid); }, 'primary']];
     }
     if (a.type === 'help') return [[x === 'stay' ? t('cStay') : (x === 'gov' ? t('cGov') : t('official')), function () { helpFlow(x); }, 'primary']];
+    if (a.type === 'choices') return sitChips().slice(0, 3);
     if (a.type === 'handoff') return [[t('cPerson'), function () { openHandoff('ai'); }, 'primary']];
     if (a.type === 'dates') return [[T('Build my dates', 'Armar mis fechas', '生成我的日期'), function () { dateFlow(); }, 'primary']];
     if (a.type === 'inventory') return [[T('Start my list', 'Empezar mi lista', '开始我的清单'), function () { inventoryFlow(); }, 'primary']];

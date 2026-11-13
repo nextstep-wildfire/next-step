@@ -44,6 +44,14 @@ await p.locator('.aN').fill('They offered less than my contractor quoted.'); awa
 ok(await p.locator('.aErr').isVisible() && await p.locator('textarea.letterEdit').count() === 0, 'Write My Letter without choosing an ask shows a message and no letter');
 ok((await p.locator('.fld label.ck span').allInnerTexts()).some((x) => x === 'Get a second contractor estimate'), 'offered-less ask says Get a second contractor estimate');
 await p.context().close();
+// 1c. a vague message gets the three situations (using the person's words), no duplicate person button, no stage list
+p = await page(); ok((await p.locator('.card.home h2 + p.small').innerText()).includes('in your own words'), 'intro says they can explain it in their own words');
+await p.locator('#input').fill('it is too complicated'); await p.locator('#input').press('Enter'); await p.waitForSelector('#chips button');
+const labs = await p.locator('#chips button').allInnerTexts();
+ok(labs.join('|') === 'They Said No|They Offered Less|They Went Quiet|Talk to a Person', 'vague message offers the three situations and one Talk to a Person: ' + labs.join('|'));
+await chip(p, 'They went quiet').click(); await p.waitForSelector('.aN');
+ok((await p.locator('.aN').inputValue()).includes('too complicated'), 'what they typed is carried into the letter notes');
+await p.context().close();
 // 1b. letter polish: example matches the situation, typed text carries over, one bubble per tap
 p = await page(); await p.locator('.choice[data-sit="low"]').click(); await p.waitForSelector('.aN');
 ok(/offered/i.test(await p.locator('.aN').getAttribute('placeholder')) && !/denied/i.test(await p.locator('.aN').getAttribute('placeholder')), 'notes example matches the picked situation (offered less)');

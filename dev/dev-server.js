@@ -29,6 +29,7 @@ const mockAI = {
     if (sys.startsWith('You explain a message')) return { response: 'They ask you to send more documents. Questions you could ask in writing:\n- What exactly is missing?\n- By when?' };
     if (/smoke/i.test(last)) return { response: 'Insurers are directed to investigate smoke damage claims fully and not deny them outright [3]. This is general information and your policy may differ.\nACTION: stage:sm' };
     if (/state farm/i.test(last)) return { response: 'x' };
+    if (/complicated/i.test(last)) return { response: 'That makes sense, so let us keep it to one small step. Tell me in your own words what happened, or pick the closest one below.\nACTION: choices' };
     if (/first steps/i.test(last)) return { response: 'Here is where to start.\nACTION: stage:s1' };
     if (/place to stay|hotel/i.test(last)) return { response: 'Help with housing exists.\nACTION: help:stay' };
     if (/insurance words|deductible/i.test(last)) return { response: 'Plain words are available.\nACTION: words' };

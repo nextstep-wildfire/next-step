@@ -22,7 +22,7 @@
   var segs = document.querySelectorAll('#stepper .segs i'), stN = document.getElementById('stN'), stT = document.getElementById('stT');
   if (v && stN) {
     var starts = [0, 5, 14, 21], dur = 29;
-    fetch('/demo/steps.json?v=d11').then(function (r) { return r.json(); }).then(function (d) { if (d && d.starts && d.starts.length === 4) { starts = d.starts; dur = d.duration || dur; } }).catch(function () {});
+    fetch('/demo/steps.json?v=d12').then(function (r) { return r.json(); }).then(function (d) { if (d && d.starts && d.starts.length === 4) { starts = d.starts; dur = d.duration || dur; } }).catch(function () {});
     var cur = -1;
     var tick = function () {
       var t = v.currentTime || 0, i = 0, k;
