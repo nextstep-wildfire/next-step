@@ -30,7 +30,11 @@ await p.addStyleTag({ content: `
   #demoTap.on { opacity: 1; } #demoTap.press { transform: scale(.7); }
 ` });
 await p.evaluate(() => { const c = document.createElement('div'); c.id = 'demoCap'; document.body.appendChild(c); const t = document.createElement('div'); t.id = 'demoTap'; document.body.appendChild(t); });
-const cap = async (txt) => { await p.evaluate((t) => { const c = document.getElementById('demoCap'); c.classList.remove('on'); setTimeout(() => { c.textContent = t; c.classList.add('on'); }, 250); }, txt); };
+const marks = [];
+const cap = async (txt) => { marks.push(Date.now() / 1000);
+  return;
+  /* on-screen caption removed: steps are shown beside the video on the landing page */
+  { await p.evaluate((t) => { const c = document.getElementById('demoCap'); c.classList.remove('on'); setTimeout(() => { c.textContent = t; c.classList.add('on'); }, 250); }, txt); } };
 const tap = async (loc) => {
   await loc.scrollIntoViewIfNeeded(); await p.waitForTimeout(250);
   const b = await loc.boundingBox();
@@ -61,6 +65,8 @@ let list = '';
 for (let i = 0; i < frames.length; i++) { const d = i < frames.length - 1 ? Math.max(0.01, frames[i + 1].t - frames[i].t) : 0.5; list += "file '" + frames[i].name + "'\nduration " + d.toFixed(4) + '\n'; }
 list += "file '" + frames[frames.length - 1].name + "'\n";
 fs.writeFileSync(out + '/list.txt', list);
+const t0 = frames[0].t, dur = frames[frames.length - 1].t - t0 + 0.5;
+fs.writeFileSync('public/demo/steps.json', JSON.stringify({ duration: +dur.toFixed(2), starts: marks.map((m) => +Math.max(0, m - t0).toFixed(2)) }));
 execSync(`ffmpeg -y -loglevel error -f concat -safe 0 -i ${out}/list.txt -vf "fps=30,scale=600:-2:flags=lanczos" -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart -an public/demo/next-step-demo.mp4`);
 console.log('frames', frames.length);
 execSync(`ffmpeg -y -loglevel error -ss 15 -i public/demo/next-step-demo.mp4 -frames:v 1 -q:v 4 public/demo/poster.jpg`);
