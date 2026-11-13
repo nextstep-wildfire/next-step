@@ -148,7 +148,7 @@ await p.locator('#newChatBtn').click(); await p.waitForSelector('.card.who');
 await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home');
 ok((await p.locator('#thread').innerText()).indexOf('my mom') === -1, 'new chat starts clean');
 await p.locator('#input').fill('my own claim was denied'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
-await p.locator('#chatTitle').click(); await p.waitForSelector('#chatsOv.open');
+await p.locator('#chatTitle').click(); await p.waitForSelector('#shell.side-open');
 ok(await p.locator('#clist .citem').count() === 2, 'chat list shows both chats');
 await p.locator('#clist .citem', { hasText: 'my mom' }).click(); await p.waitForTimeout(500);
 ok((await p.locator('#thread').innerText()).includes('what should I do about the adjuster'), 'old chat comes back with its messages');
@@ -156,15 +156,33 @@ ok((await p.locator('#tagWho').innerText()).includes('For someone else'), 'old c
 // reload keeps chats
 await p.reload(); await p.waitForTimeout(600);
 ok((await p.locator('#chatTitle').innerText()).includes('my mom'), 'reload keeps the current chat');
-await p.locator('#chatTitle').click(); ok(await p.locator('#clist .citem').count() === 2, 'reload keeps both chats');
+ok(await p.locator('#clist .citem').count() === 2, 'reload keeps both chats (sidebar open on desktop)');
 // delete needs two taps
-const delBtn = p.locator('#clist .cdel').first(); await delBtn.click(); ok(await p.locator('#clist .citem').count() === 2, 'one tap does not delete');
-await p.locator('#clist .cdel[data-arm="1"]').click(); ok(await p.locator('#clist .citem').count() === 1, 'second tap deletes');
+const delBtn = p.locator('#clist .cdel').first(); await delBtn.click({ force: true }); ok(await p.locator('#clist .citem').count() === 2, 'one tap does not delete');
+await p.locator('#clist .cdel[data-arm="1"]').click({ force: true }); ok(await p.locator('#clist .citem').count() === 1, 'second tap deletes');
 ok(p.errs.length === 0, 'no page errors in chats: ' + p.errs.join(' | '));
 await p.context().close();
 
+// 13b. sidebar open/close, theme button, short footer
+p = await page(); ok(await p.locator('#side').isVisible(), 'sidebar is open on desktop');
+await p.locator('#closeC').click(); await p.waitForTimeout(450);
+ok(!(await p.locator('#side').isVisible()) && await p.locator('#sideBtn').isVisible(), 'sidebar closes and the open button appears');
+await p.reload(); await p.waitForTimeout(500); ok(!(await p.locator('#side').isVisible()), 'closed state is remembered');
+await p.locator('#sideBtn').click(); await p.waitForTimeout(450); ok(await p.locator('#side').isVisible(), 'sidebar reopens');
+ok((await p.locator('.fine').innerText()).length < 90, 'footer is short');
+ok(await p.locator('header #themeBtn').isVisible(), 'theme button is outside the menu');
+await p.context().close();
+p = await page({ viewport: { width: 390, height: 780 }, isMobile: true });
+ok(!(await p.locator('#side').isVisible()) || (await p.locator('#side').boundingBox()).x < 0, 'sidebar hidden on phone by default');
+await p.locator('#sideBtn').click(); await p.waitForTimeout(450);
+ok((await p.locator('#side').boundingBox()).x >= 0, 'sidebar slides in on phone');
+await p.locator('#sideBack').click({ position: { x: 360, y: 400 } }); await p.waitForTimeout(450);
+ok((await p.locator('#side').boundingBox()).x < 0, 'tapping outside closes it');
+ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 391, 'no horizontal scroll with new header');
+await p.context().close();
+
 // 14. light theme still readable
-p = await page(); await p.locator('#menuBtn').click(); await p.locator('#themeBtn').click();
+p = await page(); await p.locator('#themeBtn').click();
 ok((await p.evaluate(() => document.documentElement.getAttribute('data-theme'))) === 'light', 'theme toggles to light');
 await p.screenshot({ path: '/tmp/shot_app_light.png' }); await p.context().close();
 p = await page(); await p.screenshot({ path: '/tmp/shot_app_dark.png' }); await p.context().close();

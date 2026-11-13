@@ -12,8 +12,19 @@
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
+<div class="shell" id="shell">
+<aside class="side" id="side" aria-label="Chats">
+  <div class="sidehead">
+    <button type="button" class="icon-btn" id="closeC"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
+    <button type="button" class="sidenew" id="newFromList"></button>
+  </div>
+  <p class="sidelbl" id="cTitle"></p>
+  <ul class="clist" id="clist"></ul>
+</aside>
+<div class="sideback" id="sideBack"></div>
 <div class="app">
   <header>
+    <button class="icon-btn" id="sideBtn" type="button" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
     <div class="brand">
       <a href="/" aria-label="Next Step home">
         <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-9 7 9"/><path d="M3 19h18"/></svg></span>
@@ -22,13 +33,13 @@
     </div>
     <div class="tools">
       <button class="pill" id="newChatBtn" type="button">New chat</button>
+      <button class="icon-btn" id="themeBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
       <button class="pill solid" id="humanBtn" type="button">Talk to a person</button>
       <button class="icon-btn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></svg>
         <span class="badge" id="badge" hidden>0</span>
       </button>
       <div class="menu" id="menu" role="menu">
-        <button class="mi" id="chatsBtn" type="button" role="menuitem"><span id="miChats">Your chats</span></button>
         <button class="mi" id="checkBtn" type="button" role="menuitem"><span id="miCheck">My checklist</span></button>
         <button class="mi" id="helpBtn" type="button" role="menuitem"><span id="miHelp">How this works</span></button>
         <hr>
@@ -39,7 +50,6 @@
             <button type="button" data-lang="zh" aria-pressed="false" title="中文" lang="zh">中文</button>
           </div>
         </div>
-        <button class="mi" id="themeBtn" type="button" role="menuitem"><span id="miTheme">Light or dark</span></button>
       </div>
     </div>
   </header>
@@ -57,21 +67,14 @@
   <div id="logwrap"><button type="button" id="copyLog" class="chip">Copy log</button><pre id="logOut"></pre></div>
 </div>
 
+</div>
+
 <div class="overlay right" id="drawerOv">
   <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
     <div class="dhead"><h2 id="dTitle"></h2><button type="button" class="icon-btn" id="closeD"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <p class="sub" id="dSub" style="color:var(--muted);font-size:13.5px;margin:0 0 14px"></p>
     <div id="drawerBody"></div>
     <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button type="button" class="chip primary" id="copySummary"></button><button type="button" class="chip" id="copyList"></button></div>
-  </aside>
-</div>
-
-<div class="overlay left" id="chatsOv">
-  <aside class="drawer leftd" role="dialog" aria-modal="true" aria-labelledby="cTitle">
-    <div class="dhead"><h2 id="cTitle">Your chats</h2><button type="button" class="icon-btn" id="closeC"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <p class="sub" id="cSub" style="color:var(--muted);font-size:13.5px;margin:0"></p>
-    <ul class="clist" id="clist"></ul>
-    <div class="btnrow"><button type="button" class="bigbtn" id="newFromList"></button></div>
   </aside>
 </div>
 

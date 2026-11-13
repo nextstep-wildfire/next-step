@@ -179,7 +179,7 @@
     troubleQ: ['I am sorry you are dealing with this. What did your insurer do?', 'Lamento que esté pasando por esto. ¿Qué hizo su aseguradora?', '很抱歉您正在经历这些。保险公司做了什么？'],
     something: ['Something else', 'Otra cosa', '其他情况'],
     nextTimeline: ['Your insurer should acknowledge a claim within 15 days of notice, and accept or deny it within 40 days after proof of claim [10]. Put every request in writing and keep your own copies.', 'Su aseguradora debe acusar recibo del reclamo dentro de los 15 días siguientes al aviso, y aceptarlo o rechazarlo dentro de los 40 días posteriores a la prueba del reclamo [10]. Ponga cada solicitud por escrito y guarde sus propias copias.', '保险公司应在收到通知后 15 天内确认理赔，并在收到理赔证明后 40 天内接受或拒绝 [10]。请把每个请求都写成书面形式，并保留自己的副本。'],
-    footer: ['Prototype by UC Berkeley students working with The After Collective. Not legal or insurance advice. Translations are drafts. Source notes last updated Nov 7, 2026 and not yet reviewed by an insurance professional.', 'Prototipo de estudiantes de UC Berkeley que trabajan con The After Collective. No es asesoría legal ni de seguros. Las traducciones son borradores. Notas de fuentes actualizadas el 7 de nov. de 2026; aún no las ha revisado un profesional de seguros.', '由 UC Berkeley 学生与 The After Collective 合作制作的原型。不构成法律或保险建议。翻译为初稿。来源说明更新于 2026 年 11 月 7 日，尚未经保险专业人士审阅。'],
+    footer: ['Student prototype with The After Collective. Not legal or insurance advice.', 'Prototipo estudiantil con The After Collective. No es asesoría legal ni de seguros.', '与 The After Collective 合作的学生原型。不构成法律或保险建议。'],
     reportBtn: ['Report a problem', 'Informar de un problema', '报告问题'],
     msgPh: ['Tell me what happened…', 'Cuénteme qué pasó…', '告诉我发生了什么……'],
     send: ['Send', 'Enviar', '发送'],
@@ -416,18 +416,16 @@
     document.getElementById('langSeg').setAttribute('aria-label', T('Language', 'Idioma', '语言'));
     document.querySelectorAll('#langSeg button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === state.lang ? 'true' : 'false'); });
     (function () { var nb = document.getElementById('newChatBtn'), nt = T('New chat', 'Nuevo chat', '新聊天'); nb.innerHTML = '<span class="plus" aria-hidden="true">+</span><span class="nct">' + esc(nt) + '</span>'; nb.setAttribute('aria-label', nt); })();
-    document.getElementById('miChats').textContent = T('Your chats', 'Sus chats', '您的聊天');
     document.getElementById('miCheck').textContent = T('My checklist', 'Mi lista de pasos', '我的清单');
     document.getElementById('miHelp').textContent = T('How this works', 'Cómo funciona', '使用说明');
     document.getElementById('miLang').textContent = T('Language', 'Idioma', '语言');
-    document.getElementById('miTheme').textContent = T('Light or dark', 'Claro u oscuro', '浅色或深色');
     document.getElementById('menuBtn').setAttribute('aria-label', T('Menu', 'Menú', '菜单'));
-    document.getElementById('cTitle').textContent = T('Your chats', 'Sus chats', '您的聊天');
-    document.getElementById('cSub').textContent = T('One chat per person or situation. Saved on this device only.', 'Un chat por persona o situación. Se guardan solo en este dispositivo.', '每个人或每种情况一个聊天。仅保存在此设备上。');
-    document.getElementById('newFromList').textContent = T('Start a new chat', 'Empezar un chat nuevo', '开始新聊天');
-    document.getElementById('closeC').setAttribute('aria-label', T('Close', 'Cerrar', '关闭'));
+    document.getElementById('cTitle').textContent = T('Chats', 'Chats', '聊天');
+    document.getElementById('sideBtn').setAttribute('aria-label', T('Open chats', 'Abrir chats', '打开聊天列表'));
+    document.getElementById('newFromList').textContent = '+  ' + T('New chat', 'Nuevo chat', '新聊天');
+    document.getElementById('closeC').setAttribute('aria-label', T('Close chats', 'Cerrar chats', '关闭聊天列表'));
     if (typeof setChatbar === 'function') setChatbar();
-    if (chatsOv && chatsOv.classList.contains('open')) renderChats();
+    renderChats();
     input.setAttribute('placeholder', T('Message', 'Mensaje', '输入消息'));
     input.setAttribute('aria-label', T('Message', 'Mensaje', '输入消息'));
     document.getElementById('sendBtn').setAttribute('aria-label', T('Send', 'Enviar', '发送'));
@@ -513,7 +511,7 @@
       '<ol><li>' + esc(T('Tell me what happened, by typing or tapping a choice.', 'Cuénteme qué pasó, escribiendo o tocando una opción.', '告诉我发生了什么，可以直接输入，也可以点选项。')) + '</li>' +
       '<li>' + esc(T('I can write a short letter to your insurer with one clear ask, or show the steps for where you are.', 'Puedo escribir una carta corta a su aseguradora con una petición clara, o mostrarle los pasos según su situación.', '我可以为您给保险公司写一封只有一个明确要求的短信，或显示适合您当前情况的步骤。')) + '</li>' +
       '<li>' + esc(T('Facts come from official sources, shown beside each answer. Your checklist and letters are saved on this device only (top right).', 'Los datos provienen de fuentes oficiales, que se muestran junto a cada respuesta. Su lista y sus cartas se guardan solo en este dispositivo (arriba a la derecha).', '事实来自官方来源，并显示在每个回答旁边。您的清单和信件只保存在此设备上（右上角）。')) + '</li></ol>' +
-      '<p class="small">' + esc(T('I am an AI guide, not a lawyer, an insurer or an adjuster, and I cannot file or change a claim. Home type matters: renters have their own path, and mobile homes and condos are not checked yet. You can talk to a person at any time.', 'Soy un asistente de IA, no un abogado, una aseguradora ni un ajustador, y no puedo presentar ni modificar un reclamo. El tipo de vivienda importa: los inquilinos tienen su propio camino, y las casas móviles y los condominios aún no se han revisado. Puede hablar con una persona en cualquier momento.', '我是 AI 向导，不是律师、保险公司或理赔员，无法提交或修改理赔。住房类型很重要：租客有专属路径，移动房屋和公寓（condo）尚未核查。您可以随时联系真人。')) + '</p>';
+      '<p class="small">' + esc(T('I am an AI guide, not a lawyer, an insurer or an adjuster, and I cannot file or change a claim. Home type matters: renters have their own path, and mobile homes and condos are not checked yet. You can talk to a person at any time. Translations are drafts. Source notes were last updated Nov 7, 2026 and have not been reviewed by an insurance professional.', 'Soy un asistente de IA, no un abogado, una aseguradora ni un ajustador, y no puedo presentar ni modificar un reclamo. El tipo de vivienda importa: los inquilinos tienen su propio camino, y las casas móviles y los condominios aún no se han revisado. Puede hablar con una persona en cualquier momento. Las traducciones son borradores. Las notas de fuentes se actualizaron el 7 de nov. de 2026 y no las ha revisado un profesional de seguros.', '我是 AI 向导，不是律师、保险公司或理赔员，无法提交或修改理赔。住房类型很重要：租客有专属路径，移动房屋和公寓（condo）尚未核查。您可以随时联系真人。翻译为初稿。来源说明更新于 2026 年 11 月 7 日，尚未经保险专业人士审阅。')) + '</p>';
     thread.appendChild(c); scroll();
   }
   function paintRoles() {
@@ -598,7 +596,13 @@
   }
 
   /* ---------- who is this for, new chat, switching ---------- */
-  var chatsOv = document.getElementById('chatsOv');
+  var shell = document.getElementById('shell'), sideBtn = document.getElementById('sideBtn');
+  function isNarrow() { return window.matchMedia && window.matchMedia('(max-width: 899px)').matches; }
+  function setSide(open, remember) {
+    shell.classList.toggle('side-open', open); sideBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.getElementById('side').setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (remember && !isNarrow()) { try { localStorage.setItem('ns-side', open ? '1' : '0'); } catch (e) {} }
+  }
   function chatTitle(c) {
     var n = c.whoName;
     if (c.who === 'other') return n ? T(n + '’s claim', 'Reclamo de ' + n, n + '的理赔') : T('Someone close to me', 'Alguien cercano', '我身边的人');
@@ -635,7 +639,7 @@
     while (store.chats.length > MAX_CHATS) { var di = store.chats.findIndex(function (x) { return x.id !== c.id; }); if (di < 0) break; store.chats.splice(di, 1); }
     store.cur = c.id; applyChat(c);
     thread.innerHTML = ''; chips.innerHTML = '';
-    setChatbar(); log('chat started', who); save(); updateChecks(); intro();
+    setChatbar(); log('chat started', who); save(); renderChats(); updateChecks(); intro();
   }
   function hasContent(c) { return (c.tx && c.tx.length) || Object.keys(c.done || {}).length || (c.letters && c.letters.length) || (c.contacts && c.contacts.length) || c.plan; }
   function newChat() {
@@ -644,7 +648,7 @@
     if (c && !hasContent(c)) store.chats = store.chats.filter(function (x) { return x.id !== c.id; });
     store.cur = null; resetChatState(); state.chatId = null;
     thread.innerHTML = ''; chips.innerHTML = '';
-    save(); setChatbar(); updateChecks(); closeChats(); closeMenu(); whoCard(); log('new chat');
+    save(); renderChats(); setChatbar(); updateChecks(); closeChats(); closeMenu(); whoCard(); log('new chat');
   }
   function restoreTx(c) {
     (c.tx || []).forEach(function (m) { var d = el('div', 'msg restored ' + (m.r === 'u' ? 'user' : 'bot')); d.style.whiteSpace = 'pre-wrap'; d.textContent = m.t; thread.appendChild(d); });
@@ -662,7 +666,7 @@
     if (cur && !hasContent(cur)) store.chats = store.chats.filter(function (x) { return x.id !== cur.id; });
     var c = null; store.chats.forEach(function (x) { if (x.id === id) c = x; });
     if (!c) return;
-    store.cur = id; applyChat(c); setChatbar(); updateChecks(); closeChats(); resumeChat(c); log('chat opened', c.who);
+    store.cur = id; applyChat(c); renderChats(); setChatbar(); updateChecks(); closeChats(); resumeChat(c); log('chat opened', c.who);
     if (drawerOv.classList.contains('open')) renderDrawer();
   }
   function deleteChat(id) {
@@ -677,13 +681,13 @@
       var who = c.who === 'other' ? T('For someone else', 'Para otra persona', '为他人') : (c.who === 'explore' ? T('Exploring', 'Explorando', '了解中') : T('For me', 'Para mí', '为我自己'));
       var when = c.ts ? new Date(c.ts).toLocaleDateString(LOCALES[state.lang], { month: 'short', day: 'numeric' }) : '';
       li.innerHTML = '<button type="button" class="citem" data-id="' + esc(c.id) + '"><span class="ct">' + esc(chatTitle(c)) + '</span><span class="cs">' + esc(who + (when ? ' · ' + when : '')) + '</span></button>' +
-        '<button type="button" class="cdel" data-del="' + esc(c.id) + '">' + esc(T('Delete', 'Eliminar', '删除')) + '</button>';
+        '<button type="button" class="cdel" data-del="' + esc(c.id) + '" aria-label="' + esc(T('Delete chat', 'Eliminar chat', '删除聊天')) + '">✕</button>';
       ul.appendChild(li);
     });
     if (!store.chats.length) ul.appendChild(el('li', 'cs', esc(T('No chats yet.', 'Aún no hay chats.', '还没有聊天。'))));
   }
-  function openChats() { save(); renderChats(); closeMenu(); chatsOv.classList.add('open'); document.getElementById('closeC').focus(); }
-  function closeChats() { chatsOv.classList.remove('open'); }
+  function openChats() { save(); renderChats(); closeMenu(); setSide(true, true); }
+  function closeChats() { if (isNarrow()) setSide(false, false); }
   var menuEl = document.getElementById('menu'), menuBtn = document.getElementById('menuBtn');
   function closeMenu() { menuEl.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); }
   function renderStart() { if (curChat()) intro(); else whoCard(); }
@@ -1335,21 +1339,21 @@
   document.addEventListener('click', function (e) { if (!e.target.closest('.tools')) closeMenu(); });
   document.getElementById('newChatBtn').addEventListener('click', newChat);
   document.getElementById('newFromList').addEventListener('click', newChat);
-  document.getElementById('chatsBtn').addEventListener('click', openChats);
+  sideBtn.addEventListener('click', function () { setSide(true, true); });
+  document.getElementById('sideBack').addEventListener('click', function () { setSide(false, false); });
   document.getElementById('chatTitle').addEventListener('click', openChats);
-  document.getElementById('closeC').addEventListener('click', closeChats);
-  chatsOv.addEventListener('click', function (e) { if (e.target === chatsOv) closeChats(); });
+  document.getElementById('closeC').addEventListener('click', function () { setSide(false, true); });
   document.getElementById('clist').addEventListener('click', function (e) {
     var d = e.target.closest('.cdel');
     if (d) {
       if (d.getAttribute('data-arm')) deleteChat(d.getAttribute('data-del'));
-      else { d.setAttribute('data-arm', '1'); d.textContent = T('Tap again to delete', 'Toque otra vez para eliminar', '再点一次即可删除'); }
+      else { d.setAttribute('data-arm', '1'); d.textContent = T('Delete?', '¿Eliminar?', '删除？'); }
       return;
     }
     var it = e.target.closest('.citem'); if (it) switchChat(it.getAttribute('data-id'));
   });
   var saveTimer = null;
-  new MutationObserver(function () { clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }).observe(thread, { childList: true });
+  new MutationObserver(function () { clearTimeout(saveTimer); saveTimer = setTimeout(function () { save(); renderChats(); }, 700); }).observe(thread, { childList: true });
   window.addEventListener('pagehide', save);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') save(); });
 
@@ -1357,5 +1361,7 @@
   log('session started', 'lang ' + state.lang);
   var bootChat = curChat();
   setChatbar();
+  var sideSaved = null; try { sideSaved = localStorage.getItem('ns-side'); } catch (e) {}
+  setSide(!isNarrow() && sideSaved !== '0', false); renderChats();
   if (bootChat) resumeChat(bootChat); else whoCard();
 })();
