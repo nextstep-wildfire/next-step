@@ -123,7 +123,7 @@ const cx = await p.evaluate(() => { const r = document.querySelector('h1').getBo
 ok(cx < 6, 'wordmark is centered (off by ' + Math.round(cx) + 'px)');
 const loaded = await p.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family).join(','); });
 await p.waitForTimeout(1800);
-ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Inter/.test(loaded), 'bundled fonts actually load: ' + loaded);
+ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Literata/.test(loaded), 'bundled fonts actually load: ' + loaded);
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 376, 'landing: no horizontal scroll at 375px');
 await p.screenshot({ path: '/tmp/shot_landing_m.png' });

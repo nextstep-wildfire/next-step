@@ -1,12 +1,12 @@
-/* Charcoal and amber. Dark is the default; light is a toggle. Wordmark: Cinzel. Headings: EB Garamond. Body: Inter. Both are bundled, no outside requests. */
+/* Charcoal and amber. Dark is the default; light is a toggle. Wordmark: Cinzel. Headings: EB Garamond. Body: Literata. Both are bundled, no outside requests. */
 @view-transition { navigation: auto; }
 @font-face { font-family: "Cinzel"; src: url("/fonts/cinzel.woff2") format("woff2"); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: "EB Garamond"; src: url("/fonts/garamond.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
-@font-face { font-family: "Inter"; src: url("/fonts/inter.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Literata"; src: url("/fonts/literata.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
 :root {
   --bg: #121212; --grad: none; --ink: #f4efe8; --muted: #b3aba0; --faint: #9a9288; --line: #35322f;
   --box: #1e1c1a; --tag: #1b1a18; --tag-line: #3a3733; --btn: #f2994a; --btn-ink: #1a1004; --accent-soft: #2a2622; --warm: #f2994a;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+  --font-body: "Literata", Georgia, "Times New Roman", "Noto Serif SC", "Songti SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", serif;
   --font-head: "EB Garamond", Garamond, "Palatino Linotype", Georgia, "Noto Serif SC", "Songti SC", serif;
   --font-caps: "Cinzel", "Trajan Pro", "Times New Roman", serif;
   color-scheme: dark;
