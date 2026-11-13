@@ -26,8 +26,8 @@ await p.goto('http://localhost:8811/app/');
 await p.addStyleTag({ content: `
   #demoCap { position: fixed; left: 50%; top: 66px; transform: translateX(-50%); z-index: 99; background: #C17D53; color: #140d09; font: 500 14px/1.2 Outfit, system-ui, sans-serif; padding: 9px 16px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .35s ease; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
   #demoCap.on { opacity: 1; }
-  #demoTap { position: fixed; z-index: 100; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: rgba(244,239,232,.55); border: 2px solid rgba(244,239,232,.9); pointer-events: none; left: 195px; top: 700px; transition: left .55s cubic-bezier(.3,.7,.2,1), top .55s cubic-bezier(.3,.7,.2,1), transform .18s ease, opacity .3s; opacity: 0; }
-  #demoTap.on { opacity: 1; } #demoTap.press { transform: scale(.7); }
+  #demoTap { position: fixed; z-index: 100; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: rgba(244,239,232,.4); border: 1.5px solid rgba(244,239,232,.75); pointer-events: none; left: 195px; top: 700px; transition: left .55s cubic-bezier(.3,.7,.2,1), top .55s cubic-bezier(.3,.7,.2,1), transform .18s ease, opacity .3s; opacity: 0; }
+  #demoTap.on { opacity: 1; } #demoTap.press { transform: scale(.75); }
 ` });
 await p.evaluate(() => { const c = document.createElement('div'); c.id = 'demoCap'; document.body.appendChild(c); const t = document.createElement('div'); t.id = 'demoTap'; document.body.appendChild(t); });
 const marks = [];
