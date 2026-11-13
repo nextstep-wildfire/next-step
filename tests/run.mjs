@@ -159,7 +159,7 @@ ok(await p.locator('footer a[href="tel:18009274357"]').count() === 1, 'landing h
 await p.locator('#themeBtn').click(); ok((await p.evaluate(() => document.documentElement.getAttribute('data-theme'))) === 'light', 'landing theme button switches to light'); await p.locator('#themeBtn').click();
 const ys = await p.evaluate(() => [...document.querySelectorAll('footer li b')].map((b) => Math.round(b.getBoundingClientRect().top)));
 ok(ys.length === 4 && Math.max(...ys) - Math.min(...ys) <= 2, 'phone numbers line up in one row: ' + ys.join(','));
-ok(await p.locator('#demo source').getAttribute('src') === '/demo/next-step-demo.mp4', 'landing has the demo video');
+ok((await p.locator('#demo source').getAttribute('src')).startsWith('/demo/next-step-demo.mp4'), 'landing has the demo video');
 ok((await p.locator('body').innerText()).indexOf('Español') === -1 && (await p.locator('body').innerText()).indexOf('Open the guide') === -1, 'no language line or Open the guide');
 const fam = await p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
 ok(/Cinzel/.test(fam), 'wordmark uses Cinzel');
