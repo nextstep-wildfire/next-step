@@ -125,11 +125,11 @@ ok((await p.locator('body').innerText()).indexOf('Español') === -1 && (await p.
 const fam = await p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
 ok(/Cinzel/.test(fam), 'wordmark uses Cinzel');
 await p.waitForTimeout(1500);
-const lay = await p.evaluate(() => { const h = document.querySelector('h1').getBoundingClientRect(), v = document.querySelector('.hero .phone').getBoundingClientRect(); return { hr: h.right, vl: v.left, vb: v.bottom, hb: h.bottom, ih: innerHeight }; });
+const lay = await p.evaluate(() => { const h = document.querySelector('h1').getBoundingClientRect(), v = document.querySelector('.hero .mac').getBoundingClientRect(); return { hr: h.right, vl: v.left, vb: v.bottom, hb: h.bottom, ih: innerHeight }; });
 ok(lay.hr < lay.vl && lay.vb <= lay.ih && lay.hb <= lay.ih, 'name left, demo right, both in the first screen ' + JSON.stringify(lay));
 const loaded = await p.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family).join(','); });
 await p.waitForTimeout(1800);
-ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Literata/.test(loaded), 'bundled fonts actually load: ' + loaded);
+ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Rubik/.test(loaded), 'bundled fonts actually load: ' + loaded);
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 376, 'landing: no horizontal scroll at 375px');
 await p.screenshot({ path: '/tmp/shot_landing_m.png' });

@@ -1,11 +1,11 @@
 @view-transition { navigation: auto; }
 @font-face { font-family: "Cinzel"; src: url("/fonts/cinzel.woff2") format("woff2"); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: "EB Garamond"; src: url("/fonts/garamond.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
-@font-face { font-family: "Literata"; src: url("/fonts/literata.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: "Rubik"; src: url("/fonts/rubik.woff2") format("woff2"); font-weight: 300 900; font-display: swap; }
 :root { --bg: #121212; --ink: #f4efe8; --muted: #b3aba0; --faint: #9a9288; --line: #35322f; --box: #1e1c1a; --amber: #f2994a; --amber-ink: #1a1004; color-scheme: dark;
   --caps: "Cinzel", "Trajan Pro", "Times New Roman", serif;
-  --head: "EB Garamond", Garamond, "Palatino Linotype", Georgia, "Noto Serif SC", "Songti SC", serif;
-  --body: "Literata", Georgia, "Times New Roman", "Noto Serif SC", "Songti SC", "Noto Sans SC", "PingFang SC", serif; }
+  --head: "EB Garamond", Garamond, "Palatino Linotype", Georgia, serif;
+  --body: "Rubik", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif; }
 :root[data-theme="light"] { --bg: #faf7f2; --ink: #1e1b18; --muted: #5e564e; --faint: #6f665c; --line: #e3dbd0; --box: #ffffff; --amber: #1e1b18; --amber-ink: #faf7f2; color-scheme: light; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -23,7 +23,7 @@ a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-rad
 
 /* centered hero */
 .hero { min-height: calc(100svh - 80px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 0 56px; }
-.eyebrow { margin: 0 0 26px; font-size: 12.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); animation: fade .8s .1s ease both; }
+.eyebrow-unused { margin: 0 0 26px; font-size: 12.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); animation: fade .8s .1s ease both; }
 h1 { margin: 0; font-family: var(--caps); font-weight: 900; font-size: clamp(40px, 10.4vw, 108px); line-height: 1; letter-spacing: .05em; display: flex; flex-wrap: nowrap; justify-content: center; gap: 0 .32em; padding-left: .05em; }
 h1 .w { display: inline-flex; }
 h1 i { font-style: normal; display: inline-block; opacity: 0; transform: translateY(.35em); animation: letter .7s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(.25s + var(--i) * .07s); }
@@ -99,3 +99,18 @@ footer a:hover b { color: var(--amber); }
   .hero .phone { height: auto; width: min(300px, 78vw); }
 }
 @media (prefers-reduced-motion: reduce) { .hero .side { animation: none; } }
+
+/* v5: smaller name, Mac window demo */
+.hero { grid-template-columns: .85fr 1.15fr; }
+.hero h1 { font-size: clamp(42px, 6.4vw, 88px); }
+.hero .side { align-items: stretch; }
+.mac { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #1c1c1e; box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 .5px rgba(255,255,255,.06); }
+.mac .bar { height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 13px; background: linear-gradient(#3a3a3c, #2c2c2e); border-bottom: 1px solid #1a1a1a; position: relative; }
+.mac .bar i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.mac .bar .r { background: #ff5f57; } .mac .bar .y { background: #febc2e; } .mac .bar .g { background: #28c840; }
+.mac .bar span { position: absolute; left: 0; right: 0; text-align: center; font-size: 12.5px; color: #c9c5bf; pointer-events: none; }
+.mac video { display: block; width: 100%; aspect-ratio: 16 / 10; background: #121212; object-fit: cover; }
+.hero .cap { text-align: center; }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; } .hero h1 { font-size: clamp(38px, 10vw, 72px); } }
+.hero { grid-template-columns: .72fr 1.28fr; }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; } }
