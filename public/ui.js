@@ -55,7 +55,7 @@
       var nx = m.nextElementSibling;
       if (nx && nx.classList.contains('msgtools')) { var b0 = nx.firstChild; if (b0 && !b0.classList.contains('done')) b0.setAttribute('aria-label', labels()[0]); return; }
       if (!(m.textContent || '').trim()) return;
-      var tools = document.createElement('div'); tools.className = 'msgtools ' + (m.classList.contains('user') ? 'user' : 'bot');
+      var tools = document.createElement('div'); tools.className = 'msgtools ' + (m.classList.contains('user') ? 'mine' : 'theirs');
       var b = document.createElement('button'); b.type = 'button'; b.className = 'cpbtn'; b.setAttribute('aria-label', labels()[0]);
       b.innerHTML = ICON; b.title = labels()[0];
       b.addEventListener('click', function () {

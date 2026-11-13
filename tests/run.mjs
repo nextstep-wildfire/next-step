@@ -115,11 +115,11 @@ process.env.MOCK = 'ok';
 // 11b. copy buttons, scroll-down button, title case
 p = await page({}); await p.goto(base + '/app/'); await p.waitForTimeout(700);
 await p.locator('#input').fill('hello there'); await p.locator('#sendBtn').click(); await p.waitForTimeout(1500);
-ok(await p.locator('.msgtools.user .cpbtn').count() >= 1, 'copy button under the user message');
-ok(await p.locator('.msgtools.bot .cpbtn').count() >= 1, 'copy button under bot replies');
+ok(await p.locator('.msgtools.mine .cpbtn').count() >= 1, 'copy button under the user message');
+ok(await p.locator('.msgtools.theirs .cpbtn').count() >= 1, 'copy button under bot replies');
 await p.context().grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
-await p.locator('.msgtools.user .cpbtn').first().click(); await p.waitForTimeout(300);
-ok(await p.locator('.msgtools.user .cpbtn.done').count() === 1, 'copy button confirms with a check');
+await p.locator('.msgtools.mine .cpbtn').first().click(); await p.waitForTimeout(300);
+ok(await p.locator('.msgtools.mine .cpbtn.done').count() === 1, 'copy button confirms with a check');
 const clip = await p.evaluate(() => navigator.clipboard.readText().catch(() => 'n/a'));
 ok(clip === 'n/a' || clip.includes('hello there'), 'clipboard has the message: ' + clip.slice(0, 40));
 await p.setViewportSize({ width: 1280, height: 420 });

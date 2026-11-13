@@ -277,7 +277,7 @@ body { animation: pagein .45s ease both; }
 
 /* v6: copy buttons, scroll-down button */
 .msgtools { display: flex; margin: -8px 0 0; padding: 0 6px; }
-.msgtools.bot { align-self: flex-start; } .msgtools.user { align-self: flex-end; }
+.msgtools.theirs { align-self: flex-start; } .msgtools.mine { align-self: flex-end; }
 .cpbtn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--faint); background: transparent; border: 0; border-radius: 8px; padding: 5px 8px; cursor: pointer; opacity: .75; transition: opacity .2s, color .2s, background-color .2s; }
 .cpbtn:hover, .cpbtn:focus-visible { opacity: 1; color: var(--ink); background: var(--accent-soft); }
 .cpbtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -303,3 +303,15 @@ body { animation: pagein .45s ease both; }
 #toast { position: fixed; z-index: 60; left: 50%; top: 76px; transform: translate(-50%, -10px); background: var(--ink); color: var(--bg); padding: 9px 18px; border-radius: 999px; font-size: 14.5px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+
+/* v10: copy icon follows the text color (dark on light, light on dark); header layout */
+.cpbtn { color: var(--ink); opacity: .55; }
+.cpbtn svg { width: 17px; height: 17px; }
+.msg:hover + .msgtools .cpbtn, .msgtools:hover .cpbtn, .cpbtn:focus-visible { opacity: 1; }
+.cpbtn.done { color: var(--warm); }
+.lcopy { color: var(--ink); opacity: .6; }
+header { max-width: none; width: calc(100% + 2 * clamp(16px, 4vw, 40px)); margin: 0 calc(-1 * clamp(16px, 4vw, 40px)); padding: 12px clamp(12px, 2vw, 20px); }
+header .tools { gap: 8px; flex-wrap: nowrap; }
+header #humanBtn { order: 1; } header .menuwrap { order: 2; } header #newChatBtn { order: 3; margin-left: 8px; } header #themeBtn { order: 4; }
+.menuwrap { position: relative; display: flex; }
+@media (max-width: 520px) { header { padding-left: 10px; padding-right: 10px; } header .tools { gap: 6px; } header #newChatBtn { margin-left: 2px; } }
