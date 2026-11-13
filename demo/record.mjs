@@ -45,8 +45,8 @@ const tap = async (loc) => {
   await p.waitForTimeout(250);
 };
 await p.waitForTimeout(900);
-await cap('1  Say who it is for'); await p.waitForTimeout(2200);
-await tap(p.locator('.wchoice[data-who="me"]')); await p.waitForTimeout(1200);
+await p.waitForSelector('.card.home'); await cap('1  Say where you are'); await p.waitForTimeout(2200);
+await tap(p.locator('.rolebtn[data-role="own"]')); await p.waitForTimeout(1200);
 await cap('2  Tell it what happened'); await p.waitForTimeout(2000);
 await tap(p.locator('.choice[data-sit="quiet"]')); await p.waitForTimeout(1500);
 const notes = p.locator('.aN'); await tap(notes);

@@ -18,7 +18,7 @@
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); } else v.pause(); }); }, { threshold: 0.5 }).observe(v);
   }
 
-  var STEPS = ['Say Who It Is For', 'Tell It What Happened', 'Pick One Clear Ask', 'Edit It, Copy It, Send It'];
+  var STEPS = ['Say Where You Are', 'Tell It What Happened', 'Pick One Clear Ask', 'Edit It, Copy It, Send It'];
   var segs = document.querySelectorAll('#stepper .segs i'), stN = document.getElementById('stN'), stT = document.getElementById('stT');
   if (v && stN) {
     var starts = [0, 5, 14, 21], dur = 29;

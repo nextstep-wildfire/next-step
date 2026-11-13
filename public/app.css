@@ -326,3 +326,13 @@ header .menu { top: calc(100% + 8px); }
 .menu #newChatBtn .plus { display: none; } .menu #newChatBtn .nct { display: inline; }
 header #newChatBtn, header #humanBtn { order: 0; margin: 0; }
 @media (max-width: 520px) { header { padding-inline: 54px; } header .brand h1 { display: none; } header #sideBtn { left: 10px; } header .menuwrap { right: 10px; } .menu #newChatBtn .nct { display: inline; } }
+
+/* v12 start screen: bigger lead text, own/rent first, six situation cards */
+.card h2 + p.small { font-size: 17px; line-height: 1.5; color: var(--muted); margin: 6px 0 0; }
+.card.home .rolerow { font-size: 16px; margin: 16px 0 4px; }
+.card.home .rolebtn { font-size: 16px; padding: 8px 18px; }
+.card.home p.ask { font-size: 17px; margin: 18px 0 10px; }
+.card.home .choices { grid-template-columns: repeat(3, 1fr); }
+.card.home .inl { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 760px) { .card.home .choices { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .card.home .choices { grid-template-columns: 1fr; } }

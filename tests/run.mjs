@@ -14,7 +14,7 @@ async function page(opts) {
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(String(e))); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await p.goto(base + '/app/'); p.errs = errs; p.errs.push = p.errs.push;
-  if (!(opts && opts.noStart)) { await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home'); }
+  await p.waitForSelector('.card.home');
   return p;
 }
 const chip = (p, name) => p.locator('#chips button', { hasText: name }).first();
@@ -22,8 +22,25 @@ const lastBot = (p) => p.locator('#thread .msg.bot').last();
 
 // 1. home
 let p = await page();
-ok(await p.locator('.choice').count() === 3, 'home shows three choices');
+ok(await p.locator('.choice').count() === 6, 'home shows six situation choices');
+ok((await p.locator('.card.home h2').innerText()).toLowerCase().includes('where are you'), 'home asks where you are in your claim');
+ok(await p.locator('.card.who').count() === 0, 'the who-is-this-for screen is no longer first');
+ok(await p.locator('.card.home h2 + p.small').evaluate((e) => parseFloat(getComputedStyle(e).fontSize)) >= 17, 'lead text under the title is larger');
 ok(await p.locator('#chips button').count() === 4, 'home shows four quiet chips');
+// 1b. letter polish: example matches the situation, typed text carries over, one bubble per tap
+p = await page(); await p.locator('.choice[data-sit="low"]').click(); await p.waitForSelector('.aN');
+ok(/offered/i.test(await p.locator('.aN').getAttribute('placeholder')) && !/denied/i.test(await p.locator('.aN').getAttribute('placeholder')), 'notes example matches the picked situation (offered less)');
+await p.context().close();
+p = await page(); await p.locator('#input').fill('State Farm sent me a form I need to fill out and I do not understand it'); await p.locator('#input').press('Enter'); await p.waitForTimeout(700);
+await chip(p, 'Write a letter').click(); await p.waitForSelector('.aN');
+ok((await p.locator('.aN').inputValue()).includes('State Farm sent me a form'), 'what the person typed is prefilled in the letter notes');
+await p.context().close();
+p = await page(); await p.locator('#menuBtn').click(); await p.locator('#humanBtn').click(); await p.waitForTimeout(500);
+await chip(p, 'Yes').click(); await p.waitForTimeout(500);
+ok(await p.locator('#thread .msg.user', { hasText: /^Yes$/ }).count() === 1, 'one Yes bubble per tap');
+await p.context().close();
+p = await page();
+
 // 2. letter flow with AI
 await p.locator('.choice[data-sit="quiet"]').click();
 await p.locator('.aN').fill('My adjuster has not answered for 7 weeks.');
@@ -64,8 +81,8 @@ ok(p.errs.length === 0, 'no page errors: ' + p.errs.join(' | '));
 await p.context().close();
 
 // 6. languages
-for (const [l, word] of [['es', 'Dígale'], ['zh', '用书面形式']]) {
-  p = await page({ noStart: true }); await p.locator('#menuBtn').click(); await p.locator('#langSeg button[data-lang="' + l + '"]').click(); await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home');
+for (const [l, word] of [['es', 'punto'], ['zh', '进行到哪一步']]) {
+  p = await page({ noStart: true }); await p.locator('#menuBtn').click(); await p.locator('#langSeg button[data-lang="' + l + '"]').click(); await p.waitForSelector('.card.home');
   ok((await p.locator('.card.home h2').innerText()).includes(word), 'home in ' + l);
   await p.locator('.choice[data-sit="low"]').click(); await p.waitForSelector('.aGo');
   await p.locator('.aGo').click(); await p.waitForSelector('textarea.letterEdit');
@@ -153,13 +170,14 @@ await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 376, 'landing: no horizontal scroll at 375px');
 await p.screenshot({ path: '/tmp/shot_landing_m.png' });
 await p.setViewportSize({ width: 1280, height: 800 }); await p.screenshot({ path: '/tmp/shot_landing.png' });
-await p.locator('a.btn').click(); await p.waitForSelector('.card.who');
-ok(true, 'Start opens the who-is-this-for screen');
+await p.locator('a.btn').click(); await p.waitForSelector('.card.home');
+ok(true, 'Start opens the situation screen');
 await p.context().close();
 
 // 13. who is this for, separate chats, letters on behalf
 p = await page({ noStart: true });
-ok(await p.locator('.wchoice').count() === 3, 'who screen shows three choices');
+await p.locator('#whoBtn').click(); await p.waitForSelector('.card.who');
+ok(await p.locator('.wchoice').count() === 3, 'helping someone else opens the three-choice who screen');
 await p.locator('.wchoice[data-who="other"]').click(); await p.locator('#wname').fill('my mom'); await p.locator('#wgo').click();
 await p.waitForSelector('.card.home');
 ok((await p.locator('.card.home h2').innerText()).toLowerCase().includes('my mom'), 'home uses their name');
@@ -169,8 +187,7 @@ const calls0 = (await import('../dev/dev-server.js')).calls; const lastCall = ca
 ok(/WRITING FOR: someone else \(my mom\)/.test(lastCall.userFull || lastCall.last + ''), 'API is told the letter is for someone else');
 await p.locator('#input').fill('what should I do about the adjuster'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
 // new chat for myself
-await p.locator('#newFromList').click(); await p.waitForSelector('.card.who');
-await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home');
+await p.locator('#newFromList').click(); await p.waitForSelector('.card.home');
 ok((await p.locator('#thread').innerText()).indexOf('my mom') === -1, 'new chat starts clean');
 await p.locator('#input').fill('my own claim was denied'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
 await p.locator('#chatTitle').click(); await p.waitForSelector('#shell.side-open');
@@ -184,7 +201,7 @@ ok((await p.locator('#chatTitle').innerText()).toLowerCase().includes('my mom'),
 ok(await p.locator('#clist .citem').count() === 2, 'reload keeps both chats (sidebar open on desktop)');
 // delete needs two taps
 const delBtn = p.locator('#clist .cdel').first(); await delBtn.click({ force: true }); ok(await p.locator('#clist .citem').count() === 2, 'one tap does not delete');
-await p.locator('#clist .cdel[data-arm="1"]').click({ force: true }); ok(await p.locator('#clist .citem').count() === 1, 'second tap deletes');
+await p.locator('#clist .cdel[data-arm="1"]').click({ force: true }); ok(await p.locator('#clist .citem', { hasText: 'my mom' }).count() === 0, 'second tap deletes'); ok(await p.locator('.card.home').count() === 1, 'deleting the open chat lands on the start screen');
 ok(p.errs.length === 0, 'no page errors in chats: ' + p.errs.join(' | '));
 await p.context().close();
 

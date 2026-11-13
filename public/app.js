@@ -73,13 +73,20 @@
   var SOURCES = {"1": {"label": "CDI bulletin 2025-2", "url": "https://www.insurance.ca.gov/0250-insurers/0300-insurers/0200-bulletins/bulletin-notices-commiss-opinion/upload/Bulletin-2025-2-Wildfire-Consumer-Protections-and-Advanced-Payments.pdf", "title": "California Department of Insurance, Bulletin 2025-2, wildfire consumer protections", "notes": "For a covered total loss in a state of emergency: if you ask, your insurer must advance at least four months of additional living expenses (ALE), with more paid on proof afterward. The FAIR Plan uses the term Fair Rental Value with the same four-month advance. For a furnished primary home that is a total loss, insurers must offer a contents payment of at least 30% of the dwelling limit, up to $250,000, without an itemized inventory; you can claim more later up to your contents limit. ALE lasts at least 24 months after a state of emergency, plus 12 months if rebuilding is delayed by circumstances beyond your control, plus six-month extensions for good cause, though dollar limits in the policy may run out first. If you rebuild or buy elsewhere you are owed the benefits you would have received rebuilding at the original site, capped at the cost to rebuild there, and the insurer cannot deduct land value. You have at least 36 months from the first actual cash value payment to collect full replacement cost, with six-month extensions for good cause. If the dwelling limit is not enough to rebuild, you may combine dwelling and other-structure limits up to the aggregate limit. After a total loss the insurer must offer to renew for at least the next two renewal periods."}, "2": {"label": "CDI wildfire page", "url": "https://www.insurance.ca.gov/01-consumers/140-catastrophes/WildfireResources.cfm", "title": "California Department of Insurance, wildfire resources", "notes": "Start by contacting your insurance company or agent and work with your adjuster toward a settlement you believe is fair and matches your coverage. If you are considering a public adjuster, take your time and check that the person is licensed and in good standing. The department has a tool to search for a residential policy after a declared disaster. A one-year moratorium on non-renewals applies to wildfire-affected policyholders. For questions about your insurance or a dispute with your insurer, call the department hotline at 1-800-927-4357 or use its hotline chat. Local Assistance Centers offer in-person help."}, "3": {"label": "CDI smoke damage order", "url": "https://www.insurance.ca.gov/0400-news/0100-press-releases/2025/release023-2025.cfm", "title": "California Department of Insurance press release on smoke damage claims, March 7, 2025", "notes": "The Insurance Commissioner directed insurers to fully investigate all smoke damage claims and ensure fair payments, and not to deny them outright. People whose homes are uninhabitable, even without wildfire damage, could have coverage under ALE. For help call the department at 1-800-927-4357. To check a contractor’s license, the Contractors State License Board is at 1-800-321-2752 or cslb.ca.gov."}, "4": {"label": "FEMA", "url": "https://www.fema.gov/fact-sheet/fema-assistance-survivors-insurance-coverage", "title": "FEMA fact sheet, assistance for survivors with insurance coverage", "notes": "If you have insurance and want FEMA disaster assistance, file a claim with your insurance company first. By law FEMA cannot duplicate benefits for losses insurance covers, so FEMA can only help with needs insurance does not cover. When you apply you must tell FEMA about all your insurance coverage. You can apply at DisasterAssistance.gov, with the FEMA app, or by calling 1-800-621-3362, and you can upload documents to your account."}, "5": {"label": "Cal OES", "url": "https://www.news.caloes.ca.gov/what-to-do-if-your-property-is-damaged-or-destroyed-in-a-wildfire", "title": "Cal OES, what to do if your property is damaged or destroyed in a wildfire", "notes": "Contact your insurance company first, since insurance delivers the majority of financial help after disasters. For losses insurance does not cover, you can register for disaster assistance online at disasterassistance.gov, with the FEMA app, or by calling 800-621-3362."}, "6": {"label": "CDI complaints", "url": "https://www.insurance.ca.gov/0400-news/0102-alerts/2025/Commissioner-Lara-Launches-Investigation.cfm", "title": "California Department of Insurance alert urging wildfire survivors to file formal complaints", "notes": "The Insurance Commissioner urged wildfire survivors facing delayed payments, claim disputes, multiple adjusters, smoke damage problems or other issues to file a formal complaint with the department. The department said a formal complaint is needed for it to take action and advocate for consumers."}, "7": {"label": "Consumer Federation of America", "url": "https://americasaves.org/media/5mylvrzw/ca-wildfires-one-pager-insurance.pdf", "title": "Consumer Federation of America, California wildfire insurance one-pager", "notes": "Document the damage thoroughly with photos and videos, but only if it is safe. Do not enter unsafe areas. Keep damaged items until they have been documented."}, "8": {"label": "United Policyholders", "url": "https://uphelp.org/what-california-homeowners-should-know-about-filing-an-insurance-claim-for-fire-damage/", "title": "United Policyholders, filing an insurance claim for fire damage in California", "notes": "Fires that damage but do not completely destroy a home create their own claim issues. Watch for hidden damage from water, smoke, ash and mold."}, "9": {"label": "CDI SB 495 release", "url": "https://www.insurance.ca.gov/0400-news/0100-press-releases/2025/release067-2025.cfm", "title": "California Department of Insurance press release on SB 495, contents payments without a list", "notes": "Beginning January 2026, when a policyholder has a total loss in a declared emergency, insurance companies are required to pay 60 percent of personal property (contents) coverage limits, up to $350,000, without requiring a detailed inventory. Consumers can call 1-800-927-4357 with questions or use the department website or online chat."}, "10": {"label": "CDI claim rights", "url": "https://www.insurance.ca.gov/flipbook/AutoAccident/15", "title": "California Department of Insurance, your rights under the Fair Claims Settlement Practices Regulations", "notes": "Under California’s Fair Claims Settlement Practices Regulations, an insurer must acknowledge a claim within 15 calendar days and begin investigating, and must accept or deny the claim no later than 40 days after receiving proof of claim. The department’s booklet is written for auto claims, but it describes the duties these regulations place on insurers generally."}, "11": {"label": "CDI living expenses", "url": "https://www.insurance.ca.gov/0400-news/0102-alerts/2025/Insurance-coverage-for-additional-living.cfm", "title": "California Department of Insurance, insurance coverage for additional living expenses if the home is not habitable due to a wildfire", "notes": "Additional living expense (ALE), also called loss of use or fair rental value, covers extra costs when a home is not safe to live in because of a covered peril such as wildfire. Keep bills and receipts for relocation costs such as hotel, clothing and food. Most renters insurance policies cover ALE only until you can move back or have had a reasonable time to find a rental elsewhere, whichever is less, so renters may not get the full length of time that homeowners get. Even a home with no damage may qualify if hazards make it unsafe and the policy provides ALE. For smoke and ash toxins from neighboring properties, the policyholder may need to show the home is uninhabitable, and the insurer should investigate and test."}, "12": {"label": "United Policyholders wildfire page", "url": "https://uphelp.org/disaster-recovery-help/2025cawildfires/", "title": "United Policyholders, 2025 California wildfires insurance claim and recovery help", "notes": "United Policyholders’ page for the 2025 California wildfires collects orientation videos, a guide to reading your policy, videos on living-expense coverage for total losses and for standing homes, sample letters to request information about living-expense benefits and to request extensions, renters insurance claim tips for California, an insurance accounting spreadsheet, and a guide to speaking up when communicating with your insurer. It advises asking for the advance payments in writing; email counts."}, "13": {"label": "LA County tenant guide", "url": "https://dcba.lacounty.gov/after-the-disaster-information-for-landlords-and-tenants/", "title": "Los Angeles County Department of Consumer and Business Affairs, after the disaster, information for landlords and tenants", "notes": "If a rental unit is completely destroyed in a disaster, the lease no longer applies, rent is no longer owed and the landlord need not provide housing; the landlord must return prepaid rent and refund the security deposit under California law. If a unit is only partly destroyed and cannot be lived in, the tenant may choose to end or continue the lease depending on the circumstances, and should get legal advice from an attorney before stopping rent payments. Every situation is different."}, "14": {"label": "FEMA rental assistance", "url": "https://www.fema.gov/fact-sheet/apply-fema-rental-assistance", "title": "FEMA, apply for rental assistance after the Los Angeles County wildfires", "notes": "FEMA may help with temporary housing if a homeowner or renter is displaced from their primary residence by the Los Angeles County wildfires. Transitional Sheltering Assistance gives short-term hotel stays. Rental Assistance continues help afterward and can cover monthly rent, which may include a security deposit. You must show an ongoing need and keep rent receipts for three years. Apply at DisasterAssistance.gov, with the FEMA app, by phone at 800-621-3362, or at a Disaster Recovery Center. The original application deadline for the January 2025 fires has passed, so ask FEMA whether you can still apply or appeal."}, "15": {"label": "CDI renters guide", "url": "https://www.insurance.ca.gov/01-consumers/105-type/95-guides/03-res/res-ins-guide.cfm", "title": "California Department of Insurance, residential insurance guide for homeowners and renters", "notes": "A renters policy covers your own belongings (personal property) and loss of use, plus liability and medical payments to others. Your landlord’s insurance does not cover your belongings. Loss of use on a renters policy is commonly about 20% of the personal property limit. When setting a belongings limit, include everyday items such as small appliances, kitchen items, linens, window coverings, clothing and shoes."}};
   /* ---------- v3 interface text (English, Spanish, Chinese) ---------- */
   var I = {
-    homeTitle: ['Tell your insurer what you need, in writing.', 'Dígale a su aseguradora por escrito lo que necesita.', '用书面形式告诉保险公司您需要什么。'],
-    homeSub: ['A free guide for California wildfire homeowners and renters. No sign-in. General information, not legal advice.', 'Una guía gratuita para propietarios e inquilinos afectados por incendios forestales en California. Sin registrarse. Información general, no asesoría legal.', '为受加州野火影响的房主和租客提供的免费指南。无需登录。仅为一般信息，不构成法律建议。'],
+    homeTitle: ['Where are you with your claim?', '¿En qué punto está de su reclamo?', '您的理赔目前进行到哪一步？'],
+    homeSub: ['Two quick taps and I will show you where to start. Free guide for California wildfire homeowners and renters. General information, not legal advice.', 'Dos toques rápidos y le muestro por dónde empezar. Guía gratuita para propietarios e inquilinos afectados por incendios en California. Información general, no asesoría legal.', '点两下，我就告诉您从哪里开始。为受加州野火影响的房主和租客提供的免费指南。仅为一般信息，不构成法律建议。'],
     roleLabel: ['I am a', 'Soy', '我是'],
     role_own: ['Homeowner', 'Propietario(a)', '房主'],
     role_rent: ['Renter', 'Inquilino(a)', '租客'],
     role_unsure: ['Not sure', 'No estoy seguro(a)', '不确定'],
-    homePrompt: ['What did your insurer do?', '¿Qué hizo su aseguradora?', '保险公司做了什么？'],
+    homePrompt: ['What do you need help with?', '¿Con qué necesita ayuda?', '您需要什么帮助？'],
+    c_start: ['I am just starting', 'Apenas empiezo', '我刚开始'],
+    c_start_s: ['Not filed yet, or just filed', 'Aún no presento el reclamo, o acabo de hacerlo', '还没提交，或刚提交'],
+    c_stay: ['I need a place to stay', 'Necesito dónde quedarme', '我需要住处'],
+    c_stay_s: ['Hotel, rent and living costs', 'Hotel, renta y gastos de vida', '酒店、租金和生活费'],
+    c_smoke: ['Smoke or ash damage', 'Daño por humo o ceniza', '烟灰损害'],
+    c_smoke_s: ['My home is still standing', 'Mi vivienda sigue en pie', '房子还在'],
+    helpOther: ['Helping someone else, or just learning?', '¿Ayuda a otra persona, o solo se informa?', '在帮别人，或只是想了解？'],
     c_denied: ['They said no', 'Dijeron que no', '他们拒赔了'],
     c_denied_s: ['My claim was denied', 'Mi reclamo fue rechazado', '我的理赔被拒绝'],
     c_low: ['They offered less', 'Ofrecieron menos', '他们赔得太少'],
@@ -107,6 +114,11 @@
     askTitle_smoke: ['Smoke or ash in a standing home. What do you want to ask for?', 'Humo o ceniza en una vivienda en pie. ¿Qué quiere pedir?', '房子还在但有烟灰。您想提出什么要求？'],
     askTitle_other: ['What do you want to ask your insurer for?', '¿Qué quiere pedirle a su aseguradora?', '您想向保险公司提出什么要求？'],
     lblNotes: ['What happened, in your own words', 'Qué pasó, con sus propias palabras', '发生了什么（用您自己的话）'],
+    phNotes_denied: ['Example: They denied my claim on Oct 3 and said the damage was not from the fire.', 'Ejemplo: Rechazaron mi reclamo el 3 de octubre y dijeron que el daño no fue por el incendio.', '例如：他们在 10 月 3 日拒赔，并说损坏不是火灾造成的。'],
+    phNotes_low: ['Example: They offered $X, but my contractor quoted $Y for the same repairs.', 'Ejemplo: Ofrecieron $X, pero mi contratista cotizó $Y por las mismas reparaciones.', '例如：他们只赔 $X，但我的承包商对同样的维修报价 $Y。'],
+    phNotes_quiet: ['Example: I sent photos in January and my adjuster has not answered my calls or emails for 7 weeks.', 'Ejemplo: Envié fotos en enero y mi ajustador no responde mis llamadas ni correos desde hace 7 semanas.', '例如：我 1 月提交了照片，理赔员 7 周来没有回复我的电话和邮件。'],
+    phNotes_smoke: ['Example: My home is standing, but there is a smoke smell and ash inside, and no one has tested it.', 'Ejemplo: Mi vivienda sigue en pie, pero hay olor a humo y ceniza adentro, y nadie lo ha evaluado.', '例如：房子还在，但里面有烟味和灰，也没有人来检测。'],
+    phNotes_other: ['Example: I need to ask my insurer a question about my claim.', 'Ejemplo: Necesito hacerle una pregunta a mi aseguradora sobre mi reclamo.', '例如：我需要就我的理赔向保险公司提一个问题。'],
     phNotes: ['Example: They denied my claim on Oct 3 and said the damage was not from the fire.', 'Ejemplo: Rechazaron mi reclamo el 3 de octubre y dijeron que el daño no fue por el incendio.', '例如：他们在 10 月 3 日拒赔，并说损坏不是火灾造成的。'],
     lblAsk: ['Pick the one thing to ask for', 'Elija lo único que quiere pedir', '选择您要提出的一个要求'],
     askOtherLabel: ['Something else (write it below)', 'Otra cosa (escríbala abajo)', '其他（请在下方填写）'],
@@ -528,6 +540,7 @@
         sub: T('You are helping, so answers talk about them, not you. Letters will say you are writing on their behalf.', 'Usted está ayudando, así que las respuestas hablan de esa persona, no de usted. Las cartas dirán que escribe en su nombre.', '您在帮助对方，所以回答会以对方为主。信件会注明您是代对方来写的。'),
         roleLabel: T('Do they own or rent?', '¿Es propietario(a) o inquilino(a)?', '对方是房主还是租客？'),
         own: T('They own', 'Propietario(a)', '房主'), rent: T('They rent', 'Inquilino(a)', '租客'), unsure: t('role_unsure'),
+        keys: ['denied', 'low', 'quiet'],
         prompt: T('What did their insurer do?', '¿Qué hizo su aseguradora?', '对方的保险公司做了什么？'),
         c: { denied: [t('c_denied'), T('Their claim was denied', 'Su reclamo fue rechazado', '对方的理赔被拒绝')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), T('No answer from the adjuster', 'El ajustador no responde', '理赔员没有回复')] }
       };
@@ -537,22 +550,25 @@
       sub: w === 'explore' ? T('No claim needed. Pick a topic below, or ask anything in the box.', 'No necesita un reclamo. Elija un tema abajo o pregunte lo que quiera en el cuadro.', '不需要已有理赔。选择下面的主题，或在输入框里随便问。') : t('homeSub'),
       roleLabel: t('roleLabel'), own: t('role_own'), rent: t('role_rent'), unsure: t('role_unsure'),
       prompt: t('homePrompt'),
-      c: { denied: [t('c_denied'), t('c_denied_s')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), t('c_quiet_s')] }
+      keys: w === 'explore' ? ['denied', 'low', 'quiet'] : ['start', 'stay', 'smoke', 'denied', 'low', 'quiet'],
+      c: { start: [t('c_start'), t('c_start_s')], stay: [t('c_stay'), t('c_stay_s')], smoke: [t('c_smoke'), t('c_smoke_s')], denied: [t('c_denied'), t('c_denied_s')], low: [t('c_low'), t('c_low_s')], quiet: [t('c_quiet'), t('c_quiet_s')] }
     };
   }
   function homeCard() {
     var H = homeT();
     var c = el('div', 'msg bot card home');
     c.innerHTML = '<h2>' + esc(H.title) + '</h2><p class="small">' + esc(H.sub) + '</p>' +
+      '<div class="rolerow" role="group" aria-label="' + esc(H.roleLabel) + '"><span>' + esc(H.roleLabel) + '</span>' +
+      ['own', 'rent', 'unsure'].map(function (r) { return '<button type="button" class="rolebtn" data-role="' + r + '" aria-pressed="false">' + esc(H[r]) + '</button>'; }).join('') + '</div>' +
       '<p class="ask">' + esc(H.prompt) + '</p>' +
-      '<div class="choices">' + ['denied', 'low', 'quiet'].map(function (s) {
+      '<div class="choices">' + H.keys.map(function (s) {
         return '<button type="button" class="choice" data-sit="' + s + '"><b>' + esc(H.c[s][0]) + '</b><small>' + esc(H.c[s][1]) + '</small></button>';
       }).join('') + '</div>' +
       '<p class="small">' + esc(t('homeMore')) + '</p>' +
-      '<div class="rolerow" role="group" aria-label="' + esc(H.roleLabel) + '"><span>' + esc(H.roleLabel) + '</span>' +
-      ['own', 'rent', 'unsure'].map(function (r) { return '<button type="button" class="rolebtn" data-role="' + r + '" aria-pressed="false">' + esc(H[r]) + '</button>'; }).join('') + '</div>' +
-      (state.who === 'other' ? '' : '<div class="inl"><button type="button" class="chip" id="sampleBtn">' + esc(t('sample')) + '</button></div>');
-    thread.appendChild(c); paintRoles(); scroll();
+      '<div class="inl">' + (state.who === 'other' ? '' : '<button type="button" class="chip" id="sampleBtn">' + esc(t('sample')) + '</button>') +
+      (state.who === 'me' ? '<button type="button" class="chip" id="whoBtn">' + esc(t('helpOther')) + '</button>' : '') + '</div>';
+    thread.appendChild(c); paintRoles();
+    if (thread.children.length === 1) thread.scrollTop = 0; else scroll();
   }
   thread.addEventListener('click', function (e) {
     var rb = e.target.closest('.rolebtn');
@@ -568,7 +584,15 @@
     }
     if (e.target.id === 'wgo') { var wv = document.getElementById('wname'); startChat('other', wv ? wv.value : ''); return; }
     var ch = e.target.closest('.choice');
-    if (ch) { var s = ch.getAttribute('data-sit'); log('home choice', s); user(t('c_' + s)); askFlow(s); return; }
+    if (ch) {
+      var s = ch.getAttribute('data-sit'); log('home choice', s);
+      if (s === 'start') { user(t('cStart')); chooseStage(isRent() ? 'r1' : 's1'); }
+      else if (s === 'stay') { user(t('cStay')); helpFlow('stay'); }
+      else if (s === 'smoke') { user(t('cSmoke')); chooseStage('sm'); }
+      else { user(t('c_' + s)); askFlow(s); }
+      return;
+    }
+    if (e.target.id === 'whoBtn') { log('who picker'); thread.innerHTML = ''; whoCard(); return; }
     if (e.target.id === 'sampleBtn') { log('sample'); user(t('sampleNotes')); askFlow('quiet', { notes: t('sampleNotes') }); }
   });
   thread.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'wname') { e.preventDefault(); startChat('other', e.target.value); } });
@@ -635,6 +659,8 @@
   }
   function startChat(who, name) {
     var c = { id: newId(), who: who, whoName: (name || '').trim().slice(0, 40), role: null, done: {}, seen: {}, contacts: [], letters: [], plan: null, ai: [], tx: [], ts: Date.now() };
+    var prev = curChat();
+    if (prev && !hasContent(prev)) store.chats = store.chats.filter(function (x) { return x.id !== prev.id; });
     store.chats.push(c);
     while (store.chats.length > MAX_CHATS) { var di = store.chats.findIndex(function (x) { return x.id !== c.id; }); if (di < 0) break; store.chats.splice(di, 1); }
     store.cur = c.id; applyChat(c);
@@ -648,7 +674,7 @@
     if (c && !hasContent(c)) store.chats = store.chats.filter(function (x) { return x.id !== c.id; });
     store.cur = null; resetChatState(); state.chatId = null;
     thread.innerHTML = ''; chips.innerHTML = '';
-    save(); renderChats(); setChatbar(); updateChecks(); closeChats(); closeMenu(); whoCard(); log('new chat');
+    save(); renderChats(); setChatbar(); updateChecks(); closeChats(); closeMenu(); startChat('me', ''); log('new chat');
   }
   function restoreTx(c) {
     (c.tx || []).forEach(function (m) { var d = el('div', 'msg restored ' + (m.r === 'u' ? 'user' : 'bot')); d.style.whiteSpace = 'pre-wrap'; d.textContent = m.t; thread.appendChild(d); });
@@ -671,7 +697,7 @@
   }
   function deleteChat(id) {
     store.chats = store.chats.filter(function (x) { return x.id !== id; });
-    if (store.cur === id) { store.cur = null; resetChatState(); state.chatId = null; thread.innerHTML = ''; chips.innerHTML = ''; setChatbar(); updateChecks(); whoCard(); }
+    if (store.cur === id) { store.cur = null; resetChatState(); state.chatId = null; thread.innerHTML = ''; chips.innerHTML = ''; setChatbar(); updateChecks(); startChat('me', ''); }
     save(); renderChats(); log('chat deleted');
   }
   function renderChats() {
@@ -690,7 +716,7 @@
   function closeChats() { if (isNarrow()) setSide(false, false); }
   var menuEl = document.getElementById('menu'), menuBtn = document.getElementById('menuBtn');
   function closeMenu() { menuEl.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); }
-  function renderStart() { if (curChat()) intro(); else whoCard(); }
+  function renderStart() { if (curChat()) intro(); else startChat('me', ''); }
 
   function roleChips() {
     setChips(function () {
@@ -902,12 +928,12 @@
   function openHandoff(src) {
     state.misses = 0; log('handoff opened', src || 'header'); state.touched = true;
     bot('<p>' + esc(t('hoQ')) + '</p>', function () {
-      setChips(function () { return [[t('yes'), function () { user(t('yes')); handoffKind(); }, 'primary'], [t('notNow'), function () { user(t('notNow')); setChips(state.stage && byId(state.stage) ? function () { return [[T('Back to my step', 'Volver a mi paso', '回到我的步骤'), function () { afterStep(); }], [T('Pick a stage', 'Elegir una etapa', '选择阶段'), function () { setChips(stageChips); }]]; } : homeChips); }]]; });
+      setChips(function () { return [[t('yes'), function () { handoffKind(); }, 'primary'], [t('notNow'), function () { setChips(state.stage && byId(state.stage) ? function () { return [[T('Back to my step', 'Volver a mi paso', '回到我的步骤'), function () { afterStep(); }], [T('Pick a stage', 'Elegir una etapa', '选择阶段'), function () { setChips(stageChips); }]]; } : homeChips); }]]; });
     });
   }
   function handoffKind() {
     bot('<p>' + esc(t('hoKind')) + '</p>', function () {
-      setChips(function () { return [[t('k_ins'), function () { user(t('k_ins')); handoffContacts('ins'); }], [t('k_house'), function () { user(t('k_house')); handoffContacts('house'); }], [t('k_over'), function () { user(t('k_over')); handoffContacts('over'); }]]; });
+      setChips(function () { return [[t('k_ins'), function () { handoffContacts('ins'); }], [t('k_house'), function () { handoffContacts('house'); }], [t('k_over'), function () { handoffContacts('over'); }]]; });
     });
   }
   function handoffContacts(kind) {
@@ -1027,7 +1053,7 @@
     out.push(''); out.push(o.ask);
     if (oth) out.push('Please also tell me in writing what you need from ' + pn + ' so I can discuss this claim with you.');
     out.push('');
-    out.push('Please reply in writing by [date]. I am keeping a record of all communication on this claim.'); out.push('');
+    out.push('Please reply in writing within 15 calendar days of receiving this letter. I am keeping a record of all communication on this claim.'); out.push('');
     out.push('Thank you,'); out.push(o.name || '[your name]');
     return out.join('\n');
   }
@@ -1044,7 +1070,7 @@
       }).join('') + '<label class="ck"><input type="radio" name="ask' + uid + '" class="ak" value="x"><span>' + esc(t('askOtherLabel')) + '</span></label>' +
         '<input type="text" class="aX" maxlength="200" placeholder="' + esc(t('askOtherPh')) + '" aria-label="' + esc(t('askOtherPh')) + '" hidden>';
       w.innerHTML = '<div class="fld"><p class="small">' + esc(t('askIntro')) + '</p>' +
-        '<label class="lbl">' + esc(t('lblNotes')) + '</label><textarea class="aN" maxlength="1200" placeholder="' + esc(t('phNotes')) + '"></textarea>' +
+        '<label class="lbl">' + esc(t('lblNotes')) + '</label><textarea class="aN" maxlength="1200" placeholder="' + esc(t(I['phNotes_' + sit] ? 'phNotes_' + sit : 'phNotes')) + '"></textarea>' +
         '<label class="lbl">' + esc(t('lblAsk')) + '</label>' + radios +
         '<details><summary>' + esc(t('lblPaste')) + '</summary><textarea class="aP" maxlength="1500" placeholder="' + esc(t('phPaste')) + '" aria-label="' + esc(t('lblPaste')) + '"></textarea></details>' +
         '<details><summary>' + esc(t('lblDetails')) + '</summary><div class="two"><input type="text" class="aNm" maxlength="60" placeholder="' + esc(t('phName')) + '" aria-label="' + esc(t('phName')) + '"><input type="text" class="aC" maxlength="40" placeholder="' + esc(t('phClaim')) + '" aria-label="' + esc(t('phClaim')) + '"></div><input type="text" class="aI" maxlength="60" placeholder="' + esc(t('phInsurer')) + '" aria-label="' + esc(t('phInsurer')) + '"></details>' +
@@ -1120,6 +1146,7 @@
       msgBox.innerHTML = '<div class="msg bot ai" style="max-width:100%;white-space:pre-wrap">' + esc(r.text) + '</div>'; scroll();
     }).catch(function (err) { noteAiDown(err && err.code); msgBox.innerHTML = '<p class="small">' + esc(t('explainFail')) + '</p>'; });
   }
+  function lastTyped() { var x = state.typed.length ? state.typed[state.typed.length - 1] : ''; return x && x.length <= 1200 ? { notes: x } : {}; }
   function replyFlow() { askFlow(SIT_STAGE_REV[state.stage] || 'other'); }
   var SIT_STAGE_REV = { td: 'denied', tl: 'low', ts: 'quiet', sm: 'smoke' };
 
@@ -1219,7 +1246,7 @@
   function actionChip(a) {
     if (!a) return [];
     var x = a.arg, rid;
-    if (a.type === 'letter') return [[t('cWriteLetter'), function () { askFlow(x); }, 'primary']];
+    if (a.type === 'letter') { var pre = lastTyped(); return [[t('cWriteLetter'), function () { askFlow(x, pre); }, 'primary']]; }
     if (a.type === 'stage') {
       rid = isRent() && RENT_MAP[x] ? RENT_MAP[x] : x; if (!byId(rid)) return [];
       return [[t('showSteps') + ': ' + stageLabel(rid), function () { chooseStage(rid); }, 'primary']];
@@ -1256,7 +1283,7 @@
     if (STRESS_RE.test(x)) { state.stressAsked = true; return offerBreath(true); }
     if (FRUST_RE.test(x)) return frustrated();
     if (INSURER_RE.test(x) && /(form|questionnaire|document|paperwork|require|need|step|portal|checklist|formulario|documento|requisito|表格|文件|材料)/.test(x)) {
-      return bot('<p>' + esc(t('insurerNote')) + '</p>', function () { setChips(function () { return [[t('cWriteLetter'), function () { askFlow('other'); }, 'primary'], [t('cPerson'), function () { openHandoff('insurer'); }]]; }); });
+      var preI = lastTyped(); return bot('<p>' + esc(t('insurerNote')) + '</p>', function () { setChips(function () { return [[t('cWriteLetter'), function () { askFlow('other', preI); }, 'primary'], [t('cPerson'), function () { openHandoff('insurer'); }]]; }); });
     }
     if (Date.now() >= aiUntil) return askAI(txt);
     return scripted(txt);
@@ -1369,5 +1396,5 @@
   setChatbar();
   var sideSaved = null; try { sideSaved = localStorage.getItem('ns-side'); } catch (e) {}
   setSide(!isNarrow() && sideSaved !== '0', false); renderChats();
-  if (bootChat) resumeChat(bootChat); else whoCard();
+  if (bootChat) resumeChat(bootChat); else startChat('me', '');
 })();
