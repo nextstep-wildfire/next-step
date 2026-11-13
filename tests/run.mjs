@@ -113,13 +113,17 @@ process.env.MOCK = 'ok';
 
 // 12. landing page and routing
 p = await page({ noStart: true }); await p.goto(base + '/');
-ok((await p.locator('h1').innerText()).includes('one clear step'), 'landing headline');
+ok((await p.locator('h1').getAttribute('aria-label')) === 'Next Step', 'landing wordmark');
+ok((await p.locator('.hook').innerText()).includes('one clear step'), 'hook line under the name');
 ok((await p.locator('a.btn').getAttribute('href')) === '/app/', 'Start leads to the app');
 ok(await p.locator('footer a[href="tel:18009274357"]').count() === 1, 'landing has the CDI number');
 const fam = await p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
-ok(/Archivo/.test(fam), 'landing headline uses Archivo');
+ok(/Cinzel/.test(fam), 'wordmark uses Cinzel');
+const cx = await p.evaluate(() => { const r = document.querySelector('h1').getBoundingClientRect(); return Math.abs((r.left + r.right) / 2 - innerWidth / 2); });
+ok(cx < 6, 'wordmark is centered (off by ' + Math.round(cx) + 'px)');
 const loaded = await p.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family).join(','); });
-ok(/Archivo/.test(loaded) && /Inter/.test(loaded), 'bundled fonts actually load: ' + loaded);
+await p.waitForTimeout(1800);
+ok(/Cinzel/.test(loaded) && /Garamond/.test(loaded) && /Inter/.test(loaded), 'bundled fonts actually load: ' + loaded);
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 376, 'landing: no horizontal scroll at 375px');
 await p.screenshot({ path: '/tmp/shot_landing_m.png' });
