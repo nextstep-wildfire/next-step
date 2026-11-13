@@ -1342,7 +1342,7 @@
   /* Menu, chats and saving */
   menuBtn.addEventListener('click', function (e) { e.stopPropagation(); var open = !menuEl.classList.contains('open'); menuEl.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
   menuEl.addEventListener('click', function (e) { if (e.target.closest('.mi')) closeMenu(); });
-  document.addEventListener('click', function (e) { if (!e.target.closest('.tools')) closeMenu(); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.menuwrap')) closeMenu(); });
   document.getElementById('newChatBtn').addEventListener('click', newChat);
   document.getElementById('newFromList').addEventListener('click', newChat);
   sideBtn.addEventListener('click', function () { setSide(true, true); });

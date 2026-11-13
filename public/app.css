@@ -267,13 +267,11 @@ body { animation: pagein .45s ease both; }
   .sideback { position: fixed; inset: 0; z-index: 7; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; display: block; transition: opacity .25s ease; }
   .shell.side-open .sideback { opacity: 1; pointer-events: auto; }
   #sideBtn, .shell.side-open #sideBtn { display: grid; }
-  #newChatBtn { display: none; }
 }
 @media (max-width: 520px) { .brand h1 { display: none; } header { gap: 6px; } .tools { gap: 5px; } }
 @media (prefers-reduced-motion: reduce) { .side, .sideback { transition: none; } }
 /* short footer */
 .fine { font-size: 11px; line-height: 1.4; padding: 6px 0 10px; color: var(--faint); }
-.shell.side-open #newChatBtn { display: none; }
 
 /* v6: copy buttons, scroll-down button */
 .msgtools { display: flex; margin: -8px 0 0; padding: 0 6px; }
@@ -315,3 +313,16 @@ header .tools { gap: 8px; flex-wrap: nowrap; }
 header #humanBtn { order: 1; } header .menuwrap { order: 2; } header #newChatBtn { order: 3; margin-left: 8px; } header #themeBtn { order: 4; }
 .menuwrap { position: relative; display: flex; }
 @media (max-width: 520px) { header { padding-left: 10px; padding-right: 10px; } header .tools { gap: 6px; } header #newChatBtn { margin-left: 2px; } }
+
+/* v11: header like the landing page (brand left, theme toggle right of the column); sidebar button and the options menu at the window edges */
+header { position: relative; padding: 22px 0 14px; padding-inline: max(62px, calc((100% + 2 * clamp(16px, 4vw, 40px) - 1040px) / 2 + clamp(20px, 5vw, 48px))); gap: 10px; flex-wrap: nowrap; }
+header .brand { flex: 1 1 auto; min-width: 0; }
+header .tools { margin-left: auto; }
+header #sideBtn { position: absolute; left: clamp(10px, 2vw, 20px); top: 22px; }
+header .menuwrap { position: absolute; right: clamp(10px, 2vw, 20px); top: 22px; order: 0; }
+header .menu { top: calc(100% + 8px); }
+.menu .mi.mi-human { background: var(--btn); color: var(--btn-ink); font-weight: 600; justify-content: center; }
+.menu .mi.mi-human:hover { background: var(--btn); filter: brightness(1.08); }
+.menu #newChatBtn .plus { display: none; } .menu #newChatBtn .nct { display: inline; }
+header #newChatBtn, header #humanBtn { order: 0; margin: 0; }
+@media (max-width: 520px) { header { padding-inline: 54px; } header .brand h1 { display: none; } header #sideBtn { left: 10px; } header .menuwrap { right: 10px; } .menu #newChatBtn .nct { display: inline; } }

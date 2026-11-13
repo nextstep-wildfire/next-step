@@ -55,7 +55,7 @@ await p.locator('#input').fill('What forms does State Farm need from me?'); awai
 await p.waitForTimeout(900);
 ok((await p.locator('#thread').innerText()).includes('insurer-specific'), 'insurer-specific questions get the honest answer');
 // 5. handoff
-await p.locator('#humanBtn').click(); await p.waitForTimeout(700);
+await p.locator('#menuBtn').click(); await p.locator('#humanBtn').click(); await p.waitForTimeout(700);
 await chip(p, 'Yes').click(); await p.waitForTimeout(700);
 await chip(p, 'My insurance claim').click(); await p.waitForTimeout(700);
 ok((await p.locator('#thread').innerText()).includes('1-800-927-4357'), 'handoff shows the CDI number');

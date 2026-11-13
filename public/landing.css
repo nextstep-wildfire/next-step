@@ -139,13 +139,12 @@ footer a:hover b { color: var(--amber); }
 .stepper span { font-family: var(--head); font-weight: 700; font-size: 20px; color: var(--ink); }
 @media (max-width: 820px) { .hero .phone { height: auto; width: min(300px, 78vw); } .stepper { margin-top: 14px; } }
 
-/* v10: header matches the product page exactly (same spots for the brand and the theme toggle) */
+/* v11: header in the centered column (brand left, toggle right); the product page uses the same spots */
 :root { --tag: #17110e; --tag-line: #4a3226; }
 :root[data-theme="light"] { --tag: #f1e6dc; --tag-line: #dccabc; }
-.top { max-width: none; padding: 13px clamp(12px, 2vw, 20px) 12px; }
-.top .brand { gap: 10px; margin-left: 44px; }
+.top { padding-top: 22px; padding-bottom: 14px; }
+.top .brand { gap: 10px; min-height: 34px; }
 .top .brand b { font-size: 16px; letter-spacing: .14em; }
 .top .mark { width: 28px; height: 28px; border-radius: 9px; }
 .themebtn { width: 34px; height: 34px; margin-left: auto; background: var(--tag); border: 1px solid var(--tag-line); }
 .themebtn svg { width: 16px; height: 16px; stroke-width: 1.8; }
-@media (max-width: 520px) { .top { padding-left: 10px; padding-right: 10px; } .top .brand { margin-left: 42px; } }
