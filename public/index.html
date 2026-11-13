@@ -14,7 +14,7 @@
 <body>
 <header class="top">
   <a class="brand" href="/" aria-label="Next Step home"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-9 7 9"/><path d="M3 19h18"/></svg></span><b>NEXT STEP</b></a>
-  <nav><a href="/app/" class="navlink">Open the guide</a></nav>
+  <button class="themebtn" id="themeBtn" type="button" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
 </header>
 
 <main>
@@ -26,13 +26,17 @@
     <p class="lede">Next Step explains where you are, writes the letter to your insurer with one clear ask, and points you to a real person when you need one.</p>
     <div class="cta">
       <a class="btn" href="/app/">Start</a>
-      <span class="micro">Free. No sign-in. Also in <a href="/app/?lang=es">Español</a> and <a href="/app/?lang=zh">中文</a>.</span>
+      <span class="micro">Free. No sign-in.</span>
     </div>
   </section>
 
-  <section class="peek rv" aria-label="Example">
-    <div class="bub you">They denied my claim and I don’t know what to do.</div>
-    <div class="bub bot">That’s hard. You can ask them, in writing, to explain the decision and name the policy sections it relies on. Want me to write that letter?</div>
+  <section class="demo rv" aria-label="Demo video">
+    <div class="phone">
+      <video id="demo" muted loop playsinline preload="metadata" controls poster="/demo/poster.jpg" aria-label="30-second walkthrough of Next Step: choose who it is for, describe what happened, get a letter with one clear ask.">
+        <source src="/demo/next-step-demo.mp4" type="video/mp4">
+      </video>
+    </div>
+    <p class="cap">A 30-second walkthrough with a sample situation.</p>
   </section>
 
   <section class="three rv">
@@ -50,10 +54,10 @@
 <footer class="rv">
   <p class="need">Need a person now?</p>
   <ul>
-    <li><a href="tel:18009274357">California Department of Insurance <b>1-800-927-4357</b></a></li>
-    <li><a href="tel:18006213362">FEMA <b>1-800-621-3362</b></a></li>
-    <li><a href="tel:911">Emergency <b>911</b></a></li>
-    <li><a href="tel:988">Crisis line, call or text <b>988</b></a></li>
+    <li><a href="tel:18009274357"><span class="who">California Department of Insurance</span><b>1-800-927-4357</b></a></li>
+    <li><a href="tel:18006213362"><span class="who">FEMA</span><b>1-800-621-3362</b></a></li>
+    <li><a href="tel:911"><span class="who">Emergency</span><b>911</b></a></li>
+    <li><a href="tel:988"><span class="who">Crisis line, call or text</span><b>988</b></a></li>
   </ul>
 </footer>
 <script src="/landing.js" defer></script>

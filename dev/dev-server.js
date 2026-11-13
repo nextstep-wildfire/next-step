@@ -9,7 +9,7 @@ import { handle } from '../lib/core.js';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const SOURCES = JSON.parse(fs.readFileSync(path.join(root, 'sources.json'), 'utf8'));
 const port = Number(process.argv[2] || 8788);
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain', '.woff2': 'font/woff2' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain', '.woff2': 'font/woff2', '.mp4': 'video/mp4', '.jpg': 'image/jpeg' };
 export const calls = [];
 
 const mockAI = {
@@ -19,6 +19,9 @@ const mockAI = {
     const sys = input.messages[0].content;
     const last = input.messages[input.messages.length - 1].content;
     calls.push({ model, sysHead: sys.slice(0, 60), last: String(last).slice(0, 200) });
+    if (process.env.DEMO && sys.startsWith('Write a short letter')) {
+      return { response: 'Subject: Request for a written claim status update\n\nDear Claims Team,\n\nI reported my claim in January and sent photos of the damage to my home. For the past seven weeks I have called and emailed my adjuster and have not received a reply.\n\nPlease send me a written update on my claim status and the next step.\n\nPlease reply in writing by [date]. I am keeping a record of all communication on this claim.\n\nThank you,\n[your name]' };
+    }
     if (sys.startsWith('Write a short letter')) {
       const ask = (last.match(/ASK: (.*)/) || [])[1] || '';
       return { response: 'Subject: Request regarding my claim\n\nDear Claims Team,\n\nI am writing about my claim after the wildfire. My adjuster has not responded for several weeks and I need to move forward.\n\n' + ask + '\n\nPlease reply in writing by [date].\n\nThank you,\n[your name]' };

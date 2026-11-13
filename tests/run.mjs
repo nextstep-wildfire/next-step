@@ -111,12 +111,17 @@ for (const mode of ['quota', 'off']) {
 }
 process.env.MOCK = 'ok';
 
-// 12. landing page and routing
+// 12. landing page and routing (demo video, no language line, no Open the guide)
 p = await page({ noStart: true }); await p.goto(base + '/');
 ok((await p.locator('h1').getAttribute('aria-label')) === 'Next Step', 'landing wordmark');
 ok((await p.locator('.hook').innerText()).includes('one clear step'), 'hook line under the name');
 ok((await p.locator('a.btn').getAttribute('href')) === '/app/', 'Start leads to the app');
 ok(await p.locator('footer a[href="tel:18009274357"]').count() === 1, 'landing has the CDI number');
+await p.locator('#themeBtn').click(); ok((await p.evaluate(() => document.documentElement.getAttribute('data-theme'))) === 'light', 'landing theme button switches to light'); await p.locator('#themeBtn').click();
+const ys = await p.evaluate(() => [...document.querySelectorAll('footer li b')].map((b) => Math.round(b.getBoundingClientRect().top)));
+ok(ys.length === 4 && Math.max(...ys) - Math.min(...ys) <= 2, 'phone numbers line up in one row: ' + ys.join(','));
+ok(await p.locator('#demo source').getAttribute('src') === '/demo/next-step-demo.mp4', 'landing has the demo video');
+ok((await p.locator('body').innerText()).indexOf('Español') === -1 && (await p.locator('body').innerText()).indexOf('Open the guide') === -1, 'no language line or Open the guide');
 const fam = await p.evaluate(() => getComputedStyle(document.querySelector('h1')).fontFamily);
 ok(/Cinzel/.test(fam), 'wordmark uses Cinzel');
 const cx = await p.evaluate(() => { const r = document.querySelector('h1').getBoundingClientRect(); return Math.abs((r.left + r.right) / 2 - innerWidth / 2); });
@@ -144,7 +149,7 @@ const calls0 = (await import('../dev/dev-server.js')).calls; const lastCall = ca
 ok(/WRITING FOR: someone else \(my mom\)/.test(lastCall.userFull || lastCall.last + ''), 'API is told the letter is for someone else');
 await p.locator('#input').fill('what should I do about the adjuster'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
 // new chat for myself
-await p.locator('#newChatBtn').click(); await p.waitForSelector('.card.who');
+await p.locator('#newFromList').click(); await p.waitForSelector('.card.who');
 await p.locator('.wchoice[data-who="me"]').click(); await p.waitForSelector('.card.home');
 ok((await p.locator('#thread').innerText()).indexOf('my mom') === -1, 'new chat starts clean');
 await p.locator('#input').fill('my own claim was denied'); await p.locator('#input').press('Enter'); await p.waitForTimeout(900);
