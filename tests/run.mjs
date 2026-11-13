@@ -22,14 +22,19 @@ const lastBot = (p) => p.locator('#thread .msg.bot').last();
 
 // 1. home
 let p = await page();
-ok(await p.locator('.choice').count() === 6, 'home shows six situation choices');
-ok((await p.locator('.card.home h2').innerText()).toLowerCase().includes('where are you'), 'home asks where you are in your claim');
+ok(await p.locator('.choice').count() === 3, 'home shows only three choices');
+ok((await p.locator('.card.home .choice b').allInnerTexts()).join('|') === 'They Said No|They Offered Less|They Went Quiet', 'the three cards are They Said No, They Offered Less, They Went Quiet');
+ok(await p.locator('.card.home .rolebtn').count() === 0, 'no own-or-rent row before the choices');
+ok((await p.locator('.card.home h2 + p.small').innerText()).includes('Free guide for California wildfire homeowners and renters. General information, not legal advice.'), 'intro keeps the free-guide line');
+ok((await p.locator('.card.home h2').innerText()).toLowerCase().includes('what did your insurer do'), 'home asks what the insurer did');
 ok(await p.locator('.card.who').count() === 0, 'the who-is-this-for screen is no longer first');
 ok(await p.locator('.card.home h2 + p.small').evaluate((e) => parseFloat(getComputedStyle(e).fontSize)) >= 17, 'lead text under the title is larger');
 ok(await p.locator('#chips button').count() === 0, 'no option chips above the message box on the start screen');
 ok(await p.locator('#sampleBtn, #whoBtn, .card.home .inl').count() === 0, 'no extra buttons under the cards');
 ok(await p.locator('.card.home', { hasText: 'type anything' }).count() === 0, 'the type-anything line is gone');
 ok(await p.locator('.sidehead + #newFromList').count() === 1 && (await p.locator('#newFromList').boundingBox()).y > (await p.locator('#closeC').boundingBox()).y, 'New Chat sits under the sidebar icon');
+// 1a. each of the three cards goes straight to the letter form
+for (const sit of ['denied', 'low', 'quiet']) { p = await page(); await p.locator('.choice[data-sit="' + sit + '"]').click(); await p.waitForSelector('.aGo'); ok(await p.locator('.card .steps').count() === 0 && await p.locator('.aGo').isVisible(), sit + ' card goes straight to the letter form, no steps in between'); await p.context().close(); }
 // 1b. letter polish: example matches the situation, typed text carries over, one bubble per tap
 p = await page(); await p.locator('.choice[data-sit="low"]').click(); await p.waitForSelector('.aN');
 ok(/offered/i.test(await p.locator('.aN').getAttribute('placeholder')) && !/denied/i.test(await p.locator('.aN').getAttribute('placeholder')), 'notes example matches the picked situation (offered less)');
@@ -84,7 +89,7 @@ ok(p.errs.length === 0, 'no page errors: ' + p.errs.join(' | '));
 await p.context().close();
 
 // 6. languages
-for (const [l, word] of [['es', 'punto'], ['zh', '进行到哪一步']]) {
+for (const [l, word] of [['es', 'aseguradora'], ['zh', '保险公司']]) {
   p = await page({ noStart: true }); await p.locator('#menuBtn').click(); await p.locator('#langSeg button[data-lang="' + l + '"]').click(); await p.waitForSelector('.card.home');
   ok((await p.locator('.card.home h2').innerText()).includes(word), 'home in ' + l);
   await p.locator('.choice[data-sit="low"]').click(); await p.waitForSelector('.aGo');
@@ -95,7 +100,8 @@ for (const [l, word] of [['es', 'punto'], ['zh', '进行到哪一步']]) {
 }
 
 // 7. role: renter gets renter steps
-p = await page(); await p.locator('.rolebtn[data-role="rent"]').click(); await p.locator('.choice[data-sit="start"]').click();
+p = await page(); await p.locator('.choice[data-sit="denied"]').click(); await p.waitForSelector('.aGo'); await p.locator('.rolebtn[data-role="rent"]').click();
+await p.locator('#input').fill('what are my first steps'); await p.locator('#input').press('Enter'); await p.waitForSelector('#chips button'); await chip(p, 'Show the steps').click();
 await p.waitForSelector('.card .steps'); ok((await p.locator('#thread').innerText()).toLowerCase().includes('renter'), 'renter start stage');
 await p.context().close();
 
@@ -108,10 +114,10 @@ ok(await p.locator('.aGo').isVisible(), 'letter form usable on phone');
 await p.context().close();
 
 // 9. words, stay, adjuster stage
-p = await page(); await p.locator('.choice[data-sit="words"]').click(); await p.waitForSelector('dl.words');
+p = await page(); await p.locator('#input').fill('explain insurance words'); await p.locator('#input').press('Enter'); await p.waitForSelector('#chips button'); await chip(p, 'Explain insurance words').click(); await p.waitForSelector('dl.words');
 ok((await p.locator('dl.words').innerText()).includes('Deductible'), 'words card');
 await p.context().close();
-p = await page(); await p.locator('.choice[data-sit="stay"]').click(); await p.waitForSelector('.card .steps');
+p = await page(); await p.locator('#input').fill('I need a place to stay'); await p.locator('#input').press('Enter'); await p.waitForSelector('#chips button'); await chip(p, 'I need a place to stay').click(); await p.waitForSelector('.card .steps');
 ok((await p.locator('#thread').innerText()).includes('1-800-621-3362'), 'stay card has FEMA number');
 await p.context().close();
 
