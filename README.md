@@ -1,6 +1,6 @@
 # Next Step (v3)
 
-A free guide for California wildfire survivors dealing with a home insurance claim. Student prototype with The After Collective. Not legal or insurance advice.
+A free guide for California wildfire survivors dealing with a home insurance claim. Student prototype built with mentorship from The After Collective. Not legal or insurance advice.
 
 - `public/` is the website (plain HTML, CSS and JavaScript, no build step).
 - `functions/api/chat.js` and `lib/core.js` are the small backend. It answers typed questions, writes letters and explains insurer messages. All prompts live on the server, and every rule, number and phone number must come from `public/sources.json`.
@@ -67,7 +67,7 @@ The automated test needs Playwright installed: `npm i -D playwright`, then `npx 
 ## Known limits
 
 - The free AI model can still be wrong. The server removes source numbers that do not exist, but it cannot prove every sentence matches its source. Keep the "not legal advice" wording.
-- Source notes were last updated Nov 7, 2026 and have not been reviewed by an insurance professional.
+- Source notes were last updated Nov 7, 2026. A few people who help survivors have reviewed the prototype and given feedback. The facts in the source notes have not had a formal expert check yet; see the open fact checks in `docs/FEEDBACK_MAP.md`.
 - Talk to a person shows real public phone numbers. A helper who follows up with the person is not built, and the page says so.
 - Mobile homes and condos are not checked.
 
