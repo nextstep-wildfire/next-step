@@ -39,7 +39,7 @@
   function snap() {
     var out = [];
     Array.prototype.forEach.call(thread.children, function (m) {
-      if (!m.classList.contains('msg') || m.classList.contains('typing') || m.classList.contains('note') || m.classList.contains('home') || m.classList.contains('who')) return;
+      if (!m.classList.contains('msg') || m.getAttribute('aria-busy') === 'true' || m.classList.contains('typing') || m.classList.contains('note') || m.classList.contains('home') || m.classList.contains('who')) return;
       if (m.querySelector('textarea, input')) return;
       var tx = (m.innerText || m.textContent || '').trim().replace(/\n{3,}/g, '\n\n').slice(0, 900);
       if (tx) out.push({ r: m.classList.contains('user') ? 'u' : 'b', t: tx });
@@ -1231,7 +1231,7 @@
     log('live unavailable', code || 'error');
     if (!aiNoted) { aiNoted = true; thread.appendChild(el('div', 'msg note', esc(t(code === 'quota' ? 'quotaNote' : 'liveDown')))); scroll(); }
   }
-  function renderAI(text) {
+  function renderAI(text, partial) {
     var cited = [];
     var html = esc(text).replace(/\n/g, '<br>').replace(/\[(\d{1,2})\]/g, function (m, d) {
       var n = +d; if (!SOURCES[n]) return '';
@@ -1239,7 +1239,39 @@
       return '<sup class="cite"><a href="' + SOURCES[n].url + '" target="_blank" rel="noopener noreferrer" title="' + esc(SOURCES[n].title) + '">' + n + '</a></sup>';
     });
     cited.sort(function (a, b) { return a - b; });
-    return { html: html + (cited.length ? srcRow(cited) : ''), cited: cited };
+    return { html: html + (cited.length && !partial ? srcRow(cited) : ''), cited: cited };
+  }
+  /* Streaming version of api(): onText gets the checked text so far, the promise gives the final {text, action}.
+     If the server answers with plain JSON instead of a stream, that still works. */
+  function apiStream(body, onText) {
+    return fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ stream: true }, body)) }).then(function (r) {
+      var ct = r.headers.get('content-type') || '';
+      if (!r.ok || ct.indexOf('text/event-stream') === -1 || !r.body || !r.body.getReader) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          if (!r.ok) { var e = new Error(j.error || ('http_' + r.status)); e.code = j.error || ('http_' + r.status); throw e; }
+          return j;
+        });
+      }
+      var reader = r.body.getReader(), dec = new TextDecoder(), buf = '', final = null;
+      function pump() {
+        return reader.read().then(function (x) {
+          if (x.done) { if (final) return final; var c = new Error('stream_cut'); c.code = 'stream_cut'; throw c; }
+          buf += dec.decode(x.value, { stream: true });
+          var i;
+          while ((i = buf.indexOf('\n\n')) !== -1) {
+            var chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+            chunk.split('\n').forEach(function (line) {
+              if (line.indexOf('data:') !== 0) return;
+              var j; try { j = JSON.parse(line.slice(5)); } catch (e) { return; }
+              if (j.error) { var er = new Error(j.error); er.code = j.error; throw er; }
+              if (j.done) final = j; else if (typeof j.t === 'string') onText(j.t);
+            });
+          }
+          return pump();
+        });
+      }
+      return pump().catch(function (e) { try { reader.cancel(); } catch (x) {} throw e; });
+    });
   }
   function afterAI(extra) {
     setChips(function () {
@@ -1272,17 +1304,29 @@
   function askAI(txt) {
     chips.innerHTML = '';
     var m = el('div', 'msg bot ai typing', '•••'); thread.appendChild(m); scroll();
+    m.setAttribute('aria-busy', 'true');
     var stage = state.stage && byId(state.stage) ? L(byId(state.stage).label) : '';
     var msgs = state.chat.slice(-6).concat([{ role: 'user', content: txt }]);
-    api({ mode: 'chat', lang: state.lang, role: state.role, who: state.who, whoName: state.whoName, stageLabel: stage, stress: state.stress, messages: msgs })
+    /* Words show up as they arrive. The server only sends text that has already passed its checks (no action line,
+       no made-up source numbers); the final message replaces it with the complete answer and the source row. */
+    var pending = null, raf = 0;
+    function paint() {
+      raf = 0; if (pending == null) return;
+      var near = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
+      m.className = 'msg bot ai'; m.innerHTML = renderAI(pending, true).html;
+      if (near) scroll();
+    }
+    function stopPaint() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+    apiStream({ mode: 'chat', lang: state.lang, role: state.role, who: state.who, whoName: state.whoName, stageLabel: stage, stress: state.stress, messages: msgs }, function (t) { pending = t; if (!raf) raf = requestAnimationFrame(paint); })
       .then(function (r) {
+        stopPaint();
         var out = renderAI(r.text);
-        m.className = 'msg bot ai'; m.innerHTML = out.html; scroll();
+        m.className = 'msg bot ai'; m.innerHTML = out.html; m.removeAttribute('aria-busy'); scroll();
         state.chat.push({ role: 'user', content: txt }, { role: 'assistant', content: r.text });
         log('answered live', r.text.length + ' chars, sources ' + (out.cited.join(',') || 'none') + (r.action ? ', action ' + r.action.type + (r.action.arg ? ':' + r.action.arg : '') : ''));
         afterAI(actionChip(r.action));
       })
-      .catch(function (err) { m.remove(); noteAiDown(err && err.code); scripted(txt); });
+      .catch(function (err) { stopPaint(); m.remove(); noteAiDown(err && err.code); scripted(txt); });
   }
   var INSURER_RE = /(state farm|allstate|progressive|farmers|mercury|geico|liberty mutual|usaa|chubb|travelers|nationwide|american family|safeco|hartford)/i;
   function freeText(txt) {

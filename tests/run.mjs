@@ -261,5 +261,76 @@ p = await page(); await p.screenshot({ path: '/tmp/shot_app_dark.png' }); await 
 p = await page(); await p.locator('#menuBtn').click(); await p.locator('#checkBtn').click();
 ok((await p.locator('#drawerBody').innerText()).includes('adjuster is coming'), 'adjuster visit stage listed');
 await p.screenshot({ path: '/tmp/shot_drawer.png' }); await p.context().close();
+
+// 15. streaming: the person sees words arrive, and never sees the ACTION line or an unchecked source number
+{
+  const core = await import('../lib/core.js');
+  const S = JSON.parse((await import('node:fs')).readFileSync(new URL('../public/sources.json', import.meta.url), 'utf8'));
+  const all = new Set(Object.keys(S));
+  // held back: whole and partial ACTION lines, half-written and unknown source numbers
+  ok(core.visibleSoFar('Hello there.\nACT', S, all) === 'Hello there.', 'partial ACTION is held back');
+  ok(core.visibleSoFar('Hello there. [1', S, all) === 'Hello there.', 'half-written source number is held back');
+  ok(core.visibleSoFar('Hello [99] there [3].\nACTION: stage:sm', S, all) === 'Hello  there [3].', 'unknown source number dropped, ACTION line never shown');
+  ok(core.visibleSoFar('See [9].', S, new Set(['2', '10'])) === 'See .', 'a source the model was not shown is dropped');
+  ok(core.visibleSoFar('Fine ACTION: letter:low', S, all) === 'Fine', 'inline trailing ACTION is held back');
+  // note selection: matches keep what the question needs, vague and non-English questions get everything
+  const sel = (q, lang) => core.selectNoteIds(S, { lang: lang || 'en', query: q });
+  const must = [
+    ['What do you know about smoke damage in my house?', ['3', '2']],
+    ['Do I need a list of everything I lost?', ['1', '9']],
+    ['I need a place to stay, who pays for a hotel?', ['11', '1', '14']],
+    ['Can FEMA help me?', ['4', '14']],
+    ['They offered way less than my contractor quoted', ['10']],
+    ['Can my landlord keep my deposit?', ['13']],
+    ['My insurer has not answered in 7 weeks', ['10', '2']],
+  ];
+  for (const [q, ids] of must) { const got = sel(q); ok(got && ids.every((i) => got.includes(i)) && got.length < 15, 'notes for "' + q.slice(0, 40) + '" include ' + ids.join(',') + ' (got ' + (got ? got.join(',') : 'all') + ')'); }
+  ok(sel('I do not know where to start') === null && sel('what are my first steps') === null, 'vague questions get all notes');
+  ok(sel('Qué es el deducible de la casa?') === null && sel('hotel', 'es') === null && sel('我需要住的地方') === null, 'non-English questions get all notes');
+  const full = core.chatSystemPrompt(S, { lang: 'en' }).length, part = core.chatSystemPrompt(S, { lang: 'en', noteIds: sel('Can FEMA help me?') }).length;
+  ok(part < full * 0.6, 'FEMA question prompt is under 60% of the full prompt (' + part + ' of ' + full + ')');
+  const pa = core.chatSystemParts(S, { lang: 'en', role: 'rent', who: 'other', stageLabel: 'x' }), pb = core.chatSystemParts(S, { lang: 'en', role: 'own', who: 'me', stageLabel: 'y', stress: 'ok' });
+  ok(pa.stable === pb.stable && pa.volatile !== pb.volatile && /RENTS/.test(pa.volatile) && !/RENTS/.test(pa.stable), 'fixed prompt prefix does not change per person (cacheable); rent/who are at the end');
+  // paid path: all notes, cache marker on the fixed prefix, stream parsed
+  const realFetch = globalThis.fetch; let sent = null;
+  globalThis.fetch = async (url, init) => {
+    sent = JSON.parse(init.body);
+    const enc = new TextEncoder(); const ev = (o) => enc.encode('event: x\ndata: ' + JSON.stringify(o) + '\n\n');
+    return new Response(new ReadableStream({ start(c) { c.enqueue(ev({ type: 'message_start' })); for (const t of ['Smoke claims must be inves', 'tigated [3]. ', 'ACTION: stage', ':sm']) c.enqueue(ev({ type: 'content_block_delta', delta: { type: 'text_delta', text: t } })); c.enqueue(ev({ type: 'message_stop' })); c.close(); } }), { status: 200 });
+  };
+  const req = new Request('http://x/api/chat', { method: 'POST', body: JSON.stringify({ mode: 'chat', stream: true, lang: 'en', messages: [{ role: 'user', content: 'Can FEMA help me with smoke damage?' }] }) });
+  const resp = await core.handle(req, { ANTHROPIC_API_KEY: 'k' }, S); const txt = await resp.text(); globalThis.fetch = realFetch;
+  ok(sent.stream === true && Array.isArray(sent.system) && sent.system[0].cache_control && sent.system[0].cache_control.type === 'ephemeral' && !sent.system[1].cache_control, 'paid path marks the fixed prefix for caching');
+  ok(Object.keys(S).every((k) => sent.system[0].text.includes('[' + k + '] ')), 'paid path sends all notes so the prefix is identical every time');
+  const evs = txt.split('\n\n').filter(Boolean).map((l) => JSON.parse(l.replace(/^data: /, '')));
+  const fin = evs[evs.length - 1];
+  ok(fin.done && fin.text === 'Smoke claims must be investigated [3].' && fin.action && fin.action.arg === 'sm' && evs.every((e) => !/ACTION/.test(e.t || '')), 'paid path stream: text assembled, action parsed, ACTION never in a text event');
+}
+{
+  // in the browser: slow stream, record everything shown in the answer bubble
+  process.env.MOCK_DELAY = '45';
+  const { calls } = await import('../dev/dev-server.js');
+  p = await page();
+  await p.evaluate(() => { window.__seen = []; new MutationObserver(() => { const m = [...document.querySelectorAll('#thread .msg.ai')].pop(); if (m) window.__seen.push(m.innerText); }).observe(document.getElementById('thread'), { childList: true, subtree: true, characterData: true }); });
+  const n0 = calls.length;
+  await p.locator('#input').fill('What do you know about smoke damage in my house?'); await p.locator('#input').press('Enter');
+  await p.waitForSelector('.msg.ai:not(.typing)', { timeout: 5000 });
+  const early = await p.locator('.msg.ai').last().innerText();
+  ok(early.length > 0 && !(await p.locator('.msg.ai sup.cite').count()) && !(await p.locator('#chips button').count()), 'words are on screen before the answer is finished (' + early.length + ' chars, no source row or buttons yet)');
+  await p.waitForSelector('.msg.ai sup.cite'); await p.waitForSelector('#chips button', { hasText: 'Show the steps' });
+  const seen = await p.evaluate(() => window.__seen);
+  ok(seen.length > 3 && seen.every((t) => !/ACTION/i.test(t)), 'the ACTION line never appeared on screen while streaming (' + seen.length + ' updates)');
+  ok(seen.every((t) => !/\[\d*\]?$/.test(t.trim()) || /sources/i.test(t)), 'no half-written [n] shown while streaming');
+  const sys = calls[n0].sys;
+  ok(calls[n0].stream === true && sys.includes('[3] ') && !sys.includes('[13] ') && sys.length < 9000, 'smoke question sends the smoke notes only (' + sys.length + ' chars)');
+  ok(p.errs.length === 0, 'no page errors while streaming: ' + p.errs.join('|'));
+  await p.context().close();
+  p = await page();
+  await p.locator('#input').fill('it is too complicated'); await p.locator('#input').press('Enter'); await p.waitForSelector('#chips button', { hasText: 'Talk to a Person' });
+  const sys2 = calls[calls.length - 1].sys;
+  ok(Object.keys(JSON.parse((await import('node:fs')).readFileSync(new URL('../public/sources.json', import.meta.url), 'utf8'))).every((k) => sys2.includes('[' + k + '] ')), 'a vague message at the start of a chat sends all notes');
+  await p.context().close();
+  delete process.env.MOCK_DELAY;
+}
 await browser.close(); server.close();
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);

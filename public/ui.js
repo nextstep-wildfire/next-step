@@ -47,10 +47,10 @@
     return (m.querySelector('.srcs, button') ? (c.textContent || '') : (m.innerText || '')).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
   function addCopy() {
-    thread.querySelectorAll('.msgtools').forEach(function (t) { var p = t.previousElementSibling; if (!p || !p.classList.contains('msg') || p.classList.contains('typing')) t.remove(); });
+    thread.querySelectorAll('.msgtools').forEach(function (t) { var p = t.previousElementSibling; if (!p || !p.classList.contains('msg') || p.classList.contains('typing') || p.getAttribute('aria-busy') === 'true') t.remove(); });
     Array.prototype.forEach.call(thread.children, function (m) {
       if (!m.classList.contains('msg') || !(m.classList.contains('bot') || m.classList.contains('user'))) return;
-      if (m.classList.contains('typing') || m.classList.contains('note') || m.classList.contains('home') || m.classList.contains('who')) return;
+      if (m.getAttribute('aria-busy') === 'true' || m.classList.contains('typing') || m.classList.contains('note') || m.classList.contains('home') || m.classList.contains('who')) return;
       if (m.querySelector('textarea, input')) return;
       var nx = m.nextElementSibling;
       if (nx && nx.classList.contains('msgtools')) { var b0 = nx.firstChild; if (b0 && !b0.classList.contains('done')) b0.setAttribute('aria-label', labels()[0]); return; }

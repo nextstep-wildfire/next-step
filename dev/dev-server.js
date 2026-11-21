@@ -12,13 +12,36 @@ const port = Number(process.argv[2] || 8788);
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain', '.woff2': 'font/woff2', '.mp4': 'video/mp4', '.jpg': 'image/jpeg' };
 export const calls = [];
 
+// Wraps a finished answer as a Workers AI style event stream, in small pieces so a word, a [n] source number or the
+// ACTION line can be split across pieces. MOCK_DELAY (ms) slows it down for tests.
+function sseOf(text) {
+  const enc = new TextEncoder();
+  const pieces = text.match(/[\s\S]{1,7}/g) || [];
+  const delay = Number(process.env.MOCK_DELAY || 0);
+  return new ReadableStream({
+    async start(c) {
+      for (const piece of pieces) {
+        c.enqueue(enc.encode('data: ' + JSON.stringify({ response: piece, p: 'x' }) + '\n\n'));
+        if (delay) await new Promise((r) => setTimeout(r, delay));
+      }
+      c.enqueue(enc.encode('data: [DONE]\n\n'));
+      c.close();
+    },
+  });
+}
+
 const mockAI = {
   async run(model, input) {
+    const out = await mockAI.answer(model, input);
+    if (input.stream && out && typeof out.response === 'string') return sseOf(out.response);
+    return out;
+  },
+  async answer(model, input) {
     const mode = process.env.MOCK || 'ok';
     if (mode === 'quota') { const e = new Error('4006: you have used up your daily free allocation of 10,000 neurons'); throw e; }
     const sys = input.messages[0].content;
     const last = input.messages[input.messages.length - 1].content;
-    calls.push({ model, sysHead: sys.slice(0, 60), last: String(last).slice(0, 200) });
+    calls.push({ model, sysHead: sys.slice(0, 60), sys, stream: !!input.stream, last: String(last).slice(0, 200) });
     if (process.env.DEMO && sys.startsWith('Write a short letter')) {
       return { response: 'Subject: Request for a written claim status update\n\nDear Claims Team,\n\nI reported my claim in January and sent photos of the damage to my home. For the past seven weeks I have called and emailed my adjuster and have not received a reply.\n\nPlease send me a written update on my claim status and the next step.\n\nPlease reply in writing within 15 calendar days of receiving this letter. I am keeping a record of all communication on this claim.\n\nThank you,\n[your name]' };
     }
@@ -44,7 +67,9 @@ const server = http.createServer(async (req, res) => {
     const env = process.env.MOCK === 'off' ? {} : { AI: mockAI };
     const request = new Request(url.href, { method: req.method, headers: req.headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks) });
     const r = await handle(request, env, SOURCES);
-    res.writeHead(r.status, Object.fromEntries(r.headers)); res.end(await r.text()); return;
+    res.writeHead(r.status, Object.fromEntries(r.headers));
+    if (r.body) { const rd = r.body.getReader(); for (;;) { const x = await rd.read(); if (x.done) break; res.write(x.value); } }
+    res.end(); return;
   }
   let p = path.join(root, url.pathname);
   if (url.pathname.endsWith('/')) p = path.join(p, 'index.html');
