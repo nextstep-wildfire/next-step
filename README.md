@@ -5,7 +5,7 @@ A free guide for California wildfire survivors dealing with a home insurance cla
 - `public/` is the website (plain HTML, CSS and JavaScript, no build step).
 - `functions/api/chat.js` and `lib/core.js` are the small backend. It answers typed questions, writes letters and explains insurer messages. All prompts live on the server, and every rule, number and phone number must come from `public/sources.json`.
 - `dev/dev-server.js` runs everything on your laptop with a pretend AI, so you can test with no account.
-- `tests/run.mjs` is the automated browser test (34 checks).
+- `tests/run.mjs` is the automated browser test (129 checks).
 - `docs/FEEDBACK_MAP.md` shows which interview feedback went into this version and what is still open.
 
 ## Cost: $0
@@ -18,7 +18,7 @@ A free guide for California wildfire survivors dealing with a home insurance cla
 
 The website address is `https://<project-name>.pages.dev`. A custom domain such as `nextstep.org` costs money. Ask The After Collective whether they can give you a subdomain, and ask them before using any branded address.
 
-**What 10,000 Neurons means:** roughly 100 live AI replies a day with the default 70B model, or roughly 600 a day if you switch to the smaller 8B model (see below). These are estimates from Cloudflare's price list. Check the real number in the Cloudflare dashboard under Workers AI after your first day of use.
+**What 10,000 Neurons means:** roughly 140 to 160 live AI chat replies a day with the default 70B model (about 109 before the Nov 20 speed update), computed from Cloudflare's price list at about 90 output tokens per reply, or roughly 600 a day if you switch to the smaller 8B model (see below). These are estimates from Cloudflare's price list. Check the real number in the Cloudflare dashboard under Workers AI after your first day of use.
 
 **When the free allowance runs out**, nothing breaks. The site tells the person live answers are paused, then keeps working with the guided steps, checklist, phone numbers and a standard letter template. It tries the AI again after 30 minutes.
 
