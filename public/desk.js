@@ -177,7 +177,7 @@
     recEmpty: 'Todavía no hay nada aquí. Cuando copie una carta o guarde el registro de una llamada o visita, aparecerá aquí.', recOpen: 'Abrir', recRemove: 'Quitar', recCopied: 'Copiado. Péguelo donde guarde sus notas.', recTitle: 'Historial de mi reclamo',
     kind: { letter: 'Carta', call: 'Llamada', visit: 'Visita' }, recInsurer: 'Su aseguradora', recLetter: 'Carta a la aseguradora', recCall: 'Llamada con la aseguradora', recVisit: 'Visita del ajustador', recNext: 'Lo que sigue: ',
     back: 'Volver a la conversación', phH: 'Líneas telefónicas', phLead: 'Next Step es una guía de IA y no tiene personal, así que nadie de aquí le devolverá la llamada. Estas son líneas públicas, abiertas para cualquier persona.', phMore: 'Otros lugares donde pedir ayuda', ph911: 'Si alguien está en peligro ahora mismo, llame al 911.', openLink: 'Abrir',
-    stH: 'Pasos de un reclamo', stLead: 'El orden habitual de un reclamo por incendio en California. El suyo puede ser distinto. Lo que cuenta es su póliza.', own: 'Soy dueño', rent: 'Alquilo', stGeneral: 'Orientación general, no verificada con una fuente oficial.', home: 'Vivienda',
+    stH: 'Pasos de un reclamo', stLead: 'El orden habitual de un reclamo por incendio en California. El suyo puede ser distinto. Lo que cuenta es su póliza.', own: 'Es mía', rent: 'La alquilo', stGeneral: 'Orientación general, no verificada con una fuente oficial.', home: 'Vivienda',
     brH: 'Respire un momento', brLead: 'Un minuto. Inhale mientras el círculo crece y exhale mientras se reduce. Puede parar cuando quiera.', start: 'Empezar', seconds: ' segundos', brDone: 'Listo. Vuelva cuando lo necesite.',
     pdf: 'Descargar PDF', pdfDone: 'Guardado como PDF en sus descargas.', pdfFooter: 'Next Step. Información general de fuentes públicas, no es asesoría legal ni de seguros.', pdfPage: 'Página',
     fileLetter: 'carta', fileReply: 'respuesta', fileCall: 'hoja-llamada', fileVisit: 'hoja-visita',
@@ -1207,7 +1207,7 @@
   var STATIC_ES = {
     skip: 'Ir al cuadro de mensaje', newChat: 'Nueva conversación', histLbl: 'Conversaciones', histEmpty: 'Sus conversaciones se quedan en este dispositivo.',
     record: 'Historial', steps: 'Pasos de un reclamo', breathe: 'Respire un momento', phones: 'Líneas telefónicas',
-    fine: 'Información general de fuentes públicas, no es asesoría legal ni de seguros. Next Step es una guía de IA, sin personal. El español es un borrador sin revisar por un hablante nativo.',
+    fine: 'Información general de fuentes públicas, no es asesoría legal ni de seguros. Guía de IA, sin personal. Español: borrador sin revisar.',
     tap: 'Toque para abrir', close: 'Cerrar', paperfine: 'Es un borrador. Revise cada fecha, número y nombre antes de enviarla.',
     letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
   };

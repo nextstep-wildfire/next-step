@@ -9,7 +9,7 @@
     openDesk: 'Abrir el Escritorio', kicker: 'Para reclamos de seguro por incendios en California',
     h1: 'Cada palabra a su aseguradora cuenta. Que cada una sea la correcta.',
     lede: 'Next Step le ayuda con cada intercambio con su aseguradora: la carta que envía, el mensaje que le responden, la llamada, la visita del ajustador. Así pide todo lo que su póliza le debe.',
-    start: 'Empezar', watch: 'Ver cómo funciona',
+    start: 'Empezar', watch: 'Ver un ejemplo',
     honest: 'Gratis, sin cuenta. Información general de fuentes públicas, no es asesoría legal ni de seguros.',
     demoTitle: 'El Escritorio, escribiendo una carta',
     demoSr: 'Un ejemplo: a alguien su aseguradora le ofreció $42,300 frente a un presupuesto de contratista de $96,000. Responde cuatro preguntas con unos toques, y Next Step escribe una carta breve, en inglés, que pide explicar partida por partida cómo se calculó la oferta.',
