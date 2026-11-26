@@ -2,56 +2,82 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Next Step: Write to Your Insurer</title>
-<meta name="description" content="A free guide for California wildfire survivors dealing with a home insurance claim. A student prototype. Not legal advice.">
-<meta name="theme-color" content="#F4F2EC" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141A1D" media="(prefers-color-scheme: dark)">
+<title>Next Step</title>
+<meta name="description" content="Write to your insurer after a California wildfire. General information from public sources, not legal or insurance advice.">
+<meta name="theme-color" content="#F4F1EA">
 <script src="/theme.js"></script>
-<link rel="preload" href="/fonts/garamond.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/base.css">
-<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/desk.css">
 </head>
 <body>
-<a class="skip" href="#view">Skip to content</a>
-<header class="bar">
-  <a class="brand" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-8 7 8"/><path d="M3 19h18"/></svg>Next Step</a>
-  <nav class="barnav">
-    <a class="claimlink" id="claimLink" href="#/claim" hidden><span id="claimLinkTx">My claim</span> <span class="count" id="claimCount"></span></a>
-    <button class="menubtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span id="menuTx">Menu</span></button>
-  </nav>
-</header>
+<a class="skip" href="#composerIn">Skip to the message box</a>
+<div class="app" id="app">
 
-<div class="menu" id="menu" hidden>
-  <div class="menuin" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
-    <div class="menuhead"><h2 id="menuTitle">Menu</h2><button class="iconbtn" id="menuClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <ul class="menulist" id="menuList"></ul>
-    <div class="menurow"><span id="langLbl">Language</span>
-      <div class="seg" id="langSeg" role="group" aria-labelledby="langLbl">
-        <button type="button" data-lang="en" lang="en">English</button>
-        <button type="button" data-lang="es" lang="es">Español</button>
-        <button type="button" data-lang="zh" lang="zh">中文</button>
-      </div>
+  <aside class="side" id="side" aria-label="Chats and help">
+    <div class="side-top">
+      <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
+      <button class="iconbtn side-close" id="sideClose" type="button" aria-label="Close menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
     </div>
-    <div class="menurow"><span id="themeLbl">Theme</span>
-      <div class="seg" id="themeSeg" role="group" aria-labelledby="themeLbl">
-        <button type="button" data-theme-set="light" id="thLight">Light</button>
-        <button type="button" data-theme-set="dark" id="thDark">Dark</button>
+    <button class="side-new" id="newChat" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>New chat</button>
+    <nav class="side-history" aria-labelledby="histLbl">
+      <p class="side-lbl" id="histLbl">Chats</p>
+      <ul id="history"></ul>
+      <p class="side-empty" id="histEmpty">Your chats stay on this device.</p>
+    </nav>
+    <nav class="side-links" aria-label="Help">
+      <a href="#/steps" data-page="steps">Steps of a claim</a>
+      <a href="#/breathe" data-page="breathe">Take a breath</a>
+      <a href="#/phones" data-page="phones">Phone lines</a>
+    </nav>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <div class="desk" id="desk">
+    <header class="topbar">
+      <button class="iconbtn" id="sideOpen" type="button" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg></button>
+      <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
+      <button class="iconbtn" id="newChatTop" type="button" aria-label="New chat"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg></button>
+    </header>
+
+    <section class="talk" id="talk" aria-label="Chat">
+      <button class="pin" id="pin" type="button" hidden><span class="pin-k" id="pinKind">Your letter</span><span class="pin-a">Tap to open</span></button>
+      <div class="thread" id="thread" aria-live="polite"></div>
+      <form class="composer" id="composer" autocomplete="off">
+        <label class="sr" for="composerIn" id="composerLbl">Message</label>
+        <textarea id="composerIn" rows="1" maxlength="2500" placeholder="Type what happened, or paste their message"></textarea>
+        <button class="send" id="send" type="submit" aria-label="Send"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4M5 9l5-5 5 5"/></svg></button>
+      </form>
+      <p class="fine" id="fine">General information from public sources, not legal or insurance advice. Next Step is an AI guide, not staffed.</p>
+    </section>
+
+    <section class="paperwrap" id="paperwrap" aria-label="Your paper" hidden>
+      <div class="paperbar">
+        <span class="label" id="paperKind">Your letter</span>
+        <div class="paperbtns">
+          <button class="btn ghost sm" id="copyBtn" type="button">Copy</button>
+          <button class="btn ghost sm" id="printBtn" type="button">Save as PDF</button>
+          <button class="btn ghost sm paperclose" id="paperClose" type="button">Close</button>
+        </div>
       </div>
-    </div>
+      <div class="paperscroll">
+        <article class="sheet" id="sheet">
+          <div class="explain" id="explain" hidden></div>
+          <div class="letter" id="letter" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Your letter. You can type on it."></div>
+        </article>
+        <p class="paperfine">A draft. Check every date, number and name before you send it.</p>
+      </div>
+    </section>
+
+    <section class="page" id="page" hidden tabindex="-1"></section>
   </div>
 </div>
-
-<main id="view" tabindex="-1"></main>
-
-<footer class="fine"><p id="fineTx">General information, not legal or insurance advice. A student project from Fung Fellowship.</p></footer>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div id="logwrap" hidden><button type="button" id="copyLog">Copy log</button><pre id="logOut"></pre></div>
-
-<noscript><p style="padding:24px;font-family:sans-serif">Next Step needs JavaScript. For help now, call the California Department of Insurance at 1-800-927-4357.</p></noscript>
+<p class="toast" id="toast" role="status" aria-live="polite"></p>
+<noscript><p style="padding:24px">Next Step needs JavaScript. For help now, call the California Department of Insurance at 1-800-927-4357.</p></noscript>
 <script src="/content.js" defer></script>
-<script src="/app.js" defer></script>
+<script src="/desk.js" defer></script>
 </body>
 </html>

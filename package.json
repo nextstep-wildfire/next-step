@@ -1,2 +1,1 @@
-{ "name": "next-step", "private": true, "type": "module", "version": "3.0.0",
-  "scripts": { "dev": "node dev/dev-server.js", "test": "node tests/run.mjs" } }
+{"name":"next-step","private":true,"type":"module","version":"3.0.0","scripts":{"dev":"node dev/dev-server.js","test":"node tests/run.mjs"},"devDependencies":{"playwright":"^1.49.1"}}

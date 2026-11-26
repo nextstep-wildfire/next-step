@@ -1,17 +1,13 @@
-/* Runs before the page paints. The theme follows the device unless the person picked one with the toggle. */
+/* Runs before the page paints. Light always loads first; dark only if the person chose it with the toggle. */
 (function () {
   var d = document.documentElement, t = null;
   try { t = localStorage.getItem('ns-theme'); } catch (e) {}
-  if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+  if (t === 'dark') d.setAttribute('data-theme', 'dark');
   window.nsTheme = {
-    current: function () {
-      var a = d.getAttribute('data-theme');
-      if (a) return a;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    },
+    current: function () { return d.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; },
     toggle: function () {
       var next = window.nsTheme.current() === 'dark' ? 'light' : 'dark';
-      d.setAttribute('data-theme', next);
+      if (next === 'dark') d.setAttribute('data-theme', 'dark'); else d.removeAttribute('data-theme');
       try { localStorage.setItem('ns-theme', next); } catch (e) {}
       return next;
     }

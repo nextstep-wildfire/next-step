@@ -1,57 +1,77 @@
-/* Shared look for the landing page and the guide.
-   Paper-white with one eucalyptus green: it reads like a careful letter on a desk, and nothing on screen
-   shares a colour with flame, smoke or an alarm. Contrast is measured, not eyeballed (see docs/DESIGN.md). */
-@font-face { font-family: "EB Garamond"; src: url("/fonts/garamond.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
-@font-face { font-family: "Outfit"; src: url("/fonts/outfit.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+/* Next Step design system. One ink, one paper, one highlight.
+   Every text colour is the ink at a set strength, so the page reads as one material. Contrast is measured
+   (docs/DESIGN.md), never eyeballed. Light always loads first; dark is the same system flipped, behind a toggle. */
+@font-face { font-family: "Instrument Sans"; src: url("/fonts/instrument-sans.woff2") format("woff2"); font-weight: 400 700; font-stretch: 75% 100%; font-display: swap; }
+@font-face { font-family: "Source Serif 4"; src: url("/fonts/source-serif-4.woff2") format("woff2"); font-weight: 200 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Source Serif 4"; src: url("/fonts/source-serif-4-italic.woff2") format("woff2"); font-weight: 200 900; font-style: italic; font-display: swap; }
 
 :root {
-  --bg: #F4F2EC; --surface: #FBFAF6; --ink: #1E292D; --muted: #4B585D; --line: #D9D5CB; --edge: #7C8784;
-  --accent: #2E6A61; --accent-ink: #FFFFFF; --accent-soft: #E2ECE8; --error: #9A4A3A; --shadow: 0 1px 2px rgba(30, 41, 45, .06);
-  --serif: "EB Garamond", Garamond, "Palatino Linotype", Georgia, serif;
-  --sans: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif;
-  --radius: 14px; --tap: 48px;
+  /* the three materials */
+  --ink: #1F1B17;          /* warm black: text, the one solid button, the sidebar */
+  --paper: #F4F1EA;        /* the page */
+  --desk: #EBE7DE;         /* the surface the paper sheet rests on */
+  --sheet: #FFFFFF;        /* the person's document */
+  --hl: #FCEFC2;           /* the only other colour: a line that just changed */
+  /* the ink at lower strengths (solid values so contrast is exact) */
+  --ink-2: #5A534B;        /* secondary text, 6.7:1 on paper */
+  --ink-3: #6E665D;        /* quiet labels, 5.0:1 on paper (4.6 on the desk) */
+  --rule: #D8D2C6;         /* hairlines */
+  --edge: #8C8478;         /* field and ghost-button outlines, 3.3:1 on paper */
+  --fill: #E9E4DA;         /* the person's chat bubble, hover fills */
+  --on-ink: #F4F1EA;       /* text on ink */
+  --on-ink-2: #B9B1A5;     /* quiet text on ink, 8.1:1 */
+  --ink-line: #3A342E;     /* hairlines on ink */
+  /* type */
+  --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  /* shape */
+  --r: 4px; --r-sheet: 2px; --tap: 48px;
+  /* older names, kept so pages not yet rebuilt still read the new values */
+  --bg: var(--paper); --surface: var(--sheet); --muted: var(--ink-2); --line: var(--rule);
+  --accent: var(--ink); --accent-ink: var(--on-ink); --accent-soft: var(--fill); --error: var(--ink); --shadow: none; --radius: var(--r);
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #141A1D; --surface: #1B2327; --ink: #E6EAE8; --muted: #A7B3B1; --line: #2F3B40; --edge: #6E7D80;
-    --accent: #8FC5B9; --accent-ink: #0E1918; --accent-soft: #1D302D; --error: #E3A08F; --shadow: none;
-    color-scheme: dark;
-  }
-}
 :root[data-theme="dark"] {
-  --bg: #141A1D; --surface: #1B2327; --ink: #E6EAE8; --muted: #A7B3B1; --line: #2F3B40; --edge: #6E7D80;
-  --accent: #8FC5B9; --accent-ink: #0E1918; --accent-soft: #1D302D; --error: #E3A08F; --shadow: none;
+  --ink: #EEE9DF; --paper: #1A1714; --desk: #14120F; --sheet: #24201C; --hl: #4A3F1D;
+  --ink-2: #BDB5A8; --ink-3: #A39B8F; --rule: #36302A; --edge: #7A7166; --fill: #2C2722;
+  --on-ink: #1A1714; --on-ink-2: #4E473F; --ink-line: #D6D0C4;
   color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 18px; line-height: 1.6; font-weight: 400; -webkit-font-smoothing: antialiased; }
-h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.2; margin: 0; letter-spacing: -.005em; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.55; font-weight: 400; -webkit-font-smoothing: antialiased; font-feature-settings: "ss01" 0; }
+@media (max-width: 720px) { body { font-size: 18px; } }
+h1, h2, h3 { font-family: var(--sans); font-weight: 400; line-height: 1.12; margin: 0; letter-spacing: -0.035em; }
 p { margin: 0; }
-a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { text-decoration-thickness: 2px; }
-button, input, textarea, select { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+button, input, textarea, select { font: inherit; color: inherit; letter-spacing: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--r); }
+::selection { background: var(--hl); color: #1F1B17; }
 [hidden] { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Brand: a plain wordmark, no capitals, no glow. */
-.brand { display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap); color: var(--ink); text-decoration: none; font-family: var(--serif); font-size: 23px; font-weight: 500; }
-.brand svg { width: 26px; height: 26px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+/* Wordmark: the name, set in the UI face. The mark is two steps, drawn once. */
+.brand { display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap); color: inherit; text-decoration: none; font-size: 18px; font-weight: 500; letter-spacing: -0.02em; }
+.brand svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; }
 
-/* Buttons: one filled style for the one thing to do, one quiet style for everything else. */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; padding: 0 28px; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-ink); font-family: var(--sans); font-size: 18px; font-weight: 500; text-decoration: none; cursor: pointer; }
-.btn:hover { filter: brightness(1.06); text-decoration: none; }
-.btn.quiet { background: transparent; color: var(--ink); border: 1.5px solid var(--edge); }
-.btn.quiet:hover { background: var(--surface); filter: none; }
-.iconbtn { display: inline-flex; align-items: center; justify-content: center; min-width: var(--tap); min-height: var(--tap); border-radius: 999px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
-.iconbtn:hover { background: var(--surface); }
-.iconbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+/* One solid button per screen. Everything else is a ghost. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--tap); padding: 0 20px; border-radius: var(--r); border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink); font-family: var(--sans); font-size: 16px; font-weight: 500; letter-spacing: -0.005em; text-decoration: none; cursor: pointer; transition: background .15s, color .15s; }
+.btn:hover { text-decoration: none; background: #000; }
+:root[data-theme="dark"] .btn:hover { background: #fff; }
+.btn.ghost, .btn.quiet { background: transparent; color: var(--ink); border-color: var(--edge); }
+.btn.ghost:hover, .btn.quiet:hover { background: var(--fill); border-color: var(--ink); }
+.btn:disabled { opacity: .45; cursor: default; }
+.iconbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: var(--r); border: 0; background: transparent; color: inherit; cursor: pointer; }
+.iconbtn:hover { background: var(--fill); }
+.iconbtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: square; }
 
-/* The one notice that must be read: plain, bordered, full-size text. */
-.notice { border: 1.5px solid var(--line); border-left: 4px solid var(--accent); background: var(--surface); border-radius: 10px; padding: 16px 18px; font-size: 17px; line-height: 1.55; }
-.notice b { font-weight: 600; }
+/* Section label: a small dot and a word. */
+.label { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-3); letter-spacing: 0; }
+.label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* Kept for pages not yet rebuilt: a plain line, not a box. */
+.notice { font-size: 16px; color: var(--ink-2); }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

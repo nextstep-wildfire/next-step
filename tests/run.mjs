@@ -13,244 +13,282 @@ await new Promise((r) => server.listen(PORT, r));
 const base = 'http://localhost:' + PORT;
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log('FAIL', m); } else console.log('ok  ', m); };
-const browser = await chromium.launch();
+// Playwright's own Chromium if installed, otherwise the Chrome already on this computer.
+const browser = await chromium.launch().catch(() => chromium.launch({ channel: 'chrome' }));
 const SOURCES = JSON.parse(fs.readFileSync(new URL('../public/sources.json', import.meta.url), 'utf8'));
+const SRC_TEXT = Object.values(SOURCES).map((s) => s.notes).join(' ');
+const DESK = { width: 1440, height: 900 };
+const PHONE = { viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true };
 async function page(opts, path) {
-  const ctx = await browser.newContext(opts || {});
+  const ctx = await browser.newContext(Object.assign({ viewport: DESK }, opts || {}));
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', (e) => errs.push(String(e))); p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await p.goto(base + (path || '/app/')); p.errs = errs;
-  if (!path || path.startsWith('/app')) await p.waitForSelector('main .screen');
+  if (!path || path.startsWith('/app')) await p.waitForSelector('.opening h1, .thread .m-a');
   return p;
 }
-
-// Walks the core task the way a first-time visitor would: role, what happened, one ask, notes, letter.
-async function toLetter(p, { role = 'own', sit = 'quiet', askIx = 0, notes = 'My adjuster has not answered for 7 weeks.' } = {}) {
-  await p.click('.choice[data-role="' + role + '"]'); await p.waitForSelector('.v-what');
-  if (sit === 'smoke' || sit === 'other') { await p.click('a[href="#/more"]'); await p.waitForSelector('.choice[data-sit="' + sit + '"]'); }
-  await p.click('.choice[data-sit="' + sit + '"]'); await p.waitForSelector('.v-ask');
-  await p.locator('label.ask').nth(askIx).click(); await p.click('#askGo'); await p.waitForSelector('#nNotes');
-  if (notes) await p.fill('#nNotes', notes);
-  await p.click('#writeBtn'); await p.waitForSelector('#letterText');
+const lastA = (p) => p.locator('.thread .m-a').last();
+const tap = async (p, text) => { await p.locator('.choices:not(.done) .choice', { hasText: text }).first().click(); };
+const send = async (p, text) => { await p.fill('#composerIn', text); await p.click('#send'); };
+// The core task, all by tapping: pushed back, what they did, own or rent, one ask, a few words, the letter.
+async function toLetter(p, { sit = 'They went quiet', role = 'I own it', askIx = 0, notes = 'My adjuster has not answered for 7 weeks.' } = {}) {
+  await tap(p, 'They pushed back on my claim'); await tap(p, sit); await tap(p, role);
+  await p.locator('.choices:not(.done) .choice').nth(askIx).click();
+  await p.waitForSelector('#composerIn[placeholder*="own words"]');
+  if (notes) await send(p, notes); else await tap(p, 'Skip');
+  await p.waitForSelector('#letter p.subj', { state: 'attached' });
+  await p.waitForSelector('.choices:not(.done) .choice:has-text("Write another letter")');
 }
 // Links inside a sentence are exempt from the target size rule (WCAG 2.5.8), so only non-inline controls are measured.
-const minSize = (p, sel) => p.$$eval(sel, (els) => els.filter((e) => e.offsetParent && getComputedStyle(e).display !== 'inline').map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height); }));
+const minSize = (p, sel) => p.$$eval(sel, (els) => els.filter((e) => e.offsetParent && getComputedStyle(e).display !== 'inline' && e.getBoundingClientRect().width).map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height); }));
+// Contrast of every visible piece of text against what is actually behind it (WCAG ratio).
+const contrastScan = (p, root) => p.evaluate((rootSel) => {
+  const rgb = (s) => (s.match(/[\d.]+/g) || []).map(Number);
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const bgOf = (e) => { for (let n = e; n; n = n.parentElement) { const c = rgb(getComputedStyle(n).backgroundColor); if (c.length === 3 || (c.length === 4 && c[3] > 0.5)) return c.slice(0, 3); } return [255, 255, 255]; };
+  const out = [];
+  for (const e of document.querySelectorAll((rootSel || 'body') + ' *')) {
+    if (!e.offsetParent && getComputedStyle(e).position !== 'fixed') continue;
+    const own = [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+    if (!own) continue;
+    const cs = getComputedStyle(e);
+    if (cs.visibility === 'hidden' || parseFloat(cs.opacity) < 1) continue;
+    let o = 1; for (let n = e; n; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity);
+    if (o < 0.99) continue;
+    if (e.closest(':disabled, [disabled]')) continue;
+    const fg = rgb(cs.color).slice(0, 3), bg = bgOf(e);
+    const a = lum(fg), b = lum(bg), r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    out.push({ t: e.textContent.trim().slice(0, 30), r: Math.round(r * 100) / 100, size: parseFloat(cs.fontSize) });
+  }
+  return out;
+}, root);
+const worst = (list) => list.reduce((m, x) => (x.r < m.r ? x : m), { r: 99 });
 
-// 1. landing: everything is there on first paint, one action, a visible disclaimer, no video
-let p = await page({ viewport: { width: 1280, height: 800 } }, '/');
-const firstPaint = await p.evaluate(() => { const vis = (s) => { const e = document.querySelector(s); if (!e) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.height > 0 && r.top < innerHeight && cs.opacity === '1' && cs.visibility !== 'hidden'; }; return { h1: vis('h1'), start: vis('#startBtn'), disc: vis('#disclaimer') }; });
-ok(firstPaint.h1 && firstPaint.start && firstPaint.disc, 'landing: headline, Start and disclaimer are visible at once, no fade-in ' + JSON.stringify(firstPaint));
-ok(/insurance claims/i.test(await p.locator('.eyebrow').innerText()) && /no, offers less, or goes quiet/.test(await p.locator('h1').innerText()), 'landing says it is for insurance claims and names the three situations');
-ok((await p.locator('#startBtn').getAttribute('href')) === '/app/' && await p.locator('main .btn').count() === 1, 'landing has one primary action, and it opens the guide');
-ok(/not legal or insurance advice/i.test(await p.locator('#disclaimer').innerText()) && parseFloat(await p.locator('#disclaimer').evaluate((e) => getComputedStyle(e).fontSize)) >= 16, 'landing disclaimer is plain and at least 16px');
-ok(await p.locator('video, iframe').count() === 0, 'landing has no video and no native video controls');
-ok(await p.locator('a[href="tel:18009274357"]').count() === 1 && /not staffed/i.test(await p.locator('.people').innerText()), 'landing lists the CDI number and says Next Step is not staffed');
-const anims = await p.evaluate(() => document.getAnimations().length);
-ok(anims <= 1, 'landing runs at most one ambient animation (' + anims + ')');
-const fams = await p.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')))]; });
-ok(fams.length <= 2 && fams.includes('EB Garamond') && fams.includes('Outfit'), 'two type families only, both bundled: ' + fams.join(','));
-const th0 = await p.evaluate(() => window.nsTheme.current()); await p.click('#themeBtn');
-ok((await p.evaluate(() => document.documentElement.getAttribute('data-theme'))) === (th0 === 'dark' ? 'light' : 'dark'), 'landing theme button switches theme');
-ok((await minSize(p, 'a, button')).every((x) => x >= 44), 'landing tap targets are at least 44px');
-ok((await p.evaluate(() => Math.min(...[...document.querySelectorAll('p, li, span, a, b')].filter((e) => e.offsetParent && e.textContent.trim()).map((e) => parseFloat(getComputedStyle(e).fontSize))))) >= 15, 'landing has no text smaller than 15px');
+// 1. landing (rebuilt in phase 2): still opens the Desk, keeps the disclaimer and the real CDI line, new type only
+let p = await page({}, '/');
+ok((await p.locator('#startBtn').getAttribute('href')) === '/app/', 'landing Start opens the Desk');
+ok(/not legal or insurance advice/i.test(await p.locator('#disclaimer').innerText()), 'landing keeps the plain disclaimer');
+ok(await p.locator('a[href="tel:18009274357"]').count() >= 1, 'landing lists the CDI number');
+let fams = await p.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')))]; });
+ok(fams.length === 1 && fams[0] === 'Instrument Sans', 'landing loads only Instrument Sans: ' + fams.join(','));
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing: no sideways scroll at 375px');
-ok(await p.evaluate(() => document.getElementById('startBtn').getBoundingClientRect().bottom < innerHeight), 'landing: Start is in the first phone screen');
-await p.context().close();
-p = await page({ reducedMotion: 'reduce' }, '/');
-ok((await p.evaluate(() => document.getAnimations().length)) === 0, 'landing: reduced motion stops the ambient motion');
-await p.locator('#startBtn').click(); await p.waitForSelector('.v-start');
-ok(true, 'Start opens the guide');
 await p.context().close();
 
-// 2. the guided path, first visit
+// 2. the Desk opening: one question, three taps, a box to type or paste, no paper yet
+p = await page({ colorScheme: 'dark' });
+ok((await p.locator('.opening h1').innerText()) === 'What’s happening with your insurer?', 'opening asks what is happening with the insurer');
+ok((await p.locator('.opening .choice').allInnerTexts()).join('|') === 'They pushed back on my claim|I got a message from them|A call or visit is coming up', 'opening offers the three exchanges');
+ok(await p.locator('#composerIn').isVisible() && /paste/i.test(await p.locator('#composerIn').getAttribute('placeholder')), 'a box to type or paste is always there');
+ok(await p.locator('#paperwrap').isHidden() && !(await p.locator('#desk').evaluate((e) => e.classList.contains('has-paper'))), 'no paper until there is one to show; chat is centered');
+ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(244, 241, 234)', 'light loads first even on a dark device');
+ok((await p.locator('.side').evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(31, 27, 23)', 'sidebar is deep ink');
+ok((await p.locator('.side-links a').allInnerTexts()).join('|') === 'Steps of a claim|Take a breath|Phone lines', 'sidebar has the three quiet links');
+ok(/not legal or insurance advice/.test(await p.locator('#fine').innerText()) && /not staffed/.test(await p.locator('#fine').innerText()), 'honesty is one plain line under the box');
+fams = await p.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')))]; });
+ok(!fams.includes('EB Garamond') && !fams.includes('Outfit') && fams.includes('Instrument Sans'), 'UI type is Instrument Sans, old fonts gone: ' + fams.join(','));
+const radii = await p.$$eval('.choice, .composer, .send, .side-new', (els) => els.map((e) => parseFloat(getComputedStyle(e).borderTopLeftRadius)));
+ok(radii.every((r) => r >= 2 && r <= 6), 'corners are crisp, 4 to 6px (' + [...new Set(radii)].join(',') + ')');
+ok((await p.locator('.opening h1').evaluate((e) => getComputedStyle(e).fontWeight)) === '400', 'headline is regular weight');
+ok((await contrastScan(p)).every((x) => x.r >= 4.5), 'opening: every text passes AA contrast (worst ' + JSON.stringify(worst(await contrastScan(p))) + ')');
+await p.context().close();
+
+// 3. the letter, all by tapping, paper appears and eases in
 p = await page();
-ok(/own|rent/i.test(await p.locator('h1').innerText()) && await p.locator('.choice[data-role]').count() === 3, 'guide asks own, rent or not sure first');
-ok(await p.locator('#thread, #chips, #input, .side').count() === 0, 'no chat thread, chips, message box or chat sidebar');
-ok((await p.locator('.stepn').innerText()).includes('1 of 4'), 'step counter shows Step 1 of 4');
-await p.click('.choice[data-role="own"]'); await p.waitForSelector('.v-what');
-ok((await p.locator('.choice[data-sit] b').allInnerTexts()).join('|') === 'They said no|They offered less|They went quiet', 'then the three situations');
-await p.click('.choice[data-sit="low"]'); await p.waitForSelector('.v-ask');
-ok(await p.locator('input[name="ask"]:checked').count() === 0, 'no ask is pre-selected');
-ok(await p.locator('label.ask small').count() === 4, 'every ask shows a plain note on when it fits');
-ok((await p.locator('label.ask b').allInnerTexts()).includes('Get a second contractor estimate'), 'offered-less ask says Get a second contractor estimate');
-ok(/another letter/i.test(await p.locator('.lead').innerText()), 'the ask screen says you can write another letter for a different ask');
-await p.click('#askGo');
-ok(await p.locator('#askErr').isVisible() && /pick the one thing/i.test(await p.locator('#askErr').innerText()), 'Continue with no ask shows a plain message');
-await p.locator('label.ask').last().click(); await p.click('#askGo');
-ok(/write what you want/i.test(await p.locator('#askErr').innerText()), 'Something else needs words');
-await p.fill('#ownAsk', 'send someone else to inspect the damage the first adjuster missed'); await p.click('#askGo'); await p.waitForSelector('#nNotes');
-ok(/offered/i.test(await p.locator('#nNotes').getAttribute('placeholder')), 'notes example matches the situation');
-ok(await p.locator('#nExtra').isVisible(), 'there is a visible box for extra details (numbers, dates, names)');
-await p.fill('#nNotes', 'They offered $42,300. My contractor quoted $96,000.'); await p.fill('#nExtra', 'Second estimate dated March 3');
-await p.click('#writeBtn'); await p.waitForSelector('#letterText');
-let last = calls[calls.length - 1].userFull;
-ok(/ASK: Please send someone else to inspect/.test(last) && /Details to include: Second estimate dated March 3/.test(last), 'own ask and extra details reach the letter writer');
-let letter = await p.locator('#letterText').inputValue();
-ok(/Dear Claims Team/.test(letter) && !/My contractor quoted \$96,000\./.test(letter), 'letter is written and reworded, not pasted');
-ok(/draft, not legal advice/i.test(await p.locator('.v-letter .notice').innerText()), 'letter screen shows the draft, not legal advice notice');
-ok((await p.locator('#copyBtn').boundingBox()).height >= 48, 'Copy letter is a big button');
-await p.context().grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
-await p.locator('#letterText').fill(letter + '\nEDITED'); await p.click('#copyBtn'); await p.waitForTimeout(200);
-ok(await p.locator('#copied').isVisible() && /paste it into an email/i.test(await p.locator('#copied').innerText()), 'copy confirms on screen and says what to do next');
-const clip = await p.evaluate(() => navigator.clipboard.readText().catch(() => 'n/a'));
-ok(clip === 'n/a' || clip.includes('EDITED'), 'clipboard has the edited letter');
-ok(await p.locator('ol.nums li').count() === 4 && /15 calendar days/.test(await p.locator('ol.nums').innerText()) && /not a legal deadline/.test(await p.locator('ol.nums').innerText()), 'what happens next: four numbered steps, 15 days called a request');
-ok(await p.locator('.v-letter a[href="tel:18009274357"]').count() === 1, 'next steps give the CDI number');
-await p.click('#sentBtn');
-ok(await p.locator('#openClaim').isVisible() && (await p.locator('#openClaim').getAttribute('href')) === '#/claim', 'after I sent it, a visible link to where it was saved');
-ok(!(await p.locator('#claimLink').isHidden()) && (await p.locator('#claimCount').innerText()) === '1', 'header shows My claim with a count');
-await p.click('#openClaim'); await p.waitForSelector('.v-claim');
-ok((await p.locator('.letters').innerText()).includes('Sent'), 'My claim lists the letter as sent');
-ok((await p.locator('.loglist').innerText()).includes('Sent a letter'), 'sending is in the call and message log');
-await p.goBack(); await p.waitForSelector('#letterText');
-ok((await p.locator('#letterText').inputValue()).includes('EDITED'), 'going back keeps the edited letter');
-await p.click('#shortBtn'); await p.waitForSelector('#letterText'); await p.waitForTimeout(200);
-ok(calls[calls.length - 1].sys.includes('130 words'), 'Make it shorter asks for a shorter letter');
-await p.click('#anotherBtn'); await p.waitForSelector('.v-ask');
-ok(await p.locator('input[name="ask"]:checked').count() === 0, 'Write another letter goes back to the asks, nothing chosen');
-await p.locator('label.ask').first().click(); await p.click('#askGo'); await p.waitForSelector('#nNotes');
-ok((await p.locator('#nNotes').inputValue()).includes('$42,300'), 'and keeps the notes already written');
-ok(p.errs.length === 0, 'no page errors on the core path: ' + p.errs.join(' | '));
+await tap(p, 'They pushed back on my claim');
+ok(await p.locator('.opening').count() === 0 && (await p.locator('.m-u').first().innerText()) === 'They pushed back on my claim', 'a tap becomes the person’s message');
+ok((await p.locator('.choices:not(.done) .choice').allInnerTexts()).join('|') === 'They said no|They offered less|They went quiet', 'then: said no, offered less, went quiet');
+await tap(p, 'They offered less');
+ok((await p.locator('.choices:not(.done) .choice').allInnerTexts()).join('|') === 'I own it|I rent it|Not sure', 'then own, rent or not sure, as one quick tap');
+await tap(p, 'I own it');
+ok(await p.locator('.choices:not(.done) .choice small').count() === 3 && /Pick this if/.test(await p.locator('.choices:not(.done) .choice small').first().innerText()), 'every ask shows a Pick this if note');
+ok(await p.locator('.choices.done').count() === 2 && await p.locator('.choices.done').first().isHidden(), 'answered choices fold away; the answer stays as the person’s message');
+ok(await p.locator('#paperwrap').isHidden(), 'still no paper before the letter');
+const n0 = calls.length;
+await p.locator('.choices:not(.done) .choice').nth(1).click();
+await p.waitForSelector('#composerIn[placeholder*="own words"]');
+await send(p, 'They offered $41,200 on Nov 3. My contractor quoted $68,000.');
+await p.waitForSelector('#letter p.subj', { state: 'attached' });
+ok(await p.locator('#paperwrap').isVisible() && await p.locator('#desk').evaluate((e) => e.classList.contains('has-paper')), 'the paper appears on the right');
+const lc = calls.slice(n0).find((c) => c.sysHead.startsWith('Write a short letter'));
+ok(lc && /second contractor estimate/.test(lc.userFull) && /\$68,000/.test(lc.userFull) && /HOME: home/.test(lc.userFull), 'letter request carries the ask, their words and own/rent');
+ok(await p.locator('#letter p.in').count() >= 4, 'letter lines ease in as it is written');
+ok((await p.locator('#letter').evaluate((e) => getComputedStyle(e).fontFamily)).startsWith('"Source Serif 4"') && (await p.locator('.thread').evaluate((e) => getComputedStyle(e).fontFamily)).startsWith('"Instrument Sans"'), 'serif only on the paper, sans everywhere else');
+ok(await p.locator('#letter .blank').count() >= 1, 'blanks to fill in are marked on the letter');
+await p.waitForSelector('.choices:not(.done) .choice:has-text("Write another letter")');
+const after = await p.locator('.thread .m-a').allInnerTexts();
+ok(after.some((t) => /15 days is your request, not a legal deadline/.test(t) && /1-800-927-4357/.test(t) && /Source: CDI wildfire page/.test(t)), 'says what happens next, with the CDI line and its source');
+ok((await p.locator('.side-history a').first().innerText()).includes('letter'), 'the chat shows in history, marked with a letter');
+ok((await contrastScan(p)).every((x) => x.r >= 4.5), 'letter screen: every text passes AA contrast (worst ' + JSON.stringify(worst(await contrastScan(p))) + ')');
+// copy
+await p.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+await p.click('#copyBtn');
+ok(/Dear Claims Team/.test(await p.evaluate(() => navigator.clipboard.readText())) && (await p.locator('#copyBtn').innerText()) === 'Copied', 'Copy puts the letter on the clipboard and says so');
+// edit by telling the chat
+const before = await p.locator('#letter p').count();
+const n1 = calls.length;
+await send(p, 'Can you make it shorter');
+await p.waitForSelector('.m-a .tx:has-text("changed lines are highlighted")');
+ok(calls.slice(n1).some((c) => c.sysHead.startsWith('You edit a letter')), 'a chat request to change the letter rewrites the letter');
+ok((await p.locator('#letter p').count()) === before - 1, 'the letter got shorter');
+await send(p, 'my claim number is HO-55821');
+await p.waitForSelector('#letter p.changed');
+ok((await p.locator('#letter p.changed').first().innerText()).includes('HO-55821'), 'a chat edit briefly highlights the changed line');
+await p.waitForFunction(() => !document.querySelector('#letter p.changed'), null, { timeout: 4000 });
+ok(true, 'the highlight fades');
+// edit by typing on the paper
+await p.locator('#letter p').last().click(); await p.keyboard.press('End'); await p.keyboard.type(' Rivera');
+await p.waitForTimeout(500);
+ok((await p.evaluate(() => JSON.parse(localStorage.getItem('ns-desk-v1')).chats[0].letter)).includes('Rivera'), 'typing on the letter is kept');
+// another letter keeps the situation and opens a new chat
+await tap(p, 'Write another letter');
+ok(await p.locator('#paperwrap').isHidden() && await p.locator('.choices:not(.done) .choice small').count() === 3, 'Write another letter starts fresh at the ask, same situation');
+ok(await p.locator('.side-history li').count() === 2, 'the new letter is its own chat in history');
+ok(p.errs.length === 0, 'no page errors in the letter flow ' + p.errs.join('|'));
+await p.reload(); await p.waitForSelector('.thread');
+await p.locator('.side-history a', { hasText: 'letter' }).first().click(); await p.waitForSelector('#letter p.subj', { state: 'attached' });
+ok((await p.locator('#letter').innerText()).includes('HO-55821'), 'an earlier chat reopens with its letter from history');
 await p.context().close();
 
-// 2b. a double tap on a choice does not also pick the card under the finger on the next screen
-p = await page(); await p.locator('.choice[data-role="own"]').dblclick(); await p.waitForTimeout(300);
-ok((await p.evaluate(() => location.hash)) === '#/what', 'double tap on a choice moves one step only');
+// 4. their message: privacy line, plain explanation, suggested ask, reply letter; the paste is never saved
+p = await page();
+await tap(p, 'I got a message from them');
+ok(/sent to the AI to read and is not saved/.test(await lastA(p).innerText()), 'paste screen says the text goes to the AI and is not saved');
+ok(await p.locator('.composer.tall').count() === 1, 'the box grows for pasting');
+const PASTE = 'Dear Policyholder, after review we are offering $41,200 for dwelling repairs per the adjuster estimate. Please sign and return the enclosed release by December 15. Account 99-1234-77.';
+const n2 = calls.length;
+await send(p, PASTE);
+await p.waitForSelector('.choices:not(.done) .choice:has-text("suggested")');
+ok(/\$41,200/.test(await p.locator('.thread').innerText()) && await p.locator('#explain').isVisible() && /What their message says/.test(await p.locator('#explain').innerText()), 'their message is explained in plain words, on the chat and the paper');
+ok((await p.locator('.choices:not(.done) .choice').first().innerText()).includes('Show how the number was figured'), 'suggests the ask that fits');
+await tap(p, 'suggested'); await tap(p, 'I own it');
+await p.waitForSelector('#letter p.subj', { state: 'attached' });
+const rc = calls.slice(n2).find((c) => c.sysHead.startsWith('Write a short letter'));
+ok(rc && rc.userFull.includes('<insurer_message>') && rc.userFull.includes('December 15'), 'the reply letter is written with their message');
+ok((await p.locator('#paperKind').innerText()) === 'Their message and your reply', 'one paper: explanation plus reply letter');
+ok(!(await p.evaluate(() => localStorage.getItem('ns-desk-v1'))).includes('99-1234-77'), 'the pasted message is not saved on the device');
+await p.reload(); await p.waitForSelector('.thread .m-u');
+ok(/not saved on this device/.test(await p.locator('.m-u.paste').innerText()), 'after a reload the paste shows only as not saved');
 await p.context().close();
 
-// 3. renter, smoke and other paths, someone else
-p = await page(); await toLetter(p, { role: 'rent', sit: 'denied' });
-last = calls[calls.length - 1].last;
-ok(/HOME: rental home/.test(last) && /explain your decision in writing/.test(last), 'renter letter uses rental home and the denied ask');
-await p.goto(base + '/app/#/stages'); await p.waitForSelector('.stagelist');
-ok(/renters/i.test(await p.locator('.rolenote').innerText()) && (await p.locator('ol.stagelist li').count()) === 5, 'renter sees five renter stages');
+// 5. typing instead of tapping: live answer, sourced, then the right next step; long text is checked before reading it as a paste
+p = await page();
+await send(p, 'My insurer has not answered in 7 weeks');
+await p.waitForSelector('.choices:not(.done) .choice:has-text("I own it")');
+ok(/15 days of notice/.test(await p.locator('.thread').innerText()) && await p.locator('.m-a .src a').count() >= 1, 'typed situation gets a sourced live answer');
+ok(!/ACTION/.test(await p.locator('.thread').innerText()), 'the ACTION line is never shown');
+await tap(p, 'I own it');
+await p.locator('.choices:not(.done) .choice').first().click();
+ok(/7 weeks/.test(await p.evaluate(() => JSON.stringify(window.__desk.state().chat.notes))), 'what they typed becomes the letter notes');
 await p.context().close();
-p = await page(); await toLetter(p, { sit: 'smoke' });
-ok(/smoke and ash/.test(calls[calls.length - 1].last), 'Something else leads to the smoke letter');
+p = await page();
+await send(p, PASTE + ' ' + PASTE + ' ' + PASTE);
+await p.waitForSelector('.choices:not(.done) .choice:has-text("Yes, explain it")');
+ok(true, 'a long pasted message at the start asks before treating it as their message');
+await tap(p, 'Yes, explain it'); await p.waitForSelector('#explain:not([hidden])');
+ok(true, 'and explains it on yes');
 await p.context().close();
-p = await page(); await p.check('#forOther'); await p.fill('#otherName', 'my mom'); await toLetter(p, { sit: 'denied' });
-ok(/WRITING FOR: someone else \(my mom\)/.test(calls[calls.length - 1].last), 'API is told the letter is for someone else');
-await p.context().close();
-{ const { letterSystemPrompt } = await import('../lib/core.js'); const sp = letterSystemPrompt({ who: 'other' });
-  ok(!/what it needs from the policyholder/.test(sp) && /Do NOT add any extra request/.test(sp), 'someone-else letter prompt allows only the one ask');
-  ok(/Use ONLY the facts the person gave/.test(sp) && /eager/.test(sp), 'letter prompt forbids invented feelings and facts');
-  ok(/If NO <insurer_message> is included, never write "your recent message"/.test(sp), 'letter prompt: no "your recent message" without a pasted message');
-  ok(/Never turn a question, worry or wish in the notes into a fact/.test(sp) && /staying in a hotel/.test(sp), 'letter prompt: questions in the notes are not facts');
-  ok(/unfortunately/.test(sp) && /"recently"/.test(sp) && /If the notes are empty/.test(sp), 'letter prompt: no judging words, no made-up timing, plain letter for empty notes');
-  const { tidyLetter } = await import('../lib/core.js');
-  const raw = 'Subject: Claim \n\nDear Claims Team,\n\nI received an offer of $42,300 on March 3. \nPlease review the estimate.\nPlease reply in writing within 15 calendar days of receiving this letter.\nThank you,\n[Your Name]';
-  const tidy = tidyLetter(raw, { sit: 'low', claim: 'HO-1' });
-  ok(tidy === 'Subject: Request for a written explanation of the settlement offer - Claim HO-1\n\nDear Claims Team,\n\nI received an offer of $42,300 on March 3.\n\nPlease review the estimate.\n\nPlease reply in writing within 15 calendar days of receiving this letter.\n\nThank you,\n[your name]', 'letter tidy: blank lines between parts, name under the sign-off, a real subject');
-  ok(tidyLetter('Subject: Request for a written update\nDear Claims Team,\nMy adjuster\nhas not answered.\nThank you,\nMaria', { sit: 'quiet' }).includes('My adjuster has not answered.'), 'letter tidy: a sentence wrapped across lines is joined, not split');
-  const words = (t) => t.replace(/\s+/g, ' ').trim();
-  ok(words(tidyLetter(raw.replace('Subject: Claim ', 'Subject: Request for a written explanation of the offer'), { sit: 'low' })) === words(raw.replace('Subject: Claim ', 'Subject: Request for a written explanation of the offer').replace('[Your Name]', '[your name]')), 'letter tidy never changes the wording'); }
-
-// 4. stages as a numbered column, a clear checklist that saves
-p = await page({}, '/app/#/stages'); await p.waitForSelector('.stagelist');
-const tops = await p.$$eval('ol.stagelist .stage', (els) => els.map((e) => [Math.round(e.getBoundingClientRect().left), Math.round(e.getBoundingClientRect().top)]));
-ok(tops.length === 7 && tops.every((x, i) => x[0] === tops[0][0] && (i === 0 || x[1] > tops[i - 1][1])), 'owner stages are one numbered column in order');
-ok((await p.locator('ol.stagelist .n').allInnerTexts()).join('') === '1234567', 'stages are numbered 1 to 7');
-ok((await p.locator('ol.stagelist').innerText()).includes('adjuster is coming'), 'adjuster visit stage listed');
-await p.click('a[href="#/stage/s2"]'); await p.waitForSelector('.ticks');
-ok(/your checklist/i.test(await p.locator('section.check h2').innerText()) && /saved on this device/i.test(await p.locator('section.check').innerText()), 'stage shows a titled checklist that says it is saved');
-ok((await p.locator('#prog').innerText()) === '0 of 4 done', 'checklist shows progress');
-await p.locator('.tick').first().click();
-ok((await p.locator('#prog').innerText()) === '1 of 4 done', 'ticking updates progress');
-ok(await p.locator('.srcs a').count() >= 2, 'stage shows its sources');
-await p.reload(); await p.waitForSelector('.ticks');
-ok(await p.locator('.tick input:checked').count() === 1, 'ticks are saved after reload');
-await p.goto(base + '/app/#/stages'); await p.waitForSelector('.stagelist');
-ok((await p.locator('a[href="#/stage/s2"]').innerText()).includes('1 of 4 done'), 'stage list shows which checklists are started');
-await p.click('a[href="#/stage/s2"]'); await p.click('#toolBtn'); await p.fill('#dIn', '2026-01-10'); await p.click('#dGo');
-ok((await p.locator('#dOut').innerText()).includes('January 25, 2026'), 'key dates tool adds 15 days');
-await p.goto(base + '/app/#/stage/ts'); await p.waitForSelector('.ticks'); await p.click('#toolBtn'); await p.fill('#lgW', 'Adjuster Kim'); await p.fill('#lgS', 'Promised a call Friday'); await p.click('#lgAdd');
-ok((await p.locator('#lgList').innerText()).includes('Adjuster Kim'), 'contact log adds an entry');
-await p.goto(base + '/app/#/words'); await p.waitForSelector('dl.words');
-ok((await p.locator('dl.words').innerText()).includes('Deductible'), 'insurance words page');
+p = await page();
+await tap(p, 'A call or visit is coming up');
+await p.waitForSelector('.thread .m-a .tx');
+ok(calls[calls.length - 1].userFull.includes('call or visit'), 'call or visit goes to the live chat for now');
 await p.context().close();
 
-// 5. help: real numbers, never a pretend person
-p = await page({}, '/app/#/help'); await p.waitForSelector('.group');
-ok(/not a service/i.test(await p.locator('.lead').innerText()) && /no one here will call you back/i.test(await p.locator('.lead').innerText()), 'help says plainly no one here will call back');
-ok(await p.locator('a[href="tel:18009274357"]').count() >= 1 && await p.locator('a[href="tel:18006213362"]').count() === 1, 'help has tap-to-call CDI and FEMA');
-const allText = (await p.locator('body').innerText()).toLowerCase();
-ok(!/talk to a person|connect you|a helper will|someone will (call|follow)/.test(allText), 'nothing suggests a live person');
-await p.goto(base + '/app/#/question'); await p.fill('#qIn', 'can I talk to a real person'); await p.click('#qGo');
-ok(/no staff/i.test(await p.locator('#qOut').innerText()) && await p.locator('#qOut a[href="tel:18009274357"]').count() === 1, 'asking for a person gets the honest answer and a real number');
-await p.fill('#qIn', 'What forms does State Farm need from me?'); await p.click('#qGo');
-ok(/no checked, insurer-specific forms/i.test(await p.locator('#qOut').innerText()), 'insurer-specific questions get the honest answer');
+// 6. stress: offered once, gently, never repeated
+p = await page();
+await send(p, 'I am so overwhelmed and exhausted');
+await p.waitForSelector('.choices:not(.done) .choice:has-text("Take a breath")');
+ok(true, 'an overwhelmed message gets one gentle offer of a breath or phone lines');
+await send(p, 'I am so overwhelmed and exhausted');
+await p.waitForTimeout(400);
+ok(await p.locator('.choice:has-text("Take a breath")').count() === 1 && /BREATHE OFFERED: yes/.test(calls[calls.length - 1].sys), 'the offer is not repeated');
+await tap(p, 'Take a breath'); await p.waitForSelector('#page h1:has-text("Take a breath")');
+ok(true, 'the offer opens the breathing page');
 await p.context().close();
 
-// 6. breathing: calm, soft, can stop
-p = await page({}, '/app/#/breathe'); await p.click('#bBtn'); await p.waitForTimeout(300);
-ok((await p.locator('#aura').getAttribute('data-phase')) === 'in' && (await p.locator('#bword').innerText()) === 'Breathe in', 'breathing starts with Breathe in');
-const glow = await p.locator('.aura .glow').evaluate((e) => getComputedStyle(e).filter);
-ok(/blur/.test(glow), 'the circle has a soft aura');
-await p.click('#bBtn'); ok((await p.locator('#bword').innerText()).startsWith('Done'), 'Stop ends it calmly');
+// 7. sidebar pages: steps, breath, phone lines; every phone number on screen is in sources.json
+p = await page({}, '/app/#/phones'); await p.waitForSelector('#page h1');
+const nums = await p.$$eval('a[href^="tel:"]', (a) => a.map((x) => x.textContent.trim()));
+ok(nums.length >= 3 && nums.every((n) => SRC_TEXT.includes(n)), 'phone lines all come from sources.json: ' + nums.join(', '));
+ok(/not staffed/.test(await p.locator('#page').innerText()), 'phone lines say Next Step is not staffed');
+ok((await p.locator('#page .lines a').first().evaluate((e) => getComputedStyle(e).fontWeight)) === '300', 'numbers people need are set large and light');
+await p.click('.side-links a[data-page="steps"]'); await p.waitForSelector('.stages');
+ok(await p.locator('.stages > li').count() === 7, 'steps of a claim: seven stages for owners');
+await p.click('.seg button[data-r="rent"]'); ok(await p.locator('.stages > li').count() === 5, 'and five for renters');
+const stepNums = (await p.locator('#page').innerText()).match(/1-\d{3}-\d{3}-\d{4}/g) || [];
+ok(stepNums.every((n) => SRC_TEXT.includes(n)), 'numbers in the steps are in sources.json');
+await p.click('.side-links a[data-page="breathe"]'); await p.click('#bstart'); await p.waitForTimeout(300);
+ok(/Breathe in/.test(await p.locator('#bword').innerText()), 'take a breath runs one minute of breathing');
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+ok(await p.locator('#page').isHidden(), 'Escape returns to the chat');
+await p.click('#newChat'); ok(await p.locator('.opening').count() === 1, 'New chat opens the first question');
+ok(p.errs.length === 0, 'no page errors on the pages ' + p.errs.join('|'));
 await p.context().close();
 
-// 7. languages (UI translated, letter stays English)
-for (const [l, word] of [['es', 'alquila'], ['zh', '租']]) {
-  p = await page({}, '/app/?lang=' + l); await p.waitForSelector('.v-start');
-  ok((await p.locator('h1').innerText()).includes(word), 'start screen in ' + l);
-  await toLetter(p, { sit: 'low' });
-  ok(/Dear Claims Team/.test(await p.locator('#letterText').inputValue()), 'letter in English from ' + l + ' UI');
-  ok(p.errs.length === 0, 'no errors in ' + l + ': ' + p.errs.join('|'));
-  await p.context().close();
-}
-
-// 8. phone width, both themes, tap targets, readable fine print
-for (const scheme of ['light', 'dark']) {
-  p = await page({ viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true, colorScheme: scheme });
-  const screens = [];
-  const check = async (name) => { screens.push([name, await p.evaluate(() => document.documentElement.scrollWidth), Math.min(...await minSize(p, 'main a, main button, main label.ask, main .tick, header a, header button'))]); };
-  await check('start'); await p.click('.choice[data-role="own"]'); await check('what'); await p.click('.choice[data-sit="quiet"]'); await check('ask');
-  await p.locator('label.ask').nth(1).click(); await p.click('#askGo'); await p.waitForSelector('#nNotes'); await check('notes');
-  await p.fill('#nNotes', 'No reply in 7 weeks.'); await p.click('#writeBtn'); await p.waitForSelector('#letterText'); await check('letter');
-  for (const r of ['stages', 'stage/s1', 'claim', 'help', 'breathe', 'question']) { await p.goto(base + '/app/#/' + r); await p.waitForTimeout(150); await check(r); }
-  ok(screens.every((s) => s[1] <= 375), scheme + ': no sideways scroll at 375px on any screen ' + screens.filter((s) => s[1] > 375).map((s) => s[0]).join(','));
-  ok(screens.every((s) => s[2] >= 44), scheme + ': tap targets at least 44px ' + screens.filter((s) => s[2] < 44).map((s) => s[0] + ':' + s[2]).join(','));
-  const fine = await p.evaluate(() => Math.min(...[...document.querySelectorAll('.fine p, .hint, .srcs, .notice')].filter((e) => e.offsetParent).map((e) => parseFloat(getComputedStyle(e).fontSize))));
-  ok(fine >= 15, scheme + ': fine print is at least 15px (' + fine + ')');
-  const bg = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  ok(scheme === 'dark' ? bg === 'rgb(20, 26, 29)' : bg === 'rgb(244, 242, 236)', scheme + ': follows the device theme (' + bg + ')');
-  ok(p.errs.length === 0, scheme + ': no page errors on phone ' + p.errs.join('|'));
-  await p.context().close();
-}
-
-// 9. menu and theme inside the guide
-p = await page(); await p.click('#menuBtn');
-ok(await p.locator('#menu').isVisible() && await p.locator('#menuList a').count() === 6, 'menu opens with six plain links');
-await p.click('#thDark'); ok((await p.evaluate(() => document.documentElement.getAttribute('data-theme'))) === 'dark', 'theme switch in the menu');
-await p.keyboard.press('Escape'); ok(await p.locator('#menu').isHidden(), 'Escape closes the menu');
-ok((await p.locator('.fine').innerText()).includes('not legal or insurance advice') && (await p.locator('.fine').innerText()).includes('Fung Fellowship'), 'footer keeps the disclaimer and names the project');
+// 8. phone: chat fills the screen, the paper is a pinned card that opens full screen with Copy
+p = await page(PHONE);
+const sizes = [], widths = [];
+const snap = async (name) => { widths.push([name, await p.evaluate(() => document.documentElement.scrollWidth)]); sizes.push([name, Math.min(...await minSize(p, '.thread .choice, .send, .topbar button, .pin, .paperbtns button, .side-links a'))]); };
+await snap('open');
+ok(await p.locator('.side').isHidden(), 'phone: sidebar is tucked away');
+await p.click('#sideOpen'); await p.waitForTimeout(300); ok(await p.locator('.side').isVisible(), 'phone: menu opens the sidebar'); await snap('side');
+await p.click('#scrim', { position: { x: 360, y: 400 } }); await p.waitForTimeout(300); ok(await p.locator('.side').isHidden(), 'phone: tapping outside closes the menu');
+await toLetter(p);
+await p.waitForSelector('.paperwrap.open'); await snap('paper');
+ok(await p.locator('#copyBtn').isVisible() && await p.locator('#paperClose').isVisible(), 'phone: the letter opens full screen with Copy');
+await p.click('#paperClose'); await snap('pinned');
+ok(await p.locator('#pin').isVisible() && /Your letter/.test(await p.locator('#pin').innerText()), 'phone: the paper is a pinned card at the top');
+await p.click('#pin'); ok(await p.locator('.paperwrap.open').isVisible(), 'phone: tapping the card opens it'); await p.click('#paperClose');
+for (const r of ['steps', 'phones', 'breathe']) { await p.goto(base + '/app/#/' + r); await p.waitForSelector('#page h1'); await snap(r); }
+ok(widths.every((s) => s[1] <= 375), 'phone: no sideways scroll ' + widths.filter((s) => s[1] > 375).map((s) => s[0]).join(','));
+ok(sizes.every((s) => s[1] >= 44), 'phone: tap targets at least 44px ' + sizes.filter((s) => s[1] < 44).map((s) => s[0] + ':' + s[1]).join(','));
+const small = await p.evaluate(() => Math.min(...[...document.querySelectorAll('body *')].filter((e) => e.offsetParent && [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((e) => parseFloat(getComputedStyle(e).fontSize))));
+ok(small >= 15, 'phone: nothing under 15px (' + small + ')');
+ok((await p.locator('#composerIn').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))) >= 18 && (await p.evaluate(() => parseFloat(getComputedStyle(document.body).fontSize))) === 18, 'phone: body and the box are 18px');
+ok(p.errs.length === 0, 'phone: no page errors ' + p.errs.join('|'));
 await p.context().close();
 
-// 10. fallbacks: daily limit reached, and no AI at all
-for (const mode of ['quota', 'off']) {
+// 9. the honest pause: AI unavailable or out of quota. No fake reply; phone lines; try again; a plain basic letter
+for (const mode of ['off', 'quota']) {
   process.env.MOCK = mode;
-  p = await page(); await toLetter(p, { sit: 'denied', notes: 'They denied my claim on Oct 3.' });
-  const lt = await p.locator('#letterText').inputValue();
-  ok(/Dear Claims Team/.test(lt) && /explain your decision in writing/.test(lt) && /They denied my claim on Oct 3\./.test(lt), mode + ': template letter still works');
-  ok((await p.locator('.v-letter .notice').innerText()).includes(mode === 'quota' ? 'free daily limit' : 'not available right now'), mode + ': person is told why');
-  ok(await p.locator('#shortBtn').count() === 0, mode + ': no Make it shorter when the AI is off');
-  await p.goto(base + '/app/#/question'); await p.fill('#qIn', 'how long do I have to settle'); await p.click('#qGo'); await p.waitForTimeout(300);
-  ok(await p.locator('#qOut .btn').count() >= 1, mode + ': a question still gets somewhere useful');
+  p = await page();
+  await send(p, 'What does replacement cost mean?');
+  await p.waitForSelector('.m-a.pause');
+  const t = await p.locator('.m-a.pause').innerText();
+  ok(/paused|daily limit/.test(t) && /30 minutes/.test(t) && /1-800-927-4357/.test(t), mode + ': pause says so plainly, suggests 30 minutes, shows the phone lines');
+  ok(await p.locator('.thread .m-a').count() === 1, mode + ': no made-up reply');
+  await p.click('#newChat');
+  await toLetter(p, { sit: 'They said no' }).catch(() => {});
+  await p.waitForSelector('.choices:not(.done) .choice:has-text("basic letter")');
+  ok(await p.locator('#paperwrap').isHidden(), mode + ': no letter appears by itself');
+  await tap(p, 'basic letter'); await p.waitForSelector('#letter p.subj', { state: 'attached' });
+  ok(/explain your decision in writing/.test(await p.locator('#letter').innerText()) && /not written by the assistant/.test(await p.locator('.thread').innerText()), mode + ': a basic letter on request, labelled as not from the assistant');
   ok(p.errs.filter((e) => !/Failed to load resource/.test(e)).length === 0, mode + ': no script errors ' + p.errs.join('|'));
   await p.context().close();
 }
 process.env.MOCK = 'ok';
-
-// 11. returning visitor and old saved data
 p = await page();
-await p.evaluate(() => { localStorage.clear(); localStorage.setItem('next-step-v4', JSON.stringify({ chats: [{ id: 'c1', role: 'rent', letters: [{ d: 'Nov 2', sub: 'Old letter', text: 'Subject: Old letter' }], contacts: [], done: { 'r1.0': true } }], cur: 'c1' })); });
-await p.reload(); await p.waitForSelector('.v-start');
-ok((await p.locator('#claimCount').innerText()) === '1', 'letters from the previous version carry over');
-await p.goto(base + '/app/#/claim'); await p.waitForSelector('.letters');
-ok((await p.locator('.letters').innerText()).includes('Old letter'), 'old letter shows in My claim');
+process.env.MOCK = 'off'; await send(p, 'hello'); await p.waitForSelector('.m-a.pause');
+process.env.MOCK = 'ok'; await tap(p, 'Try again'); await p.waitForSelector('.m-a:not(.pause) .tx');
+ok(true, 'Try again works once the assistant is back');
 await p.context().close();
 
+// 10. reduced motion: the letter is simply there
+p = await page({ reducedMotion: 'reduce' });
+await toLetter(p);
+ok(await p.locator('#letter p.in').count() === 0, 'reduced motion: no easing in');
+await p.context().close();
+
+// 11. banned things: no emoji, no em or en dashes, no gradients or blur, no exclamation marks in what the Desk says
+p = await page();
+await toLetter(p);
+const txt = await p.evaluate(() => document.body.innerText);
+ok(!/[–—]/.test(txt) && !/\p{Extended_Pictographic}/u.test(txt), 'no dashes or emoji on screen');
+ok(!/!/.test(await p.locator('.thread').innerText()), 'no exclamation marks in the chat');
+const css = fs.readFileSync(new URL('../public/desk.css', import.meta.url), 'utf8') + fs.readFileSync(new URL('../public/base.css', import.meta.url), 'utf8');
+ok(!/gradient\(|backdrop-filter|blur\(/.test(css), 'no gradients, glows or blur in the CSS');
+ok(!/\b(seamless|empower|effortless|peace of mind|unlock)\b/i.test(txt + fs.readFileSync(new URL('../public/desk.js', import.meta.url), 'utf8')), 'no banned words');
+await p.context().close();
 // 15. streaming: the person sees words arrive, and never sees the ACTION line or an unchecked source number
 {
   const core = await import('../lib/core.js');
@@ -296,26 +334,36 @@ await p.context().close();
   ok(fin.done && fin.text === 'Smoke claims must be investigated [3].' && fin.action && fin.action.arg === 'sm' && evs.every((e) => !/ACTION/.test(e.t || '')), 'paid path stream: text assembled, action parsed, ACTION never in a text event');
 }
 {
-  // in the browser: slow stream, record everything shown in the answer box
+  // new server behaviour: explain picks a checked ask, revise keeps the letter shape, desk context reaches the prompt
+  const core = await import('../lib/core.js');
+  const S = SOURCES;
+  const pe = core.parseExplain('They offer $10.\nPICK: low a2');
+  ok(pe.sit === 'low' && pe.ask === 'a2' && pe.text === 'They offer $10.', 'explain: the PICK line is parsed and never shown');
+  const bad = core.parseExplain('Unclear.\nPICK: low a9');
+  ok(bad.sit === 'other' && bad.ask === 'a1', 'explain: an ask that is not on our list falls back to a safe one');
+  ok(core.parseAction('Sure.\nACTION: edit').action.type === 'edit' && core.parseAction('x\nACTION: phones').action.type === 'phones', 'chat can ask the app to edit the letter or show phone lines');
+  const withPaper = core.chatSystemPrompt(S, { lang: 'en', paper: true, ask: 'Please send me a status update.' });
+  ok(/a letter to the insurer is written/.test(withPaper) && /status update/.test(withPaper) && /not staffed/.test(withPaper), 'chat prompt knows the letter on the desk and never offers a person');
+  const r = await core.handle(new Request('http://x/api/chat', { method: 'POST', body: JSON.stringify({ mode: 'revise', letter: '', instruction: 'x' }) }), {}, S);
+  ok(r.status === 400, 'revise needs a letter and an instruction');
+}
+{
+  // in the browser: slow stream on the Desk, record everything shown while the reply is written
   process.env.MOCK_DELAY = '45';
-  p = await page({}, '/app/#/question'); await p.waitForSelector('#qIn');
-  await p.evaluate(() => { window.__seen = []; new MutationObserver(() => { const m = document.querySelector('#qOut .abody'); if (m) window.__seen.push(m.innerText); }).observe(document.getElementById('qOut'), { childList: true, subtree: true, characterData: true }); });
+  p = await page();
+  await p.evaluate(() => { window.__seen = []; new MutationObserver(() => { const m = document.querySelectorAll('.thread .m-a'); if (m.length) window.__seen.push(m[m.length - 1].innerText); }).observe(document.getElementById('thread'), { childList: true, subtree: true, characterData: true }); });
   const n0 = calls.length;
-  await p.fill('#qIn', 'What do you know about smoke damage in my house?'); await p.click('#qGo');
-  await p.waitForFunction(() => { const m = document.querySelector('#qOut .abody'); return m && m.innerText.length > 20; }, null, { timeout: 5000 });
-  ok(!(await p.locator('#qOut sup.cite').count()) && !(await p.locator('#qOut .srcs').count()), 'words are on screen before the answer is finished (no source row yet)');
-  await p.waitForSelector('#qOut sup.cite'); await p.waitForSelector('#qOut a.btn[href="#/stage/sm"]');
+  await send(p, 'What do you know about smoke damage in my house?');
+  await p.waitForFunction(() => { const m = document.querySelector('.thread .m-a .typing'); return m && m.parentElement.innerText.length > 20; }, null, { timeout: 5000 });
+  ok(await p.locator('.thread .m-a .src').count() === 0, 'words are on screen before the reply is finished (no source line yet)');
+  await p.waitForSelector('.thread .m-a .src a');
   const seen = await p.evaluate(() => window.__seen);
-  ok(seen.length > 3 && seen.every((t) => !/ACTION/i.test(t)), 'the ACTION line never appeared on screen while streaming (' + seen.length + ' updates)');
-  ok(seen.every((t) => !/\[\d*\]?$/.test(t.trim()) || /sources/i.test(t)), 'no half-written [n] shown while streaming');
-  ok(await p.locator('#qOut .srcs a').count() === 1, 'the answer ends with its source');
+  ok(seen.length > 3 && seen.every((t) => !/ACTION/i.test(t)), 'the ACTION line never appeared while streaming (' + seen.length + ' updates)');
+  ok(seen.every((t) => !/\[\d*\]?\s*$/.test(t.trim())), 'no half-written [n] shown while streaming');
+  ok((await p.locator('.thread .m-a .src').innerText()).includes('CDI smoke damage order'), 'the reply ends with its source by name');
   const sys = calls[n0].sys;
-  ok(calls[n0].stream === true && sys.includes('[3] ') && !sys.includes('[13] ') && sys.length < 9000, 'smoke question sends the smoke notes only (' + sys.length + ' chars)');
+  ok(calls[n0].stream === true && sys.includes('[3] ') && !sys.includes('[13] ') && sys.length < 10000, 'smoke question sends the smoke notes only (' + sys.length + ' chars)');
   ok(p.errs.length === 0, 'no page errors while streaming: ' + p.errs.join('|'));
-  await p.context().close(); p = await page({}, '/app/#/question'); await p.waitForSelector('#qIn');
-  await p.fill('#qIn', 'it is too complicated'); await p.click('#qGo'); await p.waitForSelector('#qOut a.btn[href="#/start"]');
-  const sys2 = calls[calls.length - 1].sys;
-  ok(Object.keys(SOURCES).every((k) => sys2.includes('[' + k + '] ')), 'a vague question sends all notes, and offers to start a letter');
   await p.context().close();
   delete process.env.MOCK_DELAY;
 }

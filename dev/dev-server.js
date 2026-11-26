@@ -1,5 +1,6 @@
 // Local test server: serves ./public and runs the real Pages Function logic with a mocked AI binding.
-// Usage: node dev/dev-server.js [port]   (set MOCK=off to simulate no AI, MOCK=quota to simulate the daily limit)
+// Usage: node dev/dev-server.js [port]   (set MOCK=off to simulate no AI, MOCK=quota to simulate the daily limit,
+// or ANTHROPIC_API_KEY=... to talk to the real model instead of the pretend one)
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,7 +50,19 @@ const mockAI = {
       const ask = (last.match(/ASK: (.*)/) || [])[1] || '';
       return { response: 'Subject: Request regarding my claim\n\nDear Claims Team,\n\nI am writing about my claim after the wildfire. My adjuster has not responded for several weeks and I need to move forward.\n\n' + ask + '\n\nPlease reply in writing within 15 calendar days of receiving this letter.\n\nThank you,\n[your name]' };
     }
-    if (sys.startsWith('You explain a message')) return { response: 'They ask you to send more documents. Questions you could ask in writing:\n- What exactly is missing?\n- By when?' };
+    if (sys.startsWith('You explain a message')) return { response: 'They are offering $41,200 for the repairs to your home. They say this is based on their adjuster\'s estimate, and they ask you to sign and return the release form by December 15.\nPICK: low a1' };
+    if (sys.startsWith('You edit a letter')) {
+      const letter = (last.match(/<letter>([\s\S]*)<\/letter>/) || [])[1] || '';
+      const ins = (last.match(/<instruction>([\s\S]*)<\/instruction>/) || [])[1] || '';
+      const paras = letter.split('\n\n');
+      if (/short/i.test(ins)) return { response: paras.filter((x, i) => i !== 2).join('\n\n') };
+      const num = (ins.match(/\b[A-Z]{0,3}-?\d[\d-]{3,}\b/) || [])[0];
+      return { response: num ? letter.replace('[claim number]', num).replace(/^Subject: (.*)$/m, (m, a) => 'Subject: ' + a.replace(/ - Claim .*/, '') + ' - Claim ' + num) : letter.replace('Dear Claims Team,', 'Dear Claims Team,\n\nMy claim number is [claim number].') };
+    }
+    if (/\b(shorter|change|add|claim number is|fix)\b/i.test(last) && /a letter to the insurer is written/.test(sys)) return { response: 'I will make that change on your letter now.\nACTION: edit' };
+    if (/overwhelm|exhausted|can.t do this/i.test(last) && /BREATHE OFFERED: no/.test(sys)) return { response: 'That is a lot to carry, and it makes sense to feel worn down. We can go one small step at a time.\nACTION: breathe' };
+    if (/phone|call someone|talk to a person/i.test(last)) return { response: 'Next Step is not staffed, but the California Department of Insurance hotline is 1-800-927-4357 [2].\nACTION: phones' };
+    if (/they sent me|got a letter from|got an email/i.test(last)) return { response: 'Paste what they sent and I will explain it in plain words.\nACTION: paste' };
     if (/smoke/i.test(last)) return { response: 'Insurers are directed to investigate smoke damage claims fully and not deny them outright [3]. This is general information and your policy may differ.\nACTION: stage:sm' };
     if (/state farm/i.test(last)) return { response: 'x' };
     if (/complicated/i.test(last)) return { response: 'That makes sense, so let us keep it to one small step. Tell me in your own words what happened, or pick the closest one below.\nACTION: choices' };
@@ -64,7 +77,8 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://' + req.headers.host);
   if (url.pathname === '/api/chat') {
     const chunks = []; for await (const c of req) chunks.push(c);
-    const env = process.env.MOCK === 'off' ? {} : { AI: mockAI };
+    // LIVE: with ANTHROPIC_API_KEY set, the real model answers (the same paid path the deployed site can use).
+    const env = process.env.MOCK === 'off' ? {} : process.env.ANTHROPIC_API_KEY ? { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY } : { AI: mockAI };
     const request = new Request(url.href, { method: req.method, headers: req.headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks) });
     const r = await handle(request, env, SOURCES);
     res.writeHead(r.status, Object.fromEntries(r.headers));
