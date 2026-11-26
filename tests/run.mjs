@@ -521,6 +521,17 @@ await p.context().close();
   const lcss = fs.readFileSync(new URL('../public/landing.css', import.meta.url), 'utf8');
   ok(!/gradient\(|backdrop-filter|blur\(/.test(lcss), 'landing: no gradients or blur');
   ok(await p.locator('.art svg').count() === 1 && await p.locator('img').count() === 0, 'landing: one line illustration, no photos');
+  // the drawing: under reduced motion it is the finished frame at once, the same as the last frame of the animation
+  const rest = await p.evaluate(() => {
+    const s = document.querySelector('.art svg'), q = (id) => s.querySelector('[data-id="' + id + '"]');
+    const drawn = [...s.querySelectorAll('[data-id]')].every((e) => !e.style.strokeDasharray && e.style.visibility !== 'hidden');
+    const out = { done: window.__rebuild.done(), rested: s.classList.contains('rested'), drawn, post: q('post-l').getAttribute('transform') || '', flag: q('flag').getAttribute('transform') || '',
+      person: !!s.querySelector('.who circle'), letter: s.querySelector('.who [clip-path]').style.visibility, html: s.innerHTML };
+    window.__rebuild.seek(window.__rebuild.END);
+    out.same = s.innerHTML === out.html; delete out.html;
+    return out;
+  });
+  ok(rest.done && rest.rested && rest.drawn && !rest.post && !rest.flag && rest.person && rest.letter === 'hidden' && rest.same, 'landing drawing: reduced motion shows the final frame at once (every line drawn, post plumb, flag up, the person resting, letter posted) ' + JSON.stringify(rest));
   const tels = await p.$$eval('a[href^="tel:"]', (a) => a.map((x) => x.textContent.trim()));
   ok(tels.every((n) => SRC_TEXT.includes(n)), 'landing: every number is in sources.json: ' + tels.join(', '));
   await p.context().close();
@@ -528,6 +539,8 @@ await p.context().close();
   await p.locator('#demo').scrollIntoViewIfNeeded();
   await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 90000 });
   ok(true, 'landing demo: plays through to the letter');
+  ok(await p.evaluate(() => window.__rebuild.done()), 'landing drawing: the animation plays once and rests');
+
   await p.waitForFunction(() => !window.__demo.running(), null, { timeout: 10000 });
   ok(p.errs.length === 0, 'landing: no page errors ' + p.errs.join('|'));
   await p.setViewportSize({ width: 375, height: 760 });

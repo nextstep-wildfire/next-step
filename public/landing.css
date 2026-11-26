@@ -109,3 +109,4 @@ footer p + p { margin-top: 6px; }
   .ex-list h3 { font-size: 22px; }
   .nums a { font-size: 34px; }
 }
+.art .fill { fill: var(--paper); }
