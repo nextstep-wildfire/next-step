@@ -251,8 +251,8 @@
   .composer textarea { font-size: 18px; }
   .toast { top: auto; bottom: 24px; }
   .fields { grid-template-columns: 1fr; }
-  .record li { grid-template-columns: 1fr auto; }
-  .record .r-date { grid-column: 1 / -1; }
+  .record li { grid-template-columns: 1fr; }
+  .r-act { margin-left: -8px; }
   .m-a.care { padding: 16px; }
   .sheetdoc .subj { font-size: 21px; }
 }

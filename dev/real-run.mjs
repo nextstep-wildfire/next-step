@@ -14,8 +14,11 @@ const ask = (sit, id) => (id === 'fu' ? C.FOLLOWUP : C.ASKS[sit].find((a) => a[0
 
 async function post(body) {
   for (let i = 0; i < 3; i++) {
-    const r = await fetch(base + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    const j = await r.json().catch(() => ({ error: 'not_json_' + r.status }));
+    let j;
+    try {
+      const r = await fetch(base + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(90000) });
+      j = await r.json().catch(() => ({ error: 'not_json_' + r.status }));
+    } catch (e) { j = { error: 'timeout_or_network' }; }
     if (!j.error || i === 2) return j;
     await new Promise((res) => setTimeout(res, 2500));
   }

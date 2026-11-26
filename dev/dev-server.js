@@ -53,6 +53,7 @@ const mockAI = {
     if (sys.startsWith('You help a California wildfire survivor get ready')) {
       const notes = (last.match(/<notes>([\s\S]*?)<\/notes>/) || [])[1] || '';
       const call = /SHEET: phone call/.test(last);
+      if (/ECHO/.test(notes)) return { response: 'SAY: Hi, my name is [your name]. I am calling about claim HO-77812. Please send me a written update on my claim status and the next step.\nPOINT: I want to confirm that my claim number is HO-77812.\nPOINT: I would like the written update to include the current status of my claim.\nPOINT: I need to know what the next step is in the claims process.' };
       const pts = notes.trim() ? notes.split(/[.;]\s*/).filter((x) => x.trim()).slice(0, 3).map((x) => 'POINT: ' + x.trim() + '.') : [];
       return { response: (call ? 'SAY: Hi, my name is [your name], and I am calling about claim [claim number]. I would like you to explain in writing how you calculated the offer, line by line.' : 'SAY: Hi, I am [your name], and this is the home on claim [claim number]. I would like to show you all of the damage, and to get a written scope of work afterward.') + '\n' + pts.join('\n') };
     }
