@@ -131,7 +131,7 @@
     low: { a1: 'Pick this if you can’t tell how they reached their number.', a2: 'Pick this if you have your own contractor’s estimate to send.', a3: 'Pick this if you’re not sure what your policy covers.' },
     quiet: { a1: 'Pick this if you just need to know where things stand.', a2: 'Pick this if you’ve already tried your adjuster more than once.', a3: 'Pick this if you want to know how long each step should take.' },
     smoke: { a1: 'Pick this if no one has explained how they will check your home.', a2: 'Pick this if you want a professional to test your home.' },
-    other: { a1: 'Pick this if you’re not sure what they need to move forward.' }
+    other: { a1: 'Pick this if you’re not sure what they need to move forward.', a2: 'Pick this if they already told you what they need and you’re sending it.' }
   };
 
   /* Citations: [n] in a reply becomes a quiet source line under it. */
@@ -542,7 +542,8 @@
   /* ---------- the letter ---------- */
   function letterBody() {
     var notes = (chat.notes || '').trim();
-    return { mode: 'letter', lang: 'en', sit: chat.sit, sitLabel: L(C.SIT_LABEL[chat.sit]), role: chat.role === 'rent' ? 'rent' : 'own', ask: askSentence(), notes: notes, paste: chat.flow === 'reply' && chat.pasteId ? (pasteMem[chat.pasteId] || '') : '', name: '', claim: '', insurer: '', who: 'me' };
+    var subj = chat.ask === 'fu' ? C.ASK_SUBJECT.fu : (C.ASK_SUBJECT[chat.sit] || {})[chat.ask];
+    return { mode: 'letter', lang: 'en', subject: subj || '', sit: chat.sit, sitLabel: L(C.SIT_LABEL[chat.sit]), role: chat.role === 'rent' ? 'rent' : 'own', ask: askSentence(), notes: notes, paste: chat.flow === 'reply' && chat.pasteId ? (pasteMem[chat.pasteId] || '') : '', name: '', claim: '', insurer: '', who: 'me' };
   }
   function writeLetter() {
     chat.step = 'writing'; setComposer();
@@ -829,7 +830,7 @@
     chat.letter = readSheet();
     var before = paras(chat.letter);
     var s = status(T.editing); setBusy(true);
-    api({ mode: 'revise', lang: 'en', sit: chat.sit, letter: chat.letter, instruction: instruction }).then(function (j) {
+    api({ mode: 'revise', lang: 'en', sit: chat.sit, ask: askSentence(), letter: chat.letter, instruction: instruction }).then(function (j) {
       s.remove(); setBusy(false);
       var after = paras(j.text), changed = [];
       after.forEach(function (p, i) { if (before.indexOf(p) === -1) changed.push(i); });

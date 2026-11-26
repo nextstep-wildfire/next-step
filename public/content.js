@@ -23,7 +23,8 @@
       ['a2', 'Please confirm in writing whether you will pay for testing of my home by a qualified professional, and what you need from me.', M('Will you pay for testing?', '¿Pagarán las pruebas?', '是否赔付检测费用？')]
     ],
     other: [
-      ['a1', 'Please list in writing the documents, forms and information you need from me to process my claim.', M('List what you need from me to move my claim forward', 'Enumerar lo que necesitan de mí para avanzar mi reclamo', '列出推进我的理赔所需的材料')]
+      ['a1', 'Please list in writing the documents, forms and information you need from me to process my claim.', M('List what you need from me to move my claim forward', 'Enumerar lo que necesitan de mí para avanzar mi reclamo', '列出推进我的理赔所需的材料')],
+      ['a2', 'Please confirm in writing, once you receive the documents I am sending, whether you need anything else from me.', M('Confirm nothing else is needed', 'Confirmar que no necesitan nada más', '确认不再需要其他材料')]
     ]
   };
   var SIT_LABEL = {
@@ -39,6 +40,15 @@
     quiet: 'Request for a written update on my claim',
     smoke: 'Request for a written response on the smoke and ash investigation',
     other: 'Request regarding my claim'
+  };
+  /* The subject line of each letter, set from the ask so it always says what the letter asks for. */
+  var ASK_SUBJECT = {
+    denied: { a1: 'Request for a written explanation of the claim decision', a2: 'Request for copies of my claim file', a3: 'Request to review the claim decision again' },
+    low: { a1: 'Request for a line-by-line explanation of the settlement offer', a2: 'Request to review my contractor estimate', a3: 'Request to confirm my policy limits' },
+    quiet: { a1: 'Request for a written update on my claim', a2: 'Request for a claims supervisor to review my claim', a3: 'Request to confirm the deadlines on my claim' },
+    smoke: { a1: 'Request for a written plan for the smoke and ash investigation', a2: 'Request to confirm payment for smoke and ash testing' },
+    other: { a1: 'Request for a list of what you need from me', a2: 'Request to confirm nothing else is needed' },
+    fu: 'Confirming our conversation'
   };
   var SIT_STAGE = { denied: 'td', low: 'tl', quiet: 'ts', smoke: 'sm', other: 's4' };
   var STAGES = {
@@ -256,5 +266,5 @@
   };
   /* The one ask of a follow-up email after a call or a visit. Sourced: confirm what was said in writing [17][18]. */
   var FOLLOWUP = ['fu', 'Please confirm in writing that this summary of our conversation is correct, or tell me in writing what is different.', M('Confirm what was said', 'Confirmar lo que se dijo', '确认谈话内容')];
-  window.NS_CONTENT = { M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP };
+  window.NS_CONTENT = { M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP, ASK_SUBJECT: ASK_SUBJECT };
 })();
