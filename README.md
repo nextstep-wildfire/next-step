@@ -31,7 +31,7 @@ You need a free GitHub account and a free Cloudflare account. No credit card.
 2. **Create the site.** In Cloudflare, open Workers & Pages, then Create, then the Pages tab, then Connect to Git. Pick the repository.
 3. **Build settings.** Framework preset: None. Build command: leave empty. Build output directory: `public`. Save and deploy.
 4. **Turn on the AI.** Open the new project, go to Settings, then Bindings (or Functions, then Bindings), then Add, then Workers AI. Variable name must be exactly `AI`. Add it for Production (and Preview if you want). Then go to Deployments and Retry the latest deployment so it picks up the binding.
-5. **Test it.** Open your `.pages.dev` address. Tap Start my letter, pick own or rent, tap "They went quiet", pick an ask, add a line, and write the letter. If the page says live answers are unavailable, step 4 was missed.
+5. **Test it.** Open your `.pages.dev` address. Open /app/, tap "They pushed back on my claim", "They went quiet", own or rent, an ask, add a line, and the letter appears on the right. If the chat says the assistant is paused, step 4 was missed.
 
 The `wrangler.toml` file also declares the AI binding. If Cloudflare reads it, step 4 is already done. If the dashboard shows the binding as locked or missing, use step 4.
 

@@ -24,14 +24,15 @@
     writeNow: 'Write my letter', skipNotes: 'Skip, leave blanks',
     writing: 'Writing your letter…', writingReply: 'Writing your reply…', reading: 'Reading their message…', editing: 'Changing your letter…',
     done: 'Your letter is ready. Fill in anything in [brackets], then copy it into an email to your adjuster.',
-    doneEdit: 'To change it, type on the letter, or tell me here, like “make it shorter” or “my claim number is 12345”.',
-    doneMobile: 'Open it from the card at the top. To change it, type on the letter, or tell me here, like “make it shorter”.',
-    next: 'Send it by email so there’s a record, and keep a copy. The 15 days is your request, not a legal deadline. If you are still stuck, the California Department of Insurance hotline can help: ',
+    doneEdit: 'To change it, type on the letter or tell me here.',
+    doneMobile: 'Tap Your letter above to open it. To change it, type on it or tell me here.',
+    next: 'Send it by email so there’s a record. The 15 days is your request, not a legal deadline. If you are still stuck, call the California Department of Insurance: ',
     another: 'Write another letter', anotherDiff: 'Ask for something different',
     changed: 'Done. The changed lines are highlighted on your letter.',
     pasteAsk: 'Paste what they sent below. I’ll explain it in plain words and suggest what to ask for in your reply.',
     pastePrivacy: 'What you paste is sent to the AI to read and is not saved. Leave out anything you don’t want to share, like account numbers.',
     pasteHolder: 'Paste their message here',
+    explainedRight: 'I\u2019ve put what their message says, in plain words, at the top of your paper.',
     suggest: 'For your reply, I’d ask them to:', suggested: 'suggested', otherAsk: 'Pick a different ask',
     replyDone: 'Your reply is ready, under the plain explanation of their message. Fill in anything in [brackets] before you send it.',
     callMsg: 'A call or visit with my insurer is coming up. How should I get ready?',
@@ -113,6 +114,7 @@
     if (!ids || !ids.length) return '';
     return '<p class="src">' + (ids.length > 1 ? T.sourceMany : T.sourceOne) + ids.map(function (d) { return '<a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].label) + '</a>'; }).join(', ') + '</p>';
   }
+  function linkNums(h) { return h.replace(/\b1-\d{3}-\d{3}-\d{4}\b/g, function (n) { return '<a class="num" href="' + tel(n) + '">' + n + '</a>'; }); }
   function linesHtml() {
     return '<ul class="lines">' + phones().map(function (p) { return '<li><span class="who">' + esc(p.who) + '</span><a href="' + tel(p.num) + '">' + esc(p.num) + '</a></li>'; }).join('') + '</ul>';
   }
@@ -158,7 +160,7 @@
     var a = el('div', 'm-a' + (m.k ? ' ' + m.k : ''));
     a.dataset.i = i;
     var html = '';
-    if (m.x) { var c = splitCites(m.x); html += c.text.split(/\n{2,}/).map(function (p) { return '<p class="tx">' + esc(p) + '</p>'; }).join(''); html += srcLine(c.ids); }
+    if (m.x) { var c = splitCites(m.x); html += c.text.split(/\n{2,}/).map(function (p) { return '<p class="tx">' + linkNums(esc(p)) + '</p>'; }).join(''); html += srcLine(c.ids); }
     if (m.note) html += '<p class="note">' + esc(m.note) + '</p>';
     if (m.k === 'pause' || m.k === 'phones') html += linesHtml();
     a.innerHTML = html;
@@ -448,10 +450,9 @@
   }
   function finishLetter(basic) {
     chat.step = 'free';
-    var msg = (basic ? T.basicNote + '\n\n' : '') + (chat.flow === 'reply' ? T.replyDone : T.done) + '\n\n' + (isPhone() ? T.doneMobile : T.doneEdit);
-    say({ r: 'a', x: msg });
     var cdi = phones()[0];
-    say({ r: 'a', x: T.next + (cdi ? cdi.num + ' [' + cdi.src + '].' : ''), ch: { key: 'more', inline: true, opts: [{ v: 'another', l: T.another }] } });
+    var msg = (basic ? T.basicNote + '\n\n' : '') + (chat.flow === 'reply' ? T.replyDone : T.done) + ' ' + (isPhone() ? T.doneMobile : T.doneEdit) + '\n\n' + T.next + (cdi ? cdi.num + ' [' + cdi.src + '].' : '');
+    say({ r: 'a', x: msg, ch: { key: 'more', inline: true, opts: [{ v: 'another', l: T.another }] } });
     setComposer();
     if (isPhone()) openPaper();
   }
@@ -479,7 +480,8 @@
       s.remove(); setBusy(false);
       chat.sit = j.sit; chat.explain = j.text;
       var sug = askById(j.sit, j.ask) ? j.ask : asksFor(j.sit)[0][0];
-      say({ r: 'a', x: j.text });
+      // Side by side, the explanation lives on the paper; on a phone the paper is tucked away, so it is said in the chat.
+      say({ r: 'a', x: isPhone() ? j.text : T.explainedRight });
       var opts = [{ v: sug, l: L(askById(j.sit, sug)[2]), tag: T.suggested, n: (PICK_IF[j.sit] || {})[sug] }];
       opts.push({ v: 'other', l: T.otherAsk });
       chat.step = 'pickAsk';
@@ -517,7 +519,7 @@
     var ex = $('explain');
     if (chat.explain) {
       var c = splitCites(chat.explain);
-      ex.hidden = false;
+      ex.hidden = false; ex.classList.toggle('withletter', !!chat.letter);
       ex.innerHTML = '<h2>What their message says</h2>' + c.text.split(/\n+/).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
     } else { ex.hidden = true; ex.innerHTML = ''; }
     if (!keepLetter) letterEl.innerHTML = chat.letter ? paras(chat.letter).map(function (p, i) { return paraHtml(p, i, ''); }).join('') : '';
@@ -623,7 +625,7 @@
       var srcIds = (s.src || []).map(String).filter(function (d) { return SOURCES[d]; });
       return '<li><div><p class="when">' + esc(L(s.label)) + '</p><h2>' + esc(L(s.title)) + '</h2><ul>' + s.steps.map(function (x) { return '<li>' + esc(L(x)) + '</li>'; }).join('') + '</ul>' + (s.general ? '<p class="src">General guidance, not checked against an official source.</p>' : srcLine(srcIds)) + '</div></li>';
     }).join('');
-    showPage('steps', '<h1>Steps of a claim</h1><p class="lead">The usual order of a wildfire claim in California. Yours may differ; your policy decides.</p>' +
+    showPage('steps', '<h1>Steps of a claim</h1><p class="lead">The usual order of a wildfire claim in California. Yours may differ. Your policy decides.</p>' +
       '<div class="seg" role="group" aria-label="Home"><button type="button" data-r="own" aria-pressed="' + (stageRole === 'own') + '">I own</button><button type="button" data-r="rent" aria-pressed="' + (stageRole === 'rent') + '">I rent</button></div>' +
       '<ol class="stages">' + items + '</ol>');
     [].forEach.call($('page').querySelectorAll('.seg button'), function (b) { b.addEventListener('click', function () { stageRole = b.dataset.r; pageSteps(); $('page').querySelector('.seg button[data-r="' + stageRole + '"]').focus(); }); });

@@ -344,6 +344,8 @@ await p.context().close();
   ok(core.parseAction('Sure.\nACTION: edit').action.type === 'edit' && core.parseAction('x\nACTION: phones').action.type === 'phones', 'chat can ask the app to edit the letter or show phone lines');
   const withPaper = core.chatSystemPrompt(S, { lang: 'en', paper: true, ask: 'Please send me a status update.' });
   ok(/a letter to the insurer is written/.test(withPaper) && /status update/.test(withPaper) && /not staffed/.test(withPaper), 'chat prompt knows the letter on the desk and never offers a person');
+  ok(core.stripBadPhones('Call 1-800-927-4357 or 1-800-555-1234.', S) === 'Call 1-800-927-4357 or [number removed: not in our sources].', 'a phone number the model invents is removed; ours stay');
+  ok(core.visibleSoFar('Call 1-800-55', S, null) === 'Call', 'a half-written phone number is held back while streaming');
   const r = await core.handle(new Request('http://x/api/chat', { method: 'POST', body: JSON.stringify({ mode: 'revise', letter: '', instruction: 'x' }) }), {}, S);
   ok(r.status === 400, 'revise needs a letter and an instruction');
 }
