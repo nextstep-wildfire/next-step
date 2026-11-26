@@ -97,7 +97,8 @@
     fileLetter: 'letter', fileReply: 'reply', fileCall: 'call-sheet', fileVisit: 'visit-sheet',
     langOther: 'Español', themeDark: 'Dark mode', themeLight: 'Light mode', settingsLbl: 'Settings',
     basicCtx: { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' },
-    inMyWords: 'In my own words: '
+    inMyWords: 'In my own words: ',
+    noteBlanks: 'Fill in anything in [brackets], then tap Copy and paste it into an email to your adjuster.', noteDone: 'Read it through, then tap Copy and paste it into an email to your adjuster.', noteCall: 'Keep this open during the call and fill in the log at the bottom as you go.', noteVisit: 'Keep this with you and fill in the log at the bottom before the adjuster leaves.'
   };
   var T_ES = {
     open: '¿Qué está pasando con su aseguradora?',
@@ -184,6 +185,7 @@
     langOther: 'English', themeDark: 'Modo oscuro', themeLight: 'Modo claro', settingsLbl: 'Ajustes',
     basicCtx: { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' },
     inMyWords: 'In my own words (written in Spanish): ',
+    noteBlanks: 'Rellene lo que está entre [corchetes] en la carta en inglés, luego toque Copiar y péguela en un correo para su ajustador. Más abajo está lo que dice en español.', noteDone: 'Léala completa, luego toque Copiar y péguela en un correo para su ajustador. Más abajo está lo que dice en español.', noteCall: 'Téngala abierta durante la llamada y llene el registro de abajo sobre la marcha.', noteVisit: 'Llévela consigo y llene el registro de abajo antes de que se vaya el ajustador.',
     esH: 'Lo que dice su carta, en español', esNote: 'Para que sepa lo que envía. La carta que se envía es la de arriba, en inglés.',
     esUntranslated: 'Este párrafo no se pudo traducir con seguridad, así que se muestra en inglés. Pida a alguien de confianza que se lo lea.',
     esStale: 'Cambió la carta. Esta copia es de antes del cambio.', esUpdate: 'Actualizar la copia en español', esFailed: 'La copia en español no está disponible en este momento. La carta en inglés está lista.', esWorking: 'Traduciendo…',
@@ -1016,7 +1018,7 @@
     } else { ex.hidden = true; ex.innerHTML = ''; }
     if (!keepLetter) letterEl.innerHTML = chat.letter ? paras(chat.letter).map(function (p, i) { return paraHtml(p, i, ''); }).join('') : '';
     letterEl.hidden = !chat.letter;
-    renderEs();
+    renderEs(); renderNote();
     $('copyBtn').disabled = !(chat.letter || chat.sheet); $('printBtn').disabled = !(chat.letter || chat.sheet);
     $('sheet').classList.toggle('is-sheet', !!chat.sheet);
     // One solid button per screen: on a sheet it is Save to Record, so Copy steps back to a ghost.
@@ -1027,11 +1029,19 @@
   letterEl.addEventListener('input', function () {
     clearTimeout(editT);
     editT = setTimeout(function () {
-      chat.letter = readSheet();
+      chat.letter = readSheet(); renderNote();
       if (LANG === 'es' && chat.letterEs && !chat.esStale) { chat.esStale = true; renderEs(); }
       persist();
     }, 300);
   });
+
+  /* On a phone the paper opens over the chat, so the one line that says how to finish goes on the paper itself. */
+  function renderNote() {
+    var n = $('paperNote'), t = '';
+    // (a sheet already says how to use it in its own first line, so only a letter gets this)
+    if (chat.letter && !chat.sheet) t = /\[[^\]\n]{1,40}\]/.test(chat.letter) ? T.noteBlanks : T.noteDone;
+    n.textContent = t; n.hidden = !t;
+  }
 
   /* The Spanish copy under the letter: one paragraph per paragraph of the English letter, checked on the server.
      A paragraph that could not be translated safely is shown in English and said so. */

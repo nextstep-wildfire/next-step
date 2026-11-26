@@ -7,7 +7,7 @@ body { overflow-x: hidden; }
 
 /* hero: words on the left, the one drawing on the right */
 .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 48px; align-items: end; padding-top: 72px; padding-bottom: 56px; }
-.hero h1 { font-size: clamp(42px, 5.4vw, 72px); line-height: 1.02; letter-spacing: -0.04em; margin-top: 22px; max-width: 13ch; }
+.hero h1 { font-size: clamp(42px, 5.4vw, 72px); line-height: 1.02; letter-spacing: -0.04em; margin-top: 0; max-width: 13ch; }
 .lede { font-size: 20px; line-height: 1.55; color: var(--ink-2); margin-top: 26px; max-width: 34em; }
 .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
 .cta .btn { min-width: 120px; }
@@ -17,7 +17,7 @@ body { overflow-x: hidden; }
 
 /* the demo: real HTML in the Desk's own materials */
 .demo { padding-top: 24px; padding-bottom: 88px; }
-.dk { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr); height: 600px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper); overflow: hidden; }
+.dk { margin-top: 0; display: grid; grid-template-columns: minmax(0, 1fr); height: 600px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper); overflow: hidden; }
 .dk-talk { display: flex; flex-direction: column; min-height: 0; width: 100%; max-width: 640px; margin: 0 auto; padding: 0 28px 20px; }
 .dk.has-paper { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
 .dk.has-paper .dk-talk { max-width: none; border-right: 1px solid var(--rule); }
@@ -57,7 +57,7 @@ body { overflow-x: hidden; }
 
 /* the four exchanges: plain rows on hairlines */
 .ex { padding-top: 24px; padding-bottom: 96px; }
-.ex h2 { font-size: clamp(30px, 3.4vw, 44px); letter-spacing: -0.035em; margin-top: 18px; max-width: 20ch; }
+.ex h2 { font-size: clamp(30px, 3.4vw, 44px); letter-spacing: -0.035em; margin-top: 0; max-width: 20ch; }
 .ex-list { list-style: none; margin: 40px 0 0; padding: 0; border-top: 1px solid var(--rule); }
 .ex-list li { display: grid; grid-template-columns: 220px minmax(0, 1fr) 220px; gap: 8px 32px; align-items: baseline; padding: 22px 0; border-bottom: 1px solid var(--rule); }
 .ex-list h3 { font-size: 24px; letter-spacing: -0.025em; }
@@ -70,7 +70,7 @@ body { overflow-x: hidden; }
 :root[data-theme="dark"] .band { background: var(--deep); }
 .band-in { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 32px 64px; padding-top: 88px; padding-bottom: 88px; }
 .band .label { color: var(--on-ink-2); }
-.band h2 { font-size: clamp(32px, 3.6vw, 48px); letter-spacing: -0.035em; margin-top: 18px; max-width: 14ch; }
+.band h2 { font-size: clamp(32px, 3.6vw, 48px); letter-spacing: -0.035em; margin-top: 0; max-width: 14ch; }
 .nums { list-style: none; margin: 0; padding: 0; }
 .nums li { padding: 18px 0; border-top: 1px solid var(--ink-line); }
 .nums li:first-child { border-top: 0; padding-top: 6px; }
@@ -93,7 +93,7 @@ footer p + p { margin-top: 6px; }
 @media (max-width: 760px) {
   .wrap { padding-left: 16px; padding-right: 16px; }
   .hero { padding-top: 24px; padding-bottom: 40px; }
-  .hero h1 { font-size: 42px; margin-top: 16px; }
+  .hero h1 { font-size: 42px; }
   .lede { font-size: 18px; margin-top: 18px; }
   .cta { margin-top: 24px; }
   .cta .btn { flex: 1; }

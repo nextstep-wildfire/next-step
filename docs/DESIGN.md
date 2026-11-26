@@ -12,7 +12,7 @@ Source of every choice: `.claude/skills/website-implementation/references/vision
 - **Room for later phases.** Spanish, dark mode and a real PDF slot into the same paper (`renderPaper`), the sidebar list, and the `T` string table in `public/desk.js`.
 
 ## Phase 2: the other exchanges and the front door
-- **Call and visit sheets are the same paper as the letter**, set as a checklist: serif text, section labels as a dot and a word, small hollow squares as list marks so it reads as something to tick off. "A call or visit is coming up" asks which one, then the call path asks what it is about, own or rent, one ask (the same checked asks as letters, with "Pick this if"), and a few words. The visit path asks whether the home is standing or destroyed instead of an ask. Each step can be tapped; typing works throughout.
+- **Call and visit sheets are the same paper as the letter**, set as a checklist: serif text, section headings as small quiet words (no dot), small hollow squares as list marks so it reads as something to tick off. "A call or visit is coming up" asks which one, then the call path asks what it is about, own or rent, one ask (the same checked asks as letters, with "Pick this if"), and a few words. The visit path asks whether the home is standing or destroyed instead of an ask. Each step can be tapped; typing works throughout.
 - **What the model writes, and what it does not.** The checklists are fixed text in `public/content.js` (`SHEETS`), each line tied to a source in `public/sources.json` or marked general guidance. The model only writes "what to say first" and turns the person's own notes into points, labelled "from your notes". So the guidance can never drift, and the person's details still land on the sheet.
 - **Sources on the sheet** are small numbers after each line, listed with links at the end of the sheet (the printed sheet keeps them). Unsourced lines say "general guidance" in place of a number.
 - **The log** is part of the sheet: date, time, who, phone, what they said, what happens next (and for a visit, what they looked at). It saves as you type, on the device. "Save to Record" is the one solid button on a sheet, so Copy becomes a ghost there.
@@ -53,6 +53,7 @@ Source of every choice: `.claude/skills/website-implementation/references/vision
 - The letter (and the reply) download as the English letter, the one that is sent. A call or visit sheet downloads whole: title, sections, the line marks, what to say (with the Spanish under it in Spanish), the ask, points from their notes, every checklist line with its source number or "general guidance", the filled-in log, and the numbered source list with links. Files are named like `next-step-letter-2026-11-26.pdf` (`next-step-carta-…` in Spanish). A downloaded letter is added to the Record, as Copy already did.
 
 ### Phone polish
+- On a phone the paper opens over the chat when a letter arrives, so one line at the top of the paper says how to finish it (fill in the [brackets], tap Copy, paste into an email). Desktop does not show it (the chat beside the paper says it), and sheets do not (their own first line already does).
 - A question with choices that is taller than the chat (the asks, in Spanish, on a small phone) now scrolls to its first line instead of its bottom, so the question and the first choices are in view.
 - Buttons never wrap their label (one Spanish ghost button did); the Spanish landing button reads "Ver un ejemplo".
 - The Spanish footer line is shortened to fit in three lines at 375 px.
@@ -92,7 +93,7 @@ Run by `node dev/strangers.mjs <preview url> docs/strangers` against the preview
 - All five under 5 minutes, against the 10 minute bar. The model was quick (2 to 4 seconds a step); most of the time is reading.
 - The landing demo (about 18 seconds) cost the one person who chose to watch it about 27 seconds including its footer. Start is above it, so no one else waited on it. Not shortened.
 - Pauses found and fixed on the way: on a phone the asks could sit under the message box (a tall question now shows from its first line); "Ver cómo funciona" broke over two lines in its button; "Soy dueño" was gendered (now "Es mía"); the Spanish footer took four lines on a phone; "Get a second contractor estimate" read as if the site would get one (now "Review my own contractor’s estimate").
-- Still worth watching with real people: the phone paper opens over the chat when the letter arrives, so the done message (fill in the [brackets], what happens next) is under it until Close; "Me pusieron trabas con el reclamo" as the first Spanish tap.
+- Fixed after the run: the phone paper opens over the chat, so the how-to-finish line now sits on the paper itself. Still worth watching with real people: "Me pusieron trabas con el reclamo" as the first Spanish tap.
 
 ### The real model in both languages (runs 6 and 7)
 `node dev/real-run.mjs` now runs 45 situations: the 24 English ones and 21 Spanish ones (7 letters from Spanish notes including "42.300", "96 mil" and "siete semanas", 3 edits asked in Spanish, 3 messages explained in Spanish including one the insurer wrote in Spanish, 3 sheets, 5 chats). Every output is in docs/real-ai/run-6.md and run-7.md.
@@ -164,7 +165,7 @@ Dark tokens are behind `data-theme="dark"`, reached by the toggle (phase 3); bot
 ## Shape and motion
 - Corners 4px everywhere, 2px on the sheet. Buttons and choices are near-square.
 - One solid button per screen (the send arrow, or Start on the breathing page). Everything else is a thin-outline ghost.
-- Section labels are a 5px dot and a word.
+- No section labels or eyebrow lines. The dot-and-a-word labels were removed at the phase 3 review ("For California wildfire insurance claims", "Every exchange", "The Desk, writing a letter", "If you need a person"): they read as decoration. Headings carry the page; small headings inside papers are plain quiet words.
 - The letter's lines ease in one after another as it arrives; a chat edit tints the changed lines and fades. A thin caret shows while a reply streams. All motion stops under reduced motion.
 
 ## Grounding

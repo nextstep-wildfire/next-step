@@ -71,9 +71,8 @@ button, input, textarea, select { font: inherit; color: inherit; letter-spacing:
 .iconbtn:hover { background: var(--fill); }
 .iconbtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: square; }
 
-/* Section label: a small dot and a word. */
-.label { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-3); letter-spacing: 0; }
-.label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+/* A quiet label: plain words, no ornament. */
+.label { display: inline-flex; align-items: center; font-size: 15px; color: var(--ink-3); letter-spacing: 0; }
 
 /* Kept for pages not yet rebuilt: a plain line, not a box. */
 .notice { font-size: 16px; color: var(--ink-2); }

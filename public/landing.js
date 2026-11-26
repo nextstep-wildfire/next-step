@@ -8,7 +8,7 @@
   var ES = {
     openDesk: 'Abrir el Escritorio', kicker: 'Para reclamos de seguro por incendios en California',
     h1: 'Cada palabra a su aseguradora cuenta. Que cada una sea la correcta.',
-    lede: 'Next Step le ayuda con cada intercambio con su aseguradora: la carta que envía, el mensaje que le responden, la llamada, la visita del ajustador. Así pide todo lo que su póliza le debe.',
+    lede: 'Next Step le ayuda con cada intercambio con su aseguradora después de un incendio en California: la carta que envía, el mensaje que le responden, la llamada, la visita del ajustador. Así pide todo lo que su póliza le debe.',
     start: 'Empezar', watch: 'Ver un ejemplo',
     honest: 'Gratis, sin cuenta. Información general de fuentes públicas, no es asesoría legal ni de seguros.',
     demoTitle: 'El Escritorio, escribiendo una carta',
