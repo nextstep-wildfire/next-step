@@ -46,6 +46,8 @@ const LETTERS = [
   { id: 'L4', who: 'Renter, insurer silent', sit: 'quiet', ask: 'a1', role: 'rent', notes: 'I rent an apartment in Altadena. I emailed my adjuster Mark Chen three times since September 30 and have not heard back. Claim number RN-20431.' },
   { id: 'L5', who: 'No notes at all', sit: 'quiet', ask: 'a3', role: 'own', notes: '' },
   { id: 'L6', who: 'Worried about the hotel (question, not fact)', sit: 'other', ask: 'a1', role: 'own', notes: 'Does my policy cover a hotel while the house is rebuilt? I do not know what they need from me.' },
+  { id: 'L7', who: 'Follow-up email from a call log', sit: 'quiet', ask: 'fu', role: 'rent', notes: 'On Nov 25, 2026 at 10:30, I spoke by phone with Mark Chen, adjuster.\nThey said: A supervisor will look at the claim this week.\nThey said the next step is: Supervisor calls me by Dec 3' },
+  { id: 'L8', who: 'Follow-up email from a visit log', sit: 'other', ask: 'fu', role: 'own', notes: 'On Nov 21, 2026, your adjuster visited my home: Sam Lee, Allied Claims.\nThey looked at: Kitchen ceiling, bedroom closets, HVAC ducts\nThey said: Smoke testing will be ordered.\nThey said the next step is: Scope of work by email within two weeks' },
 ];
 const PASTES = [
   { id: 'E1', who: 'Settlement offer with a release', paste: 'Dear Policyholder, We have completed our review of your claim 04-88213 for the dwelling at 1420 Canyon Rd. Based on our adjuster estimate, we are offering $42,300 for dwelling repairs, less your deductible of $2,500. To accept, please sign and return the enclosed release by December 15, 2026. Sincerely, Claims Department' },
@@ -72,7 +74,7 @@ const note = (id, who, fl) => summary.push('| ' + id + ' | ' + who + ' | ' + (fl
 
 for (const L of LETTERS) {
   const a = ask(L.sit, L.ask);
-  const j = await post({ mode: 'letter', lang: 'en', subject: C.ASK_SUBJECT[L.sit][L.ask], sit: L.sit, sitLabel: C.SIT_LABEL[L.sit].en, role: L.role, ask: a[1], notes: L.notes, name: '', claim: '', insurer: '', who: 'me' });
+  const j = await post({ mode: 'letter', lang: 'en', subject: L.ask === 'fu' ? C.ASK_SUBJECT.fu : C.ASK_SUBJECT[L.sit][L.ask], sit: L.sit, sitLabel: C.SIT_LABEL[L.sit].en, role: L.role, ask: a[1], notes: L.notes, name: '', claim: '', insurer: '', who: 'me' });
   const fl = j.error ? ['ERROR ' + j.error] : flags(j.text, L.notes, { letter: {}, askText: a[1] });
   md.push('## ' + L.id + '. Letter: ' + L.who, '', '- Situation: ' + L.sit + ', ' + L.role + '. Ask: ' + a[1], '- Notes: ' + (L.notes || '(none)'), '', '```', j.text || JSON.stringify(j), '```', '', 'Flags: ' + (fl.join('; ') || 'none'), '');
   note(L.id, 'Letter: ' + L.who, fl);

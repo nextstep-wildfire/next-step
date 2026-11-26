@@ -56,6 +56,7 @@ const mockAI = {
       const pts = notes.trim() ? notes.split(/[.;]\s*/).filter((x) => x.trim()).slice(0, 3).map((x) => 'POINT: ' + x.trim() + '.') : [];
       return { response: (call ? 'SAY: Hi, my name is [your name], and I am calling about claim [claim number]. I would like you to explain in writing how you calculated the offer, line by line.' : 'SAY: Hi, I am [your name], and this is the home on claim [claim number]. I would like to show you all of the damage, and to get a written scope of work afterward.') + '\n' + pts.join('\n') };
     }
+    if (sys.startsWith('You explain a message') && /need the following/.test(last)) return { response: 'The person is asked to send a list of damaged items with receipts and photographs.\nPICK: other a1' };
     if (sys.startsWith('You explain a message')) return { response: 'They are offering $41,200 for the repairs to your home. They say this is based on their adjuster\'s estimate, and they ask you to sign and return the release form by December 15.\nPICK: low a1' };
     if (sys.startsWith('You edit a letter')) {
       const letter = (last.match(/<letter>([\s\S]*)<\/letter>/) || [])[1] || '';
