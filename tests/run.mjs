@@ -557,6 +557,8 @@ await p.context().close();
   ok(ps.say === 'Hi, my name is [your name]. I am calling about my claim.' && ps.points.length === 1, 'sheet parser: SAY and POINT lines');
   const ex = await (await fetch(base + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'explain', paste: 'To continue we need the following: a list of damaged items with receipts and photographs. Please upload these to the portal.' }) })).json();
   ok(ex.sit === 'other' && ex.ask === 'a2' && /^You are asked/.test(ex.text), 'explain: a message that already lists what they need gets "confirm nothing else is needed", and is said to you');
+  const fb = await (await fetch(base + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'explain', paste: 'FALLBACK We are offering $42,300 for dwelling repairs. Please sign the release.' }) })).json();
+  ok(fb.sit === 'low' && fb.ask === 'a1', 'explain: when the model falls back to "other" on a plain offer, the offer situation is used');
   const n0 = calls.length;
   const r = await fetch(base + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'sheet', kind: 'visit', home: 'lost', notes: '' }) });
   const j = await r.json();
