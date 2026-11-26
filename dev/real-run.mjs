@@ -34,7 +34,8 @@ function flags(text, given, { letter, askText } = {}) {
     if (!/Dear Claims Team,/.test(text)) f.push('no greeting');
     if (!/within 15 calendar days/.test(text)) f.push('no 15-day line');
     if (/your recent message/i.test(text) && !letter.paste) f.push('"your recent message" without a pasted message');
-    if (askText) { const key = askText.split(/\s+/).filter((w) => w.length > 5).slice(0, 3); if (!key.every((w) => text.toLowerCase().includes(w.toLowerCase().replace(/[.,]/g, '')))) f.push('ask may be missing: ' + key.join(' ')); }
+    const n = (t) => t.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9']+/g, ' ').trim();
+    if (askText && n(text).indexOf(n(askText)) === -1) f.push('ask not word for word');
   }
   return f;
 }
