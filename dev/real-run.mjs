@@ -31,7 +31,7 @@ function flags(text, given, { letter, askText, extra } = {}) {
   text = String(text).replace(/\[\d{1,2}\]/g, '');   // a source number like [10] is not a fact
   const guarded = core.guardNumbers(String(text), String(given) + ' ' + (extra || ''), ['15']);
   if (/\b(however|despite|nevertheless)\b/i.test(text) && !/\b(however|but|despite|pero|sin embargo)\b/i.test(given)) f.push('contrast word not in the notes');
-  if (/\b(concerns?|concerned|worried)\b|preocupaci/i.test(text) && !/\b(concern|worr)|preocup/i.test(given)) f.push('worry not in the notes');
+  if (!extra && /\b(concerns?|concerned|worried)\b|preocupaci/i.test(text) && !/\b(concern|worr)|preocup/i.test(given)) f.push('worry not in the notes');
   if (guarded !== String(text)) for (const m of guarded.match(/\[check this number\]/g) || []) f.push('number not given');
   if (/\[check this number\]/.test(text)) f.push('guard replaced an invented number');
   for (const p of String(text).match(/\b1?-?\d{3}-\d{3}-\d{4}\b/g) || []) if (KNOWN.indexOf(p.replace(/^1-/, '')) === -1 && KNOWN.indexOf(p) === -1) f.push('phone not in sources: ' + p);

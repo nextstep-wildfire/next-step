@@ -48,7 +48,8 @@ for (const P of PEOPLE) {
   if (P.watch) {
     tapT(); await p.click('#watchBtn');
     await wait(() => p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 60000 }), 'watching the demo play');
-    await p.waitForFunction(() => !window.__demo.running(), null, { timeout: 20000 });
+    // (the preview's security policy blocks waitForFunction, so poll)
+    for (let i = 0; i < 100 && await p.evaluate(() => window.__demo.running()); i++) await p.waitForTimeout(200);
     await shot('demo-done');
     read('Play it again. A real letter takes about the same few taps, with your own details.', 'demo footer');
   }

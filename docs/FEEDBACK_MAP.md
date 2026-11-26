@@ -2,6 +2,18 @@
 
 Source: the interview notes through Nov 12, 2026, the teammate's Bet 3 prototype feedback doc, and the four held Bet 3 sessions (closed Nov 25). "Built" means built and covered by an automated test in `tests/run.mjs`. Interviewee statements are their own accounts and are not verified. Names are left out. Quote permissions and participant restrictions are tracked in the team's private interview notes, not here.
 
+## Built in Desk phase 3 (Nov 26)
+
+| What people said | Who | Change |
+|---|---|---|
+| Spanish for the Eaton Fire area | Recovery group director | Every screen, the chat, explanations, sheets and the landing page in Spanish (browser language, `?lang=es`, or the "Español" link). Letters to the insurer stay in English with a checked Spanish copy under them, so the person knows what they send. Marked as an unreviewed draft. |
+| Letter format may matter legally | Attorney tester | Still one English format for every letter, Spanish speakers included, so legal review covers one format. Not settled; flagged. |
+| AI letters need human proofreading; check dates and names | Trial lawyer and GIS professor testers | The Spanish copy lets a Spanish speaker check the facts of the English letter; any line that could not be translated safely is shown in English and says so. The "check every date, number and name" line stays, in both languages. |
+| Phone-friendly layout | Survivor (2017 fire) | Phone polish from five timed stranger passes (one at 375 px in Spanish): long questions with choices scroll to their first line, buttons never wrap, shorter Spanish footer. |
+| Calming, not clinical stress support | Teammate review | The one-time care card also opens on Spanish words for being overwhelmed. |
+| (Vision) Copy and Download PDF on every paper | Project direction | A real PDF made on the device for the letter, the reply, the call sheet and the visit sheet (sheets with log and sources). |
+| (Vision) Dark mode behind a toggle, light first | Project direction | Toggle in the Desk sidebar and the landing header; every text pair measured AA in both themes. |
+
 ## Built in the Nov 25 redesign (Bet 3 feedback)
 
 | What people said | Who | Change |
@@ -74,7 +86,6 @@ Source: the interview notes through Nov 12, 2026, the teammate's Bet 3 prototype
 | Warnings about helpers who claim to be from the city or state | Insurance agent | Needs source-backed content. |
 | Better sources for standing homes (standinghomes.org, NIST) | Survivor (open claim) | Not reviewed. Interview notes restrict direct quotes. |
 | Student tester B bugs: breathing dot, "restart" misread, "last stage" message | Student tester B | Not reproduced or fixed. |
-| Spanish for the Eaton Fire area | Recovery group director | Spanish already exists in the tool. No other languages were requested. |
 
 ## Open fact checks
 
