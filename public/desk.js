@@ -350,7 +350,16 @@
     return ch;
   }
 
-  function say(m) { chat.msgs.push(m); var node = renderMsg(m, chat.msgs.length - 1); var op = thread.querySelector('.opening'); if (op) op.remove(); thread.appendChild(node); persist(); scrollDown(); return node; }
+  function say(m) {
+    chat.msgs.push(m); var node = renderMsg(m, chat.msgs.length - 1); var op = thread.querySelector('.opening'); if (op) op.remove(); thread.appendChild(node); persist();
+    // A question with its choices that is taller than the chat (the asks, on a phone): show it from its first line,
+    // so the question and the first choices are in view and the rest is a scroll away, not hidden under the box.
+    requestAnimationFrame(function () {
+      if (node.offsetHeight > thread.clientHeight - 24) thread.scrollTop = Math.max(0, node.offsetTop - 12);
+      else thread.scrollTop = thread.scrollHeight;
+    });
+    return node;
+  }
   function me(text, extra) { var m = { r: 'u', x: text }; if (extra) for (var k in extra) m[k] = extra[k]; return say(m); }
   function status(text) { var n = el('div', 'm-a status', '<p class="tx">' + esc(text) + '</p>'); thread.appendChild(n); scrollDown(); return n; }
 
