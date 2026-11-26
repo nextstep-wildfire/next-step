@@ -70,7 +70,7 @@ ok((await p.locator('#startBtn').getAttribute('href')) === '/app/', 'landing Sta
 ok(/not legal or insurance advice/i.test(await p.locator('#disclaimer').innerText()), 'landing keeps the plain disclaimer');
 ok(await p.locator('a[href="tel:18009274357"]').count() >= 1, 'landing lists the CDI number');
 let fams = await p.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')))]; });
-ok(fams.length === 1 && fams[0] === 'Instrument Sans', 'landing loads only Instrument Sans: ' + fams.join(','));
+ok(fams.every((f) => f === 'Instrument Sans' || f === 'Source Serif 4') && fams.includes('Instrument Sans'), 'landing loads only Instrument Sans, plus Source Serif 4 for the paper in the demo: ' + fams.join(','));
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing: no sideways scroll at 375px');
 await p.context().close();
@@ -83,7 +83,7 @@ ok(await p.locator('#composerIn').isVisible() && /paste/i.test(await p.locator('
 ok(await p.locator('#paperwrap').isHidden() && !(await p.locator('#desk').evaluate((e) => e.classList.contains('has-paper'))), 'no paper until there is one to show; chat is centered');
 ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(244, 241, 234)', 'light loads first even on a dark device');
 ok((await p.locator('.side').evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(31, 27, 23)', 'sidebar is deep ink');
-ok((await p.locator('.side-links a').allInnerTexts()).join('|') === 'Steps of a claim|Take a breath|Phone lines', 'sidebar has the three quiet links');
+ok((await p.locator('.side-links a').allInnerTexts()).join('|') === 'Record|Steps of a claim|Take a breath|Phone lines', 'sidebar has Record and the three quiet links');
 ok(/not legal or insurance advice/.test(await p.locator('#fine').innerText()) && /not staffed/.test(await p.locator('#fine').innerText()), 'honesty is one plain line under the box');
 fams = await p.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')))]; });
 ok(!fams.includes('EB Garamond') && !fams.includes('Outfit') && fams.includes('Instrument Sans'), 'UI type is Instrument Sans, old fonts gone: ' + fams.join(','));
@@ -190,20 +190,27 @@ ok(true, 'and explains it on yes');
 await p.context().close();
 p = await page();
 await tap(p, 'A call or visit is coming up');
-await p.waitForSelector('.thread .m-a .tx');
-ok(calls[calls.length - 1].userFull.includes('call or visit'), 'call or visit goes to the live chat for now');
+await p.waitForSelector('.choices:not(.done) .choice:has-text("phone call with my insurer")');
+ok(true, 'call or visit asks which one is coming up');
 await p.context().close();
 
 // 6. stress: offered once, gently, never repeated
 p = await page();
 await send(p, 'I am so overwhelmed and exhausted');
-await p.waitForSelector('.choices:not(.done) .choice:has-text("Take a breath")');
-ok(true, 'an overwhelmed message gets one gentle offer of a breath or phone lines');
+await p.waitForSelector('.m-a.care .care-go');
+ok(true, 'an overwhelmed message gets one gentle card: a minute to breathe or real phone lines');
+const careNums = await p.$$eval('.m-a.care a[href^="tel:"]', (a) => a.map((x) => x.textContent.trim()));
+ok(careNums.includes('988') && careNums.every((n) => SRC_TEXT.includes(n)), 'the card shows sourced lines, including 988: ' + careNums.join(', '));
+ok(!/!/.test(await p.locator('.m-a.care').innerText()), 'the card is calm: no exclamation marks');
 await send(p, 'I am so overwhelmed and exhausted');
 await p.waitForTimeout(400);
-ok(await p.locator('.choice:has-text("Take a breath")').count() === 1 && /BREATHE OFFERED: yes/.test(calls[calls.length - 1].sys), 'the offer is not repeated');
-await tap(p, 'Take a breath'); await p.waitForSelector('#page h1:has-text("Take a breath")');
-ok(true, 'the offer opens the breathing page');
+ok(await p.locator('.m-a.care').count() === 1 && /BREATHE OFFERED: yes/.test(calls[calls.length - 1].sys), 'the card is never repeated');
+await p.click('.m-a.care .care-go'); await p.waitForTimeout(300);
+ok(/Breathe in/.test(await p.locator('.m-a.care .care-word').innerText()), 'the minute of breathing runs right in the card');
+await p.reload(); await p.waitForSelector('.thread');
+await p.click('#newChat'); await send(p, 'This is too much for me, I am falling apart');
+await p.waitForSelector('.thread .m-a .tx >> nth=0'); await p.waitForTimeout(500);
+ok(await p.locator('.m-a.care').count() === 0, 'and not offered again in a new chat on the same device');
 await p.context().close();
 
 // 7. sidebar pages: steps, breath, phone lines; every phone number on screen is in sources.json
@@ -328,7 +335,8 @@ await p.context().close();
   const req = new Request('http://x/api/chat', { method: 'POST', body: JSON.stringify({ mode: 'chat', stream: true, lang: 'en', messages: [{ role: 'user', content: 'Can FEMA help me with smoke damage?' }] }) });
   const resp = await core.handle(req, { ANTHROPIC_API_KEY: 'k' }, S); const txt = await resp.text(); globalThis.fetch = realFetch;
   ok(sent.stream === true && Array.isArray(sent.system) && sent.system[0].cache_control && sent.system[0].cache_control.type === 'ephemeral' && !sent.system[1].cache_control, 'paid path marks the fixed prefix for caching');
-  ok(Object.keys(S).every((k) => sent.system[0].text.includes('[' + k + '] ')), 'paid path sends all notes so the prefix is identical every time');
+  ok(Object.keys(S).filter((k) => !S[k].pending).every((k) => sent.system[0].text.includes('[' + k + '] ')), 'paid path sends all live notes so the prefix is identical every time');
+  ok(Object.keys(S).filter((k) => S[k].pending).every((k) => !sent.system[0].text.includes('[' + k + '] ') && !sent.system[0].text.includes(S[k].title)), 'a pending source (TAC, until approved) is never sent to the model');
   const evs = txt.split('\n\n').filter(Boolean).map((l) => JSON.parse(l.replace(/^data: /, '')));
   const fin = evs[evs.length - 1];
   ok(fin.done && fin.text === 'Smoke claims must be investigated [3].' && fin.action && fin.action.arg === 'sm' && evs.every((e) => !/ACTION/.test(e.t || '')), 'paid path stream: text assembled, action parsed, ACTION never in a text event');
@@ -368,6 +376,178 @@ await p.context().close();
   ok(p.errs.length === 0, 'no page errors while streaming: ' + p.errs.join('|'));
   await p.context().close();
   delete process.env.MOCK_DELAY;
+}
+
+// 16. the call sheet, all by tapping: which one, what about, own or rent, one ask, notes, the sheet
+{
+  p = await page();
+  const n0 = calls.length;
+  await tap(p, 'A call or visit is coming up'); await tap(p, 'phone call with my insurer'); await tap(p, 'Their offer'); await tap(p, 'I own it');
+  await p.locator('.choices:not(.done) .choice').first().click();
+  await p.waitForSelector('#composerIn[placeholder*="own words"]');
+  await send(p, 'They offered $42,300 on Nov 3. My contractor estimate is $96,000.');
+  await p.waitForSelector('#sheetDoc .ss');
+  const sheetTxt = await p.locator('#sheetDoc').innerText();
+  ok(/Call sheet about their offer/.test(sheetTxt), 'call sheet: titled for the situation');
+  ok(['What to say first', 'What to ask for', 'While you talk', 'After the call', 'Call log'].every((h) => sheetTxt.includes(h)), 'call sheet: what to say, what to ask for, and a log');
+  ok(/\$42,300/.test(sheetTxt) && /from your notes/.test(sheetTxt), 'call sheet: the person’s own details appear, marked as from their notes');
+  ok(/settle on the call/.test(sheetTxt), 'call sheet: offer calls get the do-not-agree-on-the-call line');
+  ok(!/asthma|stucco/.test(sheetTxt), 'call sheet: visit-only lines stay off');
+  ok(await p.locator('#sheetDoc sup').count() > 4 && await p.locator('#sheetDoc .srcs a').count() >= 3, 'call sheet: sourced lines carry source numbers, listed with links');
+  const srcHrefs = await p.$$eval('#sheetDoc .srcs a', (a) => a.map((x) => x.href));
+  ok(srcHrefs.every((h) => Object.values(SOURCES).some((x) => x.url === h)), 'call sheet: every source link is in sources.json');
+  ok(/general guidance/.test(sheetTxt), 'call sheet: unsourced lines are marked general guidance');
+  ok(calls.slice(n0).some((c) => c.sys.startsWith('You help a California wildfire survivor get ready for a phone call')), 'call sheet: the sheet prompt runs on the server');
+  ok(await p.locator('.paperwrap').isVisible() && (await p.locator('#paperKind').innerText()) === 'Your call sheet', 'call sheet: on the paper, named');
+  // the log, then Record, then the follow-up email
+  await p.fill('#lg-date', '2026-11-20'); await p.fill('#lg-who', 'Dana Ortiz, adjuster'); await p.fill('#lg-said', 'She will send the line-by-line estimate.'); await p.fill('#lg-next', 'Estimate by Dec 1');
+  await p.click('[data-sheet="record"]'); await p.waitForTimeout(300);
+  await p.reload(); await p.waitForSelector('#sheetDoc .ss');
+  ok((await p.inputValue('#lg-who')) === 'Dana Ortiz, adjuster', 'call log: what they type is kept on the device');
+  await p.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await p.click('#copyBtn'); await p.waitForTimeout(200);
+  const clip = await p.evaluate(() => navigator.clipboard.readText());
+  ok(/WHAT TO SAY FIRST/.test(clip) && /Who you spoke with, and their job title: Dana Ortiz/.test(clip), 'call sheet: Copy gives the whole sheet and the log as text');
+  const fuN = calls.length;
+  await p.click('[data-sheet="followup"]');
+  await p.waitForSelector('#letter p.subj', { state: 'attached' });
+  const fu = calls.slice(fuN).find((c) => c.sysHead.startsWith('Write a short letter'));
+  ok(fu && /Dana Ortiz/.test(fu.userFull) && /line-by-line estimate/.test(fu.userFull) && /confirm in writing that this summary/i.test(fu.userFull), 'follow-up email: written from the log, asking them to confirm it');
+  await p.goto(base + '/app/#/record'); await p.waitForSelector('#page h1:has-text("Record")');
+  const rec = await p.locator('.record').innerText();
+  ok(/Nov 20, 2026/.test(rec) && /Call/.test(rec) && /Dana Ortiz/.test(rec), 'Record: the saved call is listed with date, who and summary');
+  ok(p.errs.length === 0, 'no page errors on the call sheet ' + p.errs.join('|'));
+  await p.context().close();
+}
+
+// 17. the visit sheet: standing or destroyed changes the checklist
+{
+  p = await page();
+  await tap(p, 'A call or visit is coming up'); await tap(p, 'adjuster is visiting'); await tap(p, 'standing'); await tap(p, 'I rent it');
+  await p.waitForSelector('#composerIn[placeholder*="own words"]');
+  await send(p, 'Soot on the kitchen ceiling. Smell in the bedroom closets.');
+  await p.waitForSelector('#sheetDoc .ss');
+  let v = await p.locator('#sheetDoc').innerText();
+  ok(['What to have ready', 'What to say when they arrive', 'What to show them and ask', 'What to photograph', 'Visit log'].every((h) => v.includes(h)), 'visit sheet: what to have ready, what to ask, what to photograph, a log');
+  ok(/Soot on the kitchen ceiling/.test(v), 'visit sheet: their own damage is on it');
+  ok(/test for smoke and ash/.test(v) && /asthma/.test(v) && /stucco/.test(v), 'visit sheet: a standing home gets the smoke, health and inspection lines');
+  ok(/landlord/.test(v), 'visit sheet: renters get the renter line');
+  await p.click('#newChat');
+  await tap(p, 'A call or visit is coming up'); await tap(p, 'adjuster is visiting'); await tap(p, 'destroyed'); await tap(p, 'I own it'); await tap(p, 'Skip');
+  await p.waitForSelector('#sheetDoc .ss');
+  v = await p.locator('#sheetDoc').innerText();
+  ok(!/asthma/.test(v) && /debris removal/.test(v) && !/landlord/.test(v), 'visit sheet: a destroyed home gets the debris and old-photos lines instead');
+  ok(!/from your notes/.test(v), 'visit sheet: skipping notes adds nothing invented');
+  await p.context().close();
+}
+
+// 18. Record: add by hand, copy as a summary, remove; letters land there when copied
+{
+  p = await page();
+  await toLetter(p);
+  await p.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await p.click('#copyBtn'); await p.waitForTimeout(200);
+  await p.click('.side-links a[data-page="record"]'); await p.waitForSelector('.record');
+  ok((await p.locator('.record li').count()) === 1 && /Letter/.test(await p.locator('.record').innerText()), 'Record: a copied letter is listed');
+  await p.click('#recAdd'); await p.selectOption('#rfKind', 'visit'); await p.fill('#rfWho', 'Sam Lee, field adjuster'); await p.fill('#rfSum', 'Looked at the roof and the garage.'); await p.click('#recForm button[type="submit"]');
+  ok((await p.locator('.record li').count()) === 2, 'Record: a visit can be added by hand');
+  await p.click('#recCopy'); await p.waitForTimeout(200);
+  const sum = await p.evaluate(() => navigator.clipboard.readText());
+  ok(/My claim record/.test(sum) && /Visit, Sam Lee, field adjuster\. Looked at the roof/.test(sum), 'Record: copies as a plain summary');
+  await p.locator('[data-del]').first().click();
+  ok((await p.locator('.record li').count()) === 1, 'Record: an entry can be removed');
+  ok(/stays on this device only/.test(await p.locator('#page .lead').innerText()), 'Record: says it stays on this device');
+  await p.context().close();
+}
+
+// 19. handoffs and lines: United Policyholders shown, TAC hidden until approved, 988 sourced
+{
+  p = await page({}, '/app/#/phones'); await p.waitForSelector('#page h1');
+  const t = await p.locator('#page').innerText();
+  ok(/United Policyholders/.test(t) && await p.locator('#page a[href="https://uphelp.org/ask-an-expert/"]').count() === 1, 'phone lines page: United Policyholders is a handoff, linked');
+  ok(!/After Collective/.test(t), 'phone lines page: The After Collective stays hidden until it approves');
+  ok(SOURCES['24'] && SOURCES['24'].pending && /After Collective/.test(SOURCES['24'].title), 'TAC is in sources.json, flagged pending');
+  ok(await p.locator('#page a[href="tel:988"]').count() === 1, 'phone lines page: 988 is listed, from a source');
+  await p.context().close();
+}
+
+// 20. deep links from the landing page start each exchange
+{
+  for (const [h, want] of [['letter', 'What did they do?'], ['msg', 'Paste what they sent'], ['call', 'What is the call about?'], ['visit', 'Is the home still standing?']]) {
+    p = await page({}, '/app/#/start/' + h);
+    await p.waitForSelector('.thread .m-a');
+    ok((await lastA(p).innerText()).includes(want), 'landing link #/start/' + h + ' opens that exchange');
+    await p.context().close();
+  }
+}
+
+// 21. AI paused while making a sheet: honest pause, and the checklist without the assistant
+{
+  p = await page();
+  await tap(p, 'A call or visit is coming up'); await tap(p, 'phone call with my insurer'); await tap(p, 'I need an update'); await tap(p, 'I own it');
+  await p.locator('.choices:not(.done) .choice').first().click(); await p.waitForSelector('#composerIn[placeholder*="own words"]');
+  process.env.MOCK = 'off';
+  await tap(p, 'Skip'); await p.waitForSelector('.m-a.pause');
+  process.env.MOCK = 'ok';
+  await tap(p, 'without the assistant'); await p.waitForSelector('#sheetDoc .ss');
+  ok(/not written by the assistant/.test(await p.locator('.thread').innerText()) && /\[your name\]/.test(await p.locator('#sheetDoc').innerText()), 'paused: the checklist still comes, labelled, with a plain template');
+  await p.context().close();
+}
+
+// 22. phone: the sheet is a pinned card that opens full screen; the log fits
+{
+  p = await page(PHONE);
+  await tap(p, 'A call or visit is coming up'); await tap(p, 'phone call with my insurer'); await tap(p, 'They said no'); await tap(p, 'I own it');
+  await p.locator('.choices:not(.done) .choice').first().click(); await tap(p, 'Skip');
+  await p.waitForSelector('.paperwrap.open #sheetDoc .ss');
+  ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'phone: the sheet has no sideways scroll');
+  await p.click('#paperClose');
+  ok((await p.locator('#pinKind').innerText()) === 'Your call sheet', 'phone: the pinned card names the call sheet');
+  const small = await p.evaluate(() => Math.min(...[...document.querySelectorAll('body *')].filter((e) => e.offsetParent && [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((e) => parseFloat(getComputedStyle(e).fontSize))));
+  ok(small >= 15, 'phone: nothing under 15px with a sheet (' + small + ')');
+  await p.context().close();
+}
+
+// 23. landing: the Desk plays a scripted exchange in real HTML; reduced motion shows the finished state; the band
+{
+  p = await page({ reducedMotion: 'reduce' }, '/');
+  await p.waitForTimeout(200);
+  ok(await p.locator('#dk .dk-sheet p.subj').count() === 1 && /\$42,300/.test(await p.locator('#dk').innerText()), 'landing demo: reduced motion shows the finished letter at once');
+  ok(await p.locator('.band a[href="tel:18009274357"]').count() === 1 && await p.locator('.band a[href="tel:988"]').count() === 1, 'landing band: real public lines');
+  ok(/not staffed|not a person/.test(await p.locator('.band').innerText()) && /not legal or insurance advice/.test(await p.locator('.band').innerText()), 'landing band: the honesty line, plain, in the band');
+  ok(await p.locator('.btn:not(.ghost)').count() === 1, 'landing: one solid button');
+  const ltxt = await p.evaluate(() => document.body.innerText);
+  ok(!/[–—!]/.test(ltxt) && !/\b(seamless|empower|effortless|peace of mind|unlock|get more money)\b/i.test(ltxt), 'landing: no dashes, exclamation marks, banned words or money promises');
+  const lcss = fs.readFileSync(new URL('../public/landing.css', import.meta.url), 'utf8');
+  ok(!/gradient\(|backdrop-filter|blur\(/.test(lcss), 'landing: no gradients or blur');
+  ok(await p.locator('.art svg').count() === 1 && await p.locator('img').count() === 0, 'landing: one line illustration, no photos');
+  const tels = await p.$$eval('a[href^="tel:"]', (a) => a.map((x) => x.textContent.trim()));
+  ok(tels.every((n) => SRC_TEXT.includes(n)), 'landing: every number is in sources.json: ' + tels.join(', '));
+  await p.context().close();
+  p = await page({}, '/');
+  await p.locator('#demo').scrollIntoViewIfNeeded();
+  await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 30000 });
+  ok(true, 'landing demo: plays through to the letter');
+  await p.waitForFunction(() => !window.__demo.running(), null, { timeout: 10000 });
+  ok(p.errs.length === 0, 'landing: no page errors ' + p.errs.join('|'));
+  await p.setViewportSize({ width: 375, height: 760 });
+  ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing demo: no sideways scroll at 375px');
+  await p.context().close();
+}
+
+// 24. server: numbers the model invents never reach the paper, and sheets parse
+{
+  const core = await import('../lib/core.js');
+  ok(core.guardNumbers('You offered $42,300 but my estimate is $96,000. Reply within 15 days.', 'offered 42,300 estimate 96000', ['15']) === 'You offered $42,300 but my estimate is $96,000. Reply within 15 days.', 'number guard: keeps the person’s own numbers');
+  ok(/\[check this number\]/.test(core.guardNumbers('I waited 8 weeks and paid $3,200.', 'I waited a while', [])), 'number guard: an invented number becomes a blank to check');
+  ok(core.guardNumbers('seven weeks ago, about 7 weeks', 'it has been seven weeks', []).indexOf('[') === -1, 'number guard: "seven" in the notes allows a 7');
+  const ps = core.parseSheet('SAY: Hi, my name is [your name].\nI am calling about my claim.\nPOINT: The garage was left out.\n- POINT: none');
+  ok(ps.say === 'Hi, my name is [your name]. I am calling about my claim.' && ps.points.length === 1, 'sheet parser: SAY and POINT lines');
+  const n0 = calls.length;
+  const r = await fetch(base + '/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'sheet', kind: 'visit', home: 'lost', notes: '' }) });
+  const j = await r.json();
+  ok(r.ok && j.say && j.points.length === 0, 'sheet mode: empty notes give no points');
+  ok(/HOME: destroyed/.test(calls[n0].userFull), 'sheet mode: the home state reaches the prompt');
 }
 await browser.close(); server.close();
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);

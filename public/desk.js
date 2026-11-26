@@ -49,17 +49,47 @@
     kLetter: 'Your letter', kReply: 'Their message and your reply',
     copied: 'Copied. Paste it into an email.', copy: 'Copy',
     sourceOne: 'Source: ', sourceMany: 'Sources: ',
-    newChat: 'New chat', untitled: 'New chat'
+    newChat: 'New chat', untitled: 'New chat',
+    kindQ: 'I can make you a sheet to keep open while it happens. Which one is coming up?',
+    k_call: 'A phone call with my insurer', k_visit: 'The adjuster is visiting my home',
+    askCallSit: 'What is the call about?',
+    c_denied: 'They said no', c_low: 'Their offer', c_quiet: 'I need an update', c_other: 'Something else',
+    askHome: 'Is the home still standing?',
+    h_standing: 'It’s standing, with damage', h_lost: 'It was destroyed',
+    askCallAsk: 'What do you most want from this call? Pick one. The sheet lists a few more things to ask.',
+    askCallNotes: 'Anything you want to raise on the call? Dates, amounts and names help. I’ll put it on your sheet and leave blanks for anything missing.',
+    askVisitNotes: 'What do you want the adjuster to see? A few words about rooms, damage or worries. I’ll put it on your sheet.',
+    skipSheet: 'Skip, make the sheet',
+    writingCall: 'Making your call sheet…', writingVisit: 'Making your visit sheet…',
+    callDone: 'Your call sheet is ready. Keep it open during the call and fill in the log as you go. When you hang up, save it to your Record, and I can write the follow-up email from it.',
+    visitDone: 'Your visit sheet is ready. Keep it with you and fill in the log before the adjuster leaves. Afterward, save it to your Record, and I can write the follow-up email from it.',
+    sheetMobile: 'Tap the card above to open it.',
+    basicSheet: 'The assistant is paused, so this sheet has the checklist only. What to say first is a plain template, not written by the assistant.',
+    useBasicSheet: 'Use the checklist without the assistant',
+    kCall: 'Your call sheet', kVisit: 'Your visit sheet',
+    saveRecord: 'Save to Record', savedRecord: 'Saved to your Record.', updateRecord: 'Update in Record',
+    followup: 'Write the follow-up email', fuNeedLog: 'Fill in what they said first, then I can write the follow-up email.',
+    fuLead: 'Here is a follow-up email from your log. It asks them to confirm what was said.',
+    general: 'general guidance', sourcesH: 'Sources',
+    care: 'This is a lot to carry. If it would help, take one minute before the next step. Nothing here will be lost.',
+    careBreath: 'One minute to breathe', careLines: 'Or talk to someone. Next Step isn’t staffed, but these public lines are:',
+    keepGoing: 'Keep going', careDone: 'Done. Come back to it whenever you need to.'
   };
 
   /* Public lines. A number shows only if it appears in that source's notes. */
   var PHONES = [
     { src: '2', num: '1-800-927-4357', who: 'California Department of Insurance', what: 'Questions about your policy or a dispute with your insurer' },
     { src: '4', num: '1-800-621-3362', who: 'FEMA disaster assistance', what: 'Help with needs insurance does not cover' },
-    { src: '3', num: '1-800-321-2752', who: 'Contractors State License Board', what: 'Check a contractor’s license' }
+    { src: '3', num: '1-800-321-2752', who: 'Contractors State License Board', what: 'Check a contractor’s license' },
+    { src: '25', num: '988', who: '988 Suicide & Crisis Lifeline', what: 'Call or text any time, for stress or distress', care: true }
   ];
-  function phones() { return PHONES.filter(function (p) { return SOURCES[p.src] && SOURCES[p.src].notes.indexOf(p.num) !== -1; }); }
+  /* Insurance lines by default; the care card and the Phone lines page add the 988 line. */
+  function phones(withCare) { return PHONES.filter(function (p) { return (withCare || !p.care) && SOURCES[p.src] && SOURCES[p.src].notes.indexOf(p.num) !== -1; }); }
+  /* Places to turn that are not phone lines. A source marked pending (TAC, until it approves) is never shown. */
+  function handoffs() { return Object.keys(SOURCES).filter(function (k) { return SOURCES[k].handoff && !SOURCES[k].pending && SOURCES[k].url; }).map(function (k) { return SOURCES[k]; }); }
   function tel(n) { return 'tel:' + n.replace(/\D/g, ''); }
+  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function niceISO(iso) { var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], m[2] - 1, +m[3]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (iso || ''); }
 
   /* ---------- state ---------- */
   var store = load();
@@ -69,7 +99,7 @@
 
   function load() {
     try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.chats)) return s; } catch (e) {}
-    return { chats: [], cur: null };
+    return { chats: [], cur: null, record: [] };
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
@@ -115,8 +145,8 @@
     return '<p class="src">' + (ids.length > 1 ? T.sourceMany : T.sourceOne) + ids.map(function (d) { return '<a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].label) + '</a>'; }).join(', ') + '</p>';
   }
   function linkNums(h) { return h.replace(/\b1-\d{3}-\d{3}-\d{4}\b/g, function (n) { return '<a class="num" href="' + tel(n) + '">' + n + '</a>'; }); }
-  function linesHtml() {
-    return '<ul class="lines">' + phones().map(function (p) { return '<li><span class="who">' + esc(p.who) + '</span><a href="' + tel(p.num) + '">' + esc(p.num) + '</a></li>'; }).join('') + '</ul>';
+  function linesHtml(list) {
+    return '<ul class="lines">' + (list || phones()).map(function (p) { return '<li><span class="who">' + esc(p.who) + '</span><a href="' + tel(p.num) + '">' + esc(p.num) + '</a></li>'; }).join('') + '</ul>';
   }
 
   /* ---------- rendering the thread ---------- */
@@ -163,7 +193,9 @@
     if (m.x) { var c = splitCites(m.x); html += c.text.split(/\n{2,}/).map(function (p) { return '<p class="tx">' + linkNums(esc(p)) + '</p>'; }).join(''); html += srcLine(c.ids); }
     if (m.note) html += '<p class="note">' + esc(m.note) + '</p>';
     if (m.k === 'pause' || m.k === 'phones') html += linesHtml();
+    if (m.k === 'care') html += careHtml();
     a.innerHTML = html;
+    if (m.k === 'care') wireCare(a);
     if (m.ch) a.appendChild(renderChoices(m, i));
     return a;
   }
@@ -197,8 +229,8 @@
   function startWith(kind, label) {
     if (kind === 'push') { chat.flow = 'letter'; me(label); askSit(); }
     else if (kind === 'msg') { me(label); askPaste(); }
-    else if (kind === 'call') { me(label); talk(T.callMsg); }
-    title(kind === 'msg' ? 'Their message' : kind === 'call' ? 'Getting ready for a call' : '');
+    else if (kind === 'call') { me(label); askKind(); }
+    title(kind === 'msg' ? 'Their message' : '');
   }
   function title(t) { if (t && !chat.title) { chat.title = t; persist(); } }
 
@@ -206,6 +238,44 @@
     chat.step = 'sit';
     say({ r: 'a', x: T.askSit, ch: { key: 'sit', opts: [{ v: 'denied', l: T.s_denied }, { v: 'low', l: T.s_low }, { v: 'quiet', l: T.s_quiet }] } });
     setComposer();
+  }
+  function askKind() {
+    chat.step = 'kind';
+    say({ r: 'a', x: T.kindQ, ch: { key: 'kind', opts: [{ v: 'call', l: T.k_call }, { v: 'visit', l: T.k_visit }] } });
+    setComposer();
+  }
+  function askCallSit() {
+    chat.step = 'sit';
+    say({ r: 'a', x: T.askCallSit, ch: { key: 'sit', opts: [{ v: 'denied', l: T.c_denied }, { v: 'low', l: T.c_low }, { v: 'quiet', l: T.c_quiet }, { v: 'other', l: T.c_other }] } });
+    setComposer();
+  }
+  function askHome() {
+    chat.step = 'home';
+    say({ r: 'a', x: T.askHome, ch: { key: 'home', inline: true, opts: [{ v: 'standing', l: T.h_standing }, { v: 'lost', l: T.h_lost }] } });
+    setComposer();
+  }
+  function isSheetFlow() { return chat.flow === 'call' || chat.flow === 'visit'; }
+  /* The next question for whatever is still missing, in the order each exchange asks it. */
+  function nextStep() {
+    if (chat.flow === 'call') {
+      if (!chat.sit) return askCallSit();
+      if (!chat.role) return askRole();
+      if (!chat.ask) return askAsk(T.askCallAsk);
+      if (chat.notes == null) return askNotes();
+      return writeSheet();
+    }
+    if (chat.flow === 'visit') {
+      if (!chat.home) return askHome();
+      if (!chat.role) return askRole();
+      if (chat.notes == null) return askNotes();
+      return writeSheet();
+    }
+    if (chat.flow === 'reply') return chat.role ? writeLetter() : askRole();
+    if (!chat.sit) return askSit();
+    if (!chat.role) return askRole();
+    if (!chat.ask) return askAsk();
+    if (chat.notes == null) return askNotes();
+    return writeLetter();
   }
   function askRole() {
     chat.step = 'role';
@@ -220,7 +290,8 @@
   }
   function askNotes() {
     chat.step = 'notes';
-    say({ r: 'a', x: T.askNotes, ch: { key: 'notes', inline: true, opts: [{ v: 'skip', l: T.skipNotes }] } });
+    var sheet = isSheetFlow();
+    say({ r: 'a', x: chat.flow === 'call' ? T.askCallNotes : chat.flow === 'visit' ? T.askVisitNotes : T.askNotes, ch: { key: 'notes', inline: true, opts: [{ v: 'skip', l: sheet ? T.skipSheet : T.skipNotes }] } });
     setComposer();
     if (!isPhone()) $('composerIn').focus();
   }
@@ -238,14 +309,12 @@
   }
 
   function onChoice(key, v, label) {
-    if (key === 'sit') { chat.sit = v; me(label); title(L(C.SIT_LABEL[v])); return chat.role ? askAsk() : askRole(); }
-    if (key === 'role') { chat.role = v; me(label); return chat.sit ? (chat.flow === 'reply' ? writeLetter() : askAsk()) : askSit(); }
-    if (key === 'ask') {
-      chat.ask = v; me(label);
-      if (chat.flow === 'reply') return chat.role ? writeLetter() : askRole();
-      return chat.notes != null ? writeLetter() : askNotes();
-    }
-    if (key === 'notes') { chat.notes = ''; me(label); return writeLetter(); }
+    if (key === 'kind') { chat.flow = v; me(label); title(v === 'call' ? 'Getting ready for a call' : 'Getting ready for a visit'); return nextStep(); }
+    if (key === 'home') { chat.home = v; me(label); return nextStep(); }
+    if (key === 'sit') { chat.sit = v; me(label); if (!isSheetFlow()) title(L(C.SIT_LABEL[v])); return nextStep(); }
+    if (key === 'role') { chat.role = v; me(label); return nextStep(); }
+    if (key === 'ask') { chat.ask = v; me(label); return nextStep(); }
+    if (key === 'notes') { chat.notes = ''; me(label); return nextStep(); }
     if (key === 'more') {
       me(label);
       if (v === 'another') return anotherLetter();
@@ -268,10 +337,13 @@
       me(label);
       if (v === 'retry') return retry();
       if (v === 'basic') return basicLetter();
+      if (v === 'basicSheet') return basicSheet();
     }
     if (key === 'care') {
       me(label);
-      location.hash = v === 'breathe' ? '#/breathe' : '#/phones';
+      if (v === 'breathe') location.hash = '#/breathe';
+      else if (v === 'phones') location.hash = '#/phones';
+      setComposer();
     }
   }
 
@@ -288,7 +360,7 @@
   function setComposer() {
     var step = chat.step, form = $('composer');
     form.classList.toggle('tall', step === 'paste');
-    input.placeholder = step === 'paste' ? T.pasteHolder : step === 'notes' ? T.holderNotes : chat.letter ? T.holderFree : T.holder;
+    input.placeholder = step === 'paste' ? T.pasteHolder : step === 'notes' ? T.holderNotes : (chat.letter || chat.sheet) ? T.holderFree : T.holder;
     $('composerLbl').textContent = step === 'paste' ? T.pasteHolder : 'Message';
     autosize();
   }
@@ -316,9 +388,9 @@
     if (step === 'paste') { return explain(text); }
     if (step === 'notes') {
       if (lastA && lastA.ch) { lastA.ch.picked = '_typed'; var n2 = thread.querySelector('.choices:not(.done)'); if (n2) n2.classList.add('done'); }
-      chat.notes = text; me(text); return writeLetter();
+      chat.notes = text; me(text); return nextStep();
     }
-    if (!chat.letter && looksPasted(text)) {
+    if (!chat.letter && !chat.sheet && looksPasted(text)) {
       chat.pendingText = text;
       var id = 'p' + Date.now().toString(36); pasteMem[id] = text; chat.pendingPaste = id;
       me('', { paste: id });
@@ -345,16 +417,20 @@
     });
     return out.slice(-8);
   }
-  function askSentence() { var a = chat.ask && askById(chat.sit, chat.ask); return a ? a[1] : ''; }
+  function askOf(c) { if (c.ask === 'fu') return C.FOLLOWUP; return c.ask && askById(c.sit, c.ask); }
+  function askSentence() { var a = askOf(chat); return a ? a[1] : ''; }
 
   function setBusy(b) { busy = b; $('send').disabled = b || !input.value.trim(); document.body.classList.toggle('busy', b); }
 
+  /* Said plainly that it is too much: the care card comes once, whatever the model answers. */
+  function soundsOverwhelmed(t) { return /overwhelm|exhaust|can.?t (do|take|handle|cope with) (this|it|any ?more)|too much for me|falling apart|breaking down|so tired of|hopeless|can.?t cope|give up|losing it|panic/i.test(t); }
   function talk(text, alreadyShown) {
     if (!alreadyShown) me(text);
+    var care = soundsOverwhelmed(text) && !store.breathe;
     if (!chat.title) title(text.length > 42 ? text.slice(0, 40).replace(/\s+\S*$/, '') + '…' : text);
     var node = el('div', 'm-a'); node.innerHTML = '<p class="tx"><span class="typing" aria-hidden="true"></span></p>';
     thread.appendChild(node); scrollDown(); setBusy(true);
-    var body = { mode: 'chat', stream: true, lang: 'en', role: chat.role === 'unsure' ? '' : chat.role, messages: convo(), paper: !!chat.letter, ask: askSentence(), breatheOffered: !!store.breathe, stageLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '' };
+    var body = { mode: 'chat', stream: true, lang: 'en', role: chat.role === 'unsure' ? '' : chat.role, messages: convo(), paper: !!chat.letter, ask: askSentence(), breatheOffered: !!store.breathe || care, sheet: chat.sheet ? chat.sheet.kind : '', stageLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '' };
     stream(body, function (soFar) {
       var c = splitCites(soFar);
       node.innerHTML = c.text.split(/\n{2,}/).map(function (p) { return '<p class="tx">' + esc(p) + '</p>'; }).join('').replace(/<\/p>$/, '<span class="typing" aria-hidden="true"></span></p>');
@@ -362,9 +438,11 @@
     }).then(function (fin) {
       node.remove(); setBusy(false);
       say({ r: 'a', x: fin.text });
+      if (care) offerCare();
       act(fin.action, text);
     }, function (err) {
       node.remove(); setBusy(false);
+      if (care) offerCare();
       pause(err, function () { talk(text, true); });
     });
   }
@@ -372,7 +450,13 @@
   function act(a, userText) {
     if (!a) return;
     if (a.type === 'edit' && chat.letter) return revise(userText);
-    if (a.type === 'letter' && !chat.letter) {
+    if ((a.type === 'call' || a.type === 'visit') && !chat.letter && !chat.sheet) {
+      chat.flow = a.type;
+      if (chat.notes == null) chat.notes = userText;
+      title(a.type === 'call' ? 'Getting ready for a call' : 'Getting ready for a visit');
+      return nextStep();
+    }
+    if (a.type === 'letter' && !chat.letter && !chat.sheet) {
       chat.sit = a.arg === 'smoke' || a.arg === 'other' || C.ASKS[a.arg] ? a.arg : 'other';
       chat.flow = 'letter';
       if (chat.notes == null) chat.notes = userText;
@@ -382,10 +466,33 @@
     if (a.type === 'choices' && !chat.letter) return askSit();
     if (a.type === 'paste') return askPaste();
     if (a.type === 'phones') return say({ r: 'a', k: 'phones', x: T.phonesIntro });
-    if (a.type === 'breathe' && !store.breathe) {
-      store.breathe = true; save();
-      return say({ r: 'a', x: T.breathe, ch: { key: 'care', inline: true, opts: [{ v: 'breathe', l: T.breatheBtn }, { v: 'phones', l: T.phonesBtn }] } });
-    }
+    if (a.type === 'breathe') offerCare();
+  }
+  /* The gentle card: once per device, never again. */
+  function offerCare() {
+    if (store.breathe) return;
+    store.breathe = true; save();
+    say({ r: 'a', k: 'care', x: T.care, ch: { key: 'care', inline: true, opts: [{ v: 'keep', l: T.keepGoing }] } });
+  }
+  function careHtml() {
+    return '<div class="care-in"><button class="btn ghost sm care-go" type="button">' + esc(T.careBreath) + '</button>' +
+      '<div class="care-breath" hidden><div class="ring"></div><p class="care-word" aria-live="polite"></p></div>' +
+      '<p class="care-lbl">' + esc(T.careLines) + '</p>' + linesHtml(phones(true).filter(function (p) { return p.care || p.src === '2'; })) + '</div>';
+  }
+  function wireCare(node) {
+    var go = node.querySelector('.care-go'); if (!go) return;
+    go.addEventListener('click', function () {
+      var box = node.querySelector('.care-breath'), ring = box.querySelector('.ring'), word = box.querySelector('.care-word');
+      go.hidden = true; box.hidden = false;
+      var end = Date.now() + 60000, inhale = true;
+      (function cycle() {
+        if (!document.body.contains(node)) return;
+        if (Date.now() >= end) { ring.classList.remove('big'); word.textContent = T.careDone; go.hidden = false; go.textContent = 'Again'; return; }
+        ring.classList.toggle('big', inhale); ring.classList.toggle('out', !inhale);
+        word.textContent = inhale ? 'Breathe in' : 'Breathe out';
+        setTimeout(cycle, inhale ? 4000 : 6000); inhale = !inhale;
+      })();
+    });
   }
 
   /* Reads the server's event stream: {t} while writing, then {done,text,action} or {error}. */
@@ -424,7 +531,8 @@
   function pause(err, again) {
     lastFail = again;
     var opts = [{ v: 'retry', l: T.tryAgain }];
-    if ((chat.step === 'writing' || chat.flow) && chat.sit && chat.ask && !chat.letter) opts.push({ v: 'basic', l: T.basic });
+    if (isSheetFlow() && chat.step === 'writing' && !chat.sheet) opts.push({ v: 'basicSheet', l: T.useBasicSheet });
+    else if ((chat.step === 'writing' || chat.flow) && chat.sit && chat.ask && !chat.letter && !isSheetFlow()) opts.push({ v: 'basic', l: T.basic });
     say({ r: 'a', k: 'pause', x: err && err.code === 'quota' ? T.pauseQuota : T.pause, ch: { key: 'pause', inline: true, opts: opts } });
   }
   function retry() { if (lastFail) { var f = lastFail; lastFail = null; f(); } }
@@ -465,6 +573,176 @@
     placeLetter(out.join('\n'), true);
     chat.basic = true;
     finishLetter(true);
+  }
+
+  /* ---------- call and visit sheets ---------- */
+  function sheetBody() {
+    var a = askOf(chat);
+    return { mode: 'sheet', lang: 'en', kind: chat.flow, sit: chat.sit || 'other', sitLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '', home: chat.home || 'standing', role: chat.role === 'unsure' ? '' : chat.role, ask: a ? a[1] : '', notes: (chat.notes || '').trim(), name: '', claim: '' };
+  }
+  function writeSheet() {
+    chat.step = 'writing'; setComposer();
+    var s = status(chat.flow === 'call' ? T.writingCall : T.writingVisit); setBusy(true);
+    api(sheetBody()).then(function (j) {
+      s.remove(); setBusy(false);
+      placeSheet({ kind: chat.flow, say: j.say, points: j.points || [] });
+      finishSheet();
+    }, function (err) {
+      s.remove(); setBusy(false);
+      pause(err, writeSheet);
+      chat.step = 'free';
+    });
+  }
+  function basicSheet() {
+    var a = askOf(chat);
+    var say = chat.flow === 'call'
+      ? 'Hi, my name is [your name], and I am calling about claim [claim number].' + (a ? ' I would like to ask you to ' + L(a[2]).charAt(0).toLowerCase() + L(a[2]).slice(1) + '.' : '')
+      : 'Hi, I am [your name], and this is the home on claim [claim number]. I would like to show you all of the damage, and to get a written scope of work afterward.';
+    placeSheet({ kind: chat.flow, say: say, points: [], basic: true });
+    finishSheet(true);
+  }
+  function finishSheet(basic) {
+    chat.step = 'free';
+    say({ r: 'a', x: (basic ? T.basicSheet + '\n\n' : '') + (chat.flow === 'call' ? T.callDone : T.visitDone) + (isPhone() ? ' ' + T.sheetMobile : '') });
+    setComposer();
+    if (isPhone()) openPaper();
+  }
+  function placeSheet(sh) {
+    sh.log = sh.log || {};
+    chat.sheet = sh; persist();
+    renderPaper(false, true);
+  }
+  /* Which checklist lines apply: a line can be only for some situations, a standing or lost home, or renters. */
+  function applies(item) {
+    if (!item.only) return true;
+    return item.only.some(function (k) { return k === chat.sit || k === chat.home || (k === 'rent' && chat.role === 'rent'); });
+  }
+  function sheetHtml(fresh) {
+    var sh = chat.sheet, def = C.SHEETS[sh.kind], used = [], gen = false;
+    function ref(item) {
+      if (item.general) { gen = true; return ' <span class="gen">' + esc(T.general) + '</span>'; }
+      return '<sup>' + item.src.map(String).filter(function (d) { return SOURCES[d]; }).map(function (d) { if (used.indexOf(d) === -1) used.push(d); return used.indexOf(d) + 1; }).sort(function (x, y) { return x - y; }).join(', ') + '</sup>';
+    }
+    var a = askOf(chat);
+    var CALL_ABOUT = { denied: 'about their decision', low: 'about their offer', quiet: 'for an update on your claim', smoke: 'about smoke and ash', other: 'for your call with the insurer' };
+    var head = sh.kind === 'call' ? def.title + ' ' + (CALL_ABOUT[chat.sit] || CALL_ABOUT.other) : def.title + (chat.home === 'lost' ? ' for a home that was destroyed' : ' for a home that is still standing');
+    var out = ['<p class="subj">' + esc(head) + '</p><p class="meta">' + esc(def.meta) + '</p>'];
+    def.sections.forEach(function (sec) {
+      var h = '<section class="ss"><h3>' + esc(sec.h) + '</h3>';
+      if (sec.say) h += '<p class="say">' + paraText(sh.say) + '</p>';
+      var lis = [];
+      if (sec.ask && a) lis.push('<li class="main">' + esc(L(a[2])) + '</li>');
+      if ((sec.ask || (sh.kind === 'visit' && /show/i.test(sec.h))) && sh.points) sh.points.forEach(function (pt) { lis.push('<li class="mine">' + paraText(pt) + ' <span class="gen">from your notes</span></li>'); });
+      (sec.items || []).filter(applies).forEach(function (it) { lis.push('<li>' + esc(it.t) + ref(it) + '</li>'); });
+      if (lis.length) h += '<ul>' + lis.join('') + '</ul>';
+      if (sec.followup) h += '<p class="sheetbtns"><button class="btn ghost sm" type="button" data-sheet="followup">' + esc(T.followup) + '</button></p>';
+      out.push(h + '</section>');
+    });
+    out.push('<section class="ss log"><h3>' + (sh.kind === 'call' ? 'Call log' : 'Visit log') + '</h3><div class="fields">' + def.log.map(function (f) {
+      var v = esc(sh.log[f[0]] || (f[0] === 'date' ? '' : ''));
+      var input = f[2] === 'long' ? '<textarea rows="3" data-log="' + f[0] + '" id="lg-' + f[0] + '">' + v + '</textarea>' : '<input type="' + (f[2] || 'text') + '" data-log="' + f[0] + '" id="lg-' + f[0] + '" value="' + v + '">';
+      return '<label class="field' + (f[2] === 'long' ? ' wide' : '') + '" for="lg-' + f[0] + '"><span>' + esc(f[1]) + '</span>' + input + '</label>';
+    }).join('') + '</div><p class="sheetbtns"><button class="btn sm" type="button" data-sheet="record">' + esc(sh.recorded ? T.updateRecord : T.saveRecord) + '</button></p></section>');
+    if (used.length || gen) out.push('<section class="ss srcs"><h3>' + esc(T.sourcesH) + '</h3><ol>' + used.map(function (d) { return '<li><a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].title) + '</a></li>'; }).join('') + '</ol>' + (gen ? '<p class="gennote">Lines marked general guidance are common sense from us, not from a source. Your policy decides.</p>' : '') + '</section>');
+    return out.join('');
+  }
+  function paraText(t) { return esc(t).replace(/\[[^\]\n]{1,40}\]/g, function (m) { return '<span class="blank">' + m + '</span>'; }); }
+  function sheetText() {
+    var sh = chat.sheet, def = C.SHEETS[sh.kind], a = askOf(chat), lines = [];
+    var node = $('sheetDoc');
+    lines.push(node.querySelector('.subj').textContent, '');
+    def.sections.forEach(function (sec) {
+      lines.push(sec.h.toUpperCase());
+      if (sec.say) lines.push(sh.say);
+      if (sec.ask && a) lines.push('- ' + L(a[2]));
+      if ((sec.ask || (sh.kind === 'visit' && /show/i.test(sec.h))) && sh.points) sh.points.forEach(function (pt) { lines.push('- ' + pt); });
+      (sec.items || []).filter(applies).forEach(function (it) { lines.push('- ' + it.t); });
+      lines.push('');
+    });
+    lines.push((sh.kind === 'call' ? 'CALL LOG' : 'VISIT LOG'));
+    def.log.forEach(function (f) { lines.push(f[1] + ': ' + (f[0] === 'date' ? niceISO(sh.log.date) : (sh.log[f[0]] || ''))); });
+    return lines.join('\n');
+  }
+  function logSummary(sh) {
+    var l = sh.log || {}, bits = [];
+    var when = [l.date ? 'On ' + niceISO(l.date) : '', l.time ? 'at ' + l.time : ''].filter(Boolean).join(' ');
+    bits.push((when ? when + ', ' : '') + (sh.kind === 'call' ? 'I spoke by phone with ' : 'your adjuster visited my home: ') + (l.who || '[name]') + '.');
+    if (l.looked) bits.push('They looked at: ' + l.looked);
+    if (l.said) bits.push('They said: ' + l.said);
+    if (l.next) bits.push('They said the next step is: ' + l.next);
+    return bits.join('\n');
+  }
+  function sheetRecord() {
+    var sh = chat.sheet, l = sh.log || {};
+    recordPut({ chat: chat.id, kind: sh.kind, date: l.date || todayISO(), who: l.who || '', summary: [l.said, l.next ? 'Next: ' + l.next : ''].filter(Boolean).join(' ') || (sh.kind === 'call' ? 'Call with the insurer' : 'Adjuster visit') });
+    sh.recorded = true; persist();
+    var b = $('sheetDoc').querySelector('[data-sheet="record"]'); if (b) b.textContent = T.updateRecord;
+    toast(T.savedRecord);
+  }
+  function followUp() {
+    var sh = chat.sheet, l = sh.log || {};
+    if (!(l.said || l.next || l.looked)) { toast(T.fuNeedLog); var f = $('lg-said'); if (f) f.focus(); return; }
+    if (!sh.recorded) sheetRecord();
+    var seed = { role: chat.role, sit: chat.sit || 'other', ask: 'fu', notes: logSummary(sh), flow: 'letter', title: 'Follow-up email' };
+    openChat(newChat(seed));
+    say({ r: 'a', x: T.fuLead });
+    writeLetter();
+  }
+  var sheetDoc = $('sheetDoc');
+  sheetDoc.addEventListener('input', function (e) {
+    var k = e.target.dataset && e.target.dataset.log; if (!k || !chat.sheet) return;
+    chat.sheet.log[k] = e.target.value; clearTimeout(sheetDoc.t); sheetDoc.t = setTimeout(persist, 250);
+  });
+  sheetDoc.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-sheet]'); if (!b || !chat.sheet) return;
+    if (b.dataset.sheet === 'record') sheetRecord();
+    if (b.dataset.sheet === 'followup') followUp();
+  });
+
+  /* ---------- the Record: every letter, call and visit, on this device only ---------- */
+  function recordPut(e) {
+    store.record = store.record || [];
+    var i = -1;
+    store.record.forEach(function (r, j) { if (e.chat && r.chat === e.chat && r.kind === e.kind) i = j; });
+    e.id = i === -1 ? 'r' + Date.now().toString(36) : store.record[i].id;
+    if (i === -1) store.record.unshift(e); else store.record[i] = e;
+    save();
+  }
+  function letterRecord() {
+    if (!chat.letter) return;
+    var subj = (chat.letter.match(/^Subject:\s*(.+)$/m) || [])[1] || 'Letter to the insurer';
+    recordPut({ chat: chat.id, kind: 'letter', date: todayISO(), who: 'Your insurer', summary: subj.replace(/\s+-\s+Claim .*$/, '') });
+  }
+  var KIND_LABEL = { letter: 'Letter', call: 'Call', visit: 'Visit' };
+  function recordSorted() { return (store.record || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; }); }
+  function recordText() {
+    return ['My claim record', ''].concat(recordSorted().map(function (r) { return niceISO(r.date) + '. ' + KIND_LABEL[r.kind] + (r.who ? ', ' + r.who : '') + '. ' + r.summary; })).join('\n');
+  }
+  function pageRecord(adding) {
+    var list = recordSorted();
+    var rows = list.map(function (r) {
+      var c = store.chats.filter(function (x) { return x.id === r.chat; })[0];
+      return '<li><span class="r-date">' + esc(niceISO(r.date)) + '</span><div class="r-body"><p class="r-what">' + esc(KIND_LABEL[r.kind]) + (r.who ? '<span>' + esc(r.who) + '</span>' : '') + '</p><p class="r-sum">' + esc(r.summary) + '</p></div>' +
+        '<span class="r-act">' + (c ? '<a href="#/c/' + esc(c.id) + '">Open</a>' : '') + '<button type="button" class="linkbtn" data-del="' + esc(r.id) + '">Remove</button></span></li>';
+    }).join('');
+    showPage('record', '<h1>Record</h1><p class="lead">Every letter you send, call you make and visit you have, in one place. It stays on this device only.</p>' +
+      '<div class="row rec-btns">' + (list.length ? '<button class="btn" type="button" id="recCopy">Copy as a summary</button>' : '') + '<button class="btn ghost" type="button" id="recAdd"' + (adding ? ' hidden' : '') + '>Add a call or visit</button></div>' +
+      (adding ? '<form class="rec-form" id="recForm"><div class="fields">' +
+        '<label class="field"><span>What</span><select id="rfKind"><option value="call">A call</option><option value="visit">A visit</option><option value="letter">A letter I sent</option></select></label>' +
+        '<label class="field"><span>Date</span><input type="date" id="rfDate" value="' + todayISO() + '"></label>' +
+        '<label class="field wide"><span>Who</span><input type="text" id="rfWho" placeholder="Name and job title"></label>' +
+        '<label class="field wide"><span>What was said or sent</span><textarea id="rfSum" rows="3"></textarea></label></div>' +
+        '<div class="row"><button class="btn ghost" type="submit">Save</button><button class="btn ghost" type="button" id="rfCancel">Cancel</button></div></form>' : '') +
+      (list.length ? '<ul class="record">' + rows + '</ul>' : '<p class="empty">Nothing here yet. When you copy a letter or save a call or visit log, it shows up here.</p>'));
+    var pg = $('page');
+    var cp = $('recCopy'); if (cp) cp.addEventListener('click', function () { copyText(recordText(), function () { cp.textContent = 'Copied'; toast('Copied. Paste it wherever you keep your notes.'); setTimeout(function () { cp.textContent = 'Copy as a summary'; }, 2000); }); });
+    $('recAdd').addEventListener('click', function () { pageRecord(true); $('rfWho').focus(); });
+    var f = $('recForm');
+    if (f) {
+      f.addEventListener('submit', function (e) { e.preventDefault(); var sum = $('rfSum').value.trim(); if (!sum && !$('rfWho').value.trim()) { $('rfSum').focus(); return; } recordPut({ kind: $('rfKind').value, date: $('rfDate').value || todayISO(), who: $('rfWho').value.trim(), summary: sum }); pageRecord(false); });
+      $('rfCancel').addEventListener('click', function () { pageRecord(false); });
+    }
+    [].forEach.call(pg.querySelectorAll('[data-del]'), function (b) { b.addEventListener('click', function () { store.record = store.record.filter(function (r) { return r.id !== b.dataset.del; }); save(); pageRecord(false); }); });
   }
 
   /* ---------- their message ---------- */
@@ -509,13 +787,18 @@
     renderPaper(true);
     if (changedIdx && changedIdx.length) setTimeout(function () { [].forEach.call(letterEl.querySelectorAll('.changed'), function (p) { p.classList.remove('changed'); }); }, reduced ? 3000 : 1400);
   }
-  function renderPaper(keepLetter) {
-    var has = !!(chat.letter || chat.explain);
+  function renderPaper(keepLetter, freshSheet) {
+    var has = !!(chat.letter || chat.explain || chat.sheet);
+    var sd = $('sheetDoc');
+    if (chat.sheet) {
+      sd.hidden = false; sd.innerHTML = sheetHtml();
+      if (freshSheet && !reduced) [].forEach.call(sd.children, function (n, i) { n.classList.add('in'); n.style.animationDelay = (i * 90) + 'ms'; });
+    } else { sd.hidden = true; sd.innerHTML = ''; }
     $('desk').classList.toggle('has-paper', has);
     $('paperwrap').hidden = !has;
     $('pin').hidden = !has;
-    var kind = chat.flow === 'reply' ? T.kReply : T.kLetter;
-    $('paperKind').textContent = kind; $('pinKind').textContent = chat.flow === 'reply' ? (chat.letter ? 'Your reply' : 'Their message, explained') : T.kLetter;
+    var kind = chat.sheet ? (chat.sheet.kind === 'call' ? T.kCall : T.kVisit) : chat.flow === 'reply' ? T.kReply : T.kLetter;
+    $('paperKind').textContent = kind; $('pinKind').textContent = chat.sheet ? kind : chat.flow === 'reply' ? (chat.letter ? 'Your reply' : 'Their message, explained') : T.kLetter;
     var ex = $('explain');
     if (chat.explain) {
       var c = splitCites(chat.explain);
@@ -524,7 +807,8 @@
     } else { ex.hidden = true; ex.innerHTML = ''; }
     if (!keepLetter) letterEl.innerHTML = chat.letter ? paras(chat.letter).map(function (p, i) { return paraHtml(p, i, ''); }).join('') : '';
     letterEl.hidden = !chat.letter;
-    $('copyBtn').disabled = !chat.letter; $('printBtn').disabled = !chat.letter;
+    $('copyBtn').disabled = !(chat.letter || chat.sheet); $('printBtn').disabled = !(chat.letter || chat.sheet);
+    $('sheet').classList.toggle('is-sheet', !!chat.sheet);
   }
   // Typing on the paper: keep the saved letter in step with what is on the sheet.
   var editT;
@@ -552,14 +836,18 @@
     });
   }
 
-  $('copyBtn').addEventListener('click', function () {
-    var text = chat.letter = readSheet(); persist();
-    var done = function () { var b = $('copyBtn'); b.textContent = 'Copied'; toast(T.copied); setTimeout(function () { b.textContent = T.copy; }, 2000); };
+  function copyText(text, done) {
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
     else { fallbackCopy(text); done(); }
+  }
+  $('copyBtn').addEventListener('click', function () {
+    var text;
+    if (chat.sheet) text = sheetText();
+    else { text = chat.letter = readSheet(); letterRecord(); persist(); }
+    copyText(text, function () { var b = $('copyBtn'); b.textContent = 'Copied'; toast(chat.sheet ? 'Copied.' : T.copied); setTimeout(function () { b.textContent = T.copy; }, 2000); });
   });
   function fallbackCopy(t) { var ta = el('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); window.getSelection().removeAllRanges(); }
-  $('printBtn').addEventListener('click', function () { window.print(); });
+  $('printBtn').addEventListener('click', function () { if (chat.letter && !chat.sheet) { chat.letter = readSheet(); letterRecord(); persist(); } window.print(); });
   function openPaper() { if (!isPhone()) return; $('paperwrap').classList.add('open'); document.body.style.overflow = 'hidden'; $('paperClose').focus(); }
   function closePaper() { $('paperwrap').classList.remove('open'); document.body.style.overflow = ''; $('pin').focus(); }
   $('pin').addEventListener('click', openPaper);
@@ -573,8 +861,8 @@
     list.forEach(function (c) {
       var li = el('li'), a = el('a');
       a.href = '#/c/' + c.id;
-      a.innerHTML = esc(c.title || T.untitled) + '<small>' + esc(niceDate(c.at)) + (c.letter ? ', letter' : '') + '</small>';
-      if (chat && c.id === chat.id && !location.hash.match(/^#\/(steps|breathe|phones)/)) a.setAttribute('aria-current', 'true');
+      a.innerHTML = esc(c.title || T.untitled) + '<small>' + esc(niceDate(c.at)) + (c.sheet ? (c.sheet.kind === 'call' ? ', call sheet' : ', visit sheet') : c.letter ? ', letter' : '') + '</small>';
+      if (chat && c.id === chat.id && !location.hash.match(/^#\/(steps|breathe|phones|record)/)) a.setAttribute('aria-current', 'true');
       li.appendChild(a); ul.appendChild(li);
     });
   }
@@ -613,8 +901,10 @@
   }
   function pagePhones() {
     showPage('phones', '<h1>Phone lines</h1><p class="lead">Next Step is an AI guide and is not staffed, so no one here will call you back. These are public lines, open to anyone.</p>' +
-      '<ul class="lines">' + phones().map(function (p) { return '<li><span class="who"><b>' + esc(p.who) + '</b>' + esc(p.what) + '</span><a href="' + tel(p.num) + '">' + esc(p.num) + '</a></li>'; }).join('') + '</ul>' +
-      srcLine(phones().map(function (p) { return p.src; }).filter(function (v, i, a) { return a.indexOf(v) === i; })));
+      '<ul class="lines">' + phones(true).map(function (p) { return '<li><span class="who"><b>' + esc(p.who) + '</b>' + esc(p.what) + '</span><a href="' + tel(p.num) + '">' + esc(p.num) + '</a></li>'; }).join('') + '</ul>' +
+      srcLine(phones(true).map(function (p) { return p.src; }).filter(function (v, i, a) { return a.indexOf(v) === i; })) +
+      (handoffs().length ? '<h2 class="h-more">Other places to turn</h2><ul class="lines handoffs">' + handoffs().map(function (h) { return '<li><span class="who"><b>' + esc(h.title.replace(/^United Policyholders, /, 'United Policyholders: ')) + '</b>' + esc(h.notes) + '</span><a href="' + esc(h.url) + '" target="_blank" rel="noopener">Open</a></li>'; }).join('') + '</ul>' : '') +
+      '<p class="note">If someone is in danger right now, call 911.</p>');
   }
   var stageRole = 'own';
   function pageSteps() {
@@ -656,6 +946,15 @@
     if (h === '#/steps') return pageSteps();
     if (h === '#/breathe') return pageBreathe();
     if (h === '#/phones') return pagePhones();
+    if (h === '#/record') return pageRecord(false);
+    var st = h.match(/^#\/start\/(letter|msg|call|visit)$/);
+    if (st) {
+      history_replace('');
+      if (!chat || chat.msgs.length) openChat(newChat()); else { closePage(); renderAll(); }
+      if (st[1] === 'letter') return startWith('push', T.o_push);
+      if (st[1] === 'msg') return startWith('msg', T.o_msg);
+      chat.flow = st[1]; me(st[1] === 'call' ? T.k_call : T.k_visit); title(st[1] === 'call' ? 'Getting ready for a call' : 'Getting ready for a visit'); return nextStep();
+    }
     var m = h.match(/^#\/c\/([\w]+)/);
     if (m) {
       var c = store.chats.filter(function (x) { return x.id === m[1]; })[0];
@@ -670,7 +969,7 @@
     var cur = store.chats.filter(function (c) { return c.id === store.cur; })[0];
     chat = cur || newChat();
     // A chat left mid-way while writing: settle it so it never shows a stuck state.
-    if (chat.step === 'writing' || chat.step === 'reading') chat.step = chat.letter ? 'free' : (chat.flow === 'reply' ? 'paste' : 'notes');
+    if (chat.step === 'writing' || chat.step === 'reading') chat.step = (chat.letter || chat.sheet) ? 'free' : (chat.flow === 'reply' ? 'paste' : 'notes');
     renderAll(); renderHistory(); route();
     window.addEventListener('resize', function () { if (!isPhone()) closePaper(); });
   }

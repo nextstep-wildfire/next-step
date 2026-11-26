@@ -88,5 +88,68 @@
   "url": "https://www.insurance.ca.gov/01-consumers/105-type/95-guides/03-res/res-ins-guide.cfm",
   "title": "California Department of Insurance, residential insurance guide for homeowners and renters",
   "notes": "A renters policy covers your own belongings (personal property) and loss of use, plus liability and medical payments to others. Your landlord’s insurance does not cover your belongings. Loss of use on a renters policy is commonly about 20% of the personal property limit. When setting a belongings limit, include everyday items such as small appliances, kitchen items, linens, window coverings, clothing and shoes."
+ },
+ "16": {
+  "label": "CDI top ten tips",
+  "url": "https://www.insurance.ca.gov/01-consumers/140-catastrophes/TopTenTips_WildfireClaimants.cfm",
+  "title": "California Department of Insurance, Top Ten Tips for Wildfire Claimants",
+  "notes": "Ask your agent or insurer to explain how much coverage you have to rebuild or repair, for belongings and for living expenses, and how to claim those benefits. Keep a dedicated claim diary of every conversation with your insurer or adjuster about the claim and your policy limits. If an adjuster says something is excluded, limited or has conditions, ask them to point to the specific part of the policy. Get at least one estimate from a licensed contractor, because the insurer's estimate may have errors or miss local costs. Track every extra cost of living away from home. Do not rush decisions about contractors, lawyers or public adjusters. The department hotline is 1-800-927-4357."
+ },
+ "17": {
+  "label": "United Policyholders, Speak UP",
+  "url": "https://uphelp.org/claim-guidance-publications/speak-up-how-to-communicate-with-your-insurance-company/",
+  "title": "United Policyholders, Speak UP: how to communicate with your insurance company",
+  "notes": "Create a paper trail: put everything in writing. After a phone call or an in-person talk, confirm any promise or statement from the insurer's staff with a short follow-up email or letter. Keep a notebook or diary of every communication to track the claim. Assume anything you say or write may end up in the insurer's records, and stay polite even when frustrated. Be proactive: give proof of your losses and ask for what you are owed. On coverage questions, ask the insurer to point to the specific policy section. Start with the adjuster and go up to a supervisor if needed, and ask for a written reply within a set time. Keep letters brief, polite and to the point."
+ },
+ "18": {
+  "label": "United Policyholders, what to do next",
+  "url": "https://uphelp.org/if-you-lost-your-home-or-business-in-the-wildfires-heres-what-to-do-next/",
+  "title": "United Policyholders, if you lost your home or business in the wildfires, here's what to do next (January 8, 2025)",
+  "notes": "Take photos before any cleanup or debris removal. Start a recovery diary with detailed notes on whom you talked to and when, the numbers you called, and what was said. After every talk with an adjuster, send a follow-up email confirming what was discussed. If an adjuster makes a settlement offer on the spot, get a second opinion from an experienced construction professional and review your policy before accepting. Do not sign documents under pressure. Keep photos of receipts such as hotel bills. Adjusters are often reassigned during a claim."
+ },
+ "19": {
+  "label": "United Policyholders, general claim tips",
+  "url": "https://uphelp.org/claim-guidance-publications/general-claim-tips/",
+  "title": "United Policyholders, general claim tips",
+  "notes": "Get a copy of your full policy and declarations page and check the limits. Keep an insurance claim diary: detailed notes of every conversation, with the names, phone numbers and job titles of the insurer's staff and their supervisors. Set deadlines and confirm agreements in writing. Do not give a recorded or sworn statement until you understand your rights; if asked for a recorded statement, you can record it yourself too. Ask the adjuster for a written scope of work that says what repairs they believe are needed, and have your own contractor review it. You do not have to accept the insurer's contractor or estimate. Find out why before signing any release."
+ },
+ "20": {
+  "label": "United Policyholders, smoke and ash",
+  "url": "https://uphelp.org/claim-guidance-publications/smoke-and-ash-damage-from-a-wildfire/",
+  "title": "United Policyholders, smoke and ash damage from a wildfire",
+  "notes": "Smoke damage can be invisible, so proper inspection and testing matter. Take pictures of all visible damage. Take notes during inspections and conversations with adjusters. If you think the insurer has not inspected or tested properly, ask in writing and remind it of its duty to investigate all damage, including damage hidden in carpet or behind drywall. An adjuster not trained in air quality testing is only giving an opinion."
+ },
+ "21": {
+  "label": "United Policyholders, partial loss fires",
+  "url": "https://uphelp.org/claim-guidance-publications/insurance-claim-tips-for-partial-loss-fires/",
+  "title": "United Policyholders, insurance claim tips for partial loss fires",
+  "notes": "For a serious loss, the inspection by the insurer's adjuster alone is rarely enough; licensed contractors, structural engineers or a Certified Industrial Hygienist may be needed. A thorough inspection covers the roof, stucco and siding, windows, plumbing, heating and ducts, and interior walls and framing. If you or someone in the home has allergies or asthma, tell the adjuster right away."
+ },
+ "22": {
+  "label": "United Policyholders, 7 tips",
+  "url": "https://uphelp.org/insurance-claims-are-a-negotiation-here-are-7-tips-for-californians-who-lost-homes-in-fires/",
+  "title": "United Policyholders, insurance claims are a negotiation: 7 tips for Californians who lost homes in fires (January 10, 2025)",
+  "notes": "Treat the claim as a negotiation: ask questions and keep receipts. When it is safe to return, document as much as possible with photos and video of what is left; past photos of the home help you remember what you had. Get estimates from licensed contractors. Do not accept a first settlement without review or rush big financial decisions."
+ },
+ "23": {
+  "label": "United Policyholders, Ask an Expert",
+  "url": "https://uphelp.org/ask-an-expert/",
+  "title": "United Policyholders, Ask an Expert",
+  "handoff": true,
+  "notes": "United Policyholders is a nonprofit for insurance consumers. Its Ask an Expert page is a free public question board where staff and volunteer experts answer insurance claim questions. You need to sign up to post. It does not list a helpline phone number."
+ },
+ "24": {
+  "label": "The After Collective",
+  "url": "",
+  "title": "The After Collective, recovery coach",
+  "handoff": true,
+  "pending": "Not shown anywhere until The After Collective approves the link and the wording, and the url is filled in.",
+  "notes": "The After Collective offers a recovery coach for people rebuilding after a wildfire."
+ },
+ "25": {
+  "label": "SAMHSA, 988 Lifeline",
+  "url": "https://www.samhsa.gov/mental-health/988/faqs",
+  "title": "SAMHSA, 988 Suicide & Crisis Lifeline frequently asked questions",
+  "notes": "The 988 Suicide & Crisis Lifeline is free, confidential and open 24/7. You can call or text 988, or chat online. It is not only for suicidal thoughts: people reach out for emotional distress, stress, anxiety and other mental health concerns, or when they are worried about someone else. If someone is in immediate danger, call 911."
  }
 }

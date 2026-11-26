@@ -153,6 +153,69 @@
 .toast { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); background: var(--ink); color: var(--on-ink); padding: 10px 16px; border-radius: var(--r); font-size: 15px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 60; }
 .toast.on { opacity: 1; }
 
+
+/* ---------- call and visit sheets: the same paper, set as a checklist ---------- */
+.sheetdoc .subj { font-size: 23px; line-height: 1.25; font-weight: 500; letter-spacing: -0.012em; }
+.sheetdoc .meta { margin-top: 6px; color: var(--ink-2); font-size: 16px; }
+.sheetdoc .in { animation: inkin .42s ease both; }
+.ss { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.ss h3 { font-family: var(--sans); font-size: 15px; letter-spacing: 0; color: var(--ink-3); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; line-height: 1.3; }
+.ss h3::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.ss ul { list-style: none; margin: 0; padding: 0; }
+.ss li { position: relative; padding-left: 20px; }
+.ss li + li { margin-top: 8px; }
+.ss li::before { content: ""; position: absolute; left: 2px; top: .8em; width: 9px; height: 1px; background: var(--ink-2); }
+.ss li.main { font-weight: 600; }
+.ss li.mine { background: transparent; }
+.ss sup { font-family: var(--sans); font-size: 15px; line-height: 0; color: var(--ink-3); margin-left: 3px; vertical-align: .4em; font-variant-numeric: tabular-nums; }
+.ss .gen { font-family: var(--sans); font-size: 15px; color: var(--ink-3); white-space: nowrap; }
+.ss .say { font-style: italic; }
+.ss .blank, .sheetdoc .blank { background: var(--hl); border-radius: 2px; font-style: normal; }
+.sheetbtns { margin-top: 14px; font-family: var(--sans); }
+.ss.srcs ol { margin: 0; padding-left: 22px; font-family: var(--sans); font-size: 15px; color: var(--ink-2); }
+.ss.srcs ol li { padding-left: 2px; }
+.ss.srcs ol li::before { display: none; }
+.ss.srcs a { color: inherit; }
+.gennote { margin-top: 10px; font-family: var(--sans); font-size: 15px; color: var(--ink-2); }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; font-family: var(--sans); }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field span { font-size: 15px; color: var(--ink-2); }
+.field input, .field textarea, .field select { width: 100%; min-height: 44px; padding: 9px 11px; border: 1px solid var(--edge); border-radius: var(--r); background: var(--sheet); font-size: 16px; line-height: 1.4; }
+.field textarea { resize: vertical; min-height: 76px; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.sheet.is-sheet .letter { display: none; }
+
+/* ---------- the care card: once, quiet, never clinical ---------- */
+.m-a.care { max-width: 560px; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); padding: 18px 20px 16px; }
+.care-in { margin-top: 14px; }
+.care-breath { display: grid; justify-items: center; gap: 4px; padding: 8px 0 4px; }
+.care-breath .ring { width: 64px; height: 64px; margin: 30px 0; border: 1px solid var(--ink); border-radius: 50%; transform: scale(.7); transition: transform 4s cubic-bezier(.45, 0, .55, 1); }
+.care-breath .ring.out { transition-duration: 6s; }
+.care-breath .ring.big { transform: scale(1.5); }
+.care-word { font-size: 19px; letter-spacing: -0.01em; min-height: 1.4em; }
+.care-lbl { margin-top: 16px; font-size: 15px; color: var(--ink-2); }
+.m-a.care .lines { margin-top: 4px; }
+.m-a.care .choices { margin-top: 10px; }
+
+/* ---------- Record ---------- */
+.rec-btns { margin-top: 24px; }
+.record { list-style: none; margin: 32px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+.record li { display: grid; grid-template-columns: 120px 1fr auto; gap: 4px 20px; padding: 18px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+.r-date { font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.r-what { font-weight: 500; }
+.r-what span { font-weight: 400; color: var(--ink-2); margin-left: 8px; }
+.r-sum { margin-top: 2px; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.r-act { display: flex; gap: 4px; }
+.r-act a, .linkbtn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; font-size: 15px; color: var(--ink-2); background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.r-act a:hover, .linkbtn:hover { color: var(--ink); }
+.rec-form { margin-top: 24px; padding: 20px 0; border-top: 1px solid var(--rule); }
+.rec-form .row { margin-top: 16px; }
+.page .empty { margin-top: 28px; color: var(--ink-2); }
+.page .h-more { font-size: 24px; margin-top: 48px; }
+.page .handoffs a { font-size: 17px; font-weight: 400; text-decoration: underline; }
+.page .handoffs .who { max-width: 52ch; }
+
 /* ---------- phone ---------- */
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
@@ -185,6 +248,11 @@
   .page .lines a { font-size: 26px; }
   .choice { font-size: 18px; }
   .composer textarea { font-size: 18px; }
+  .fields { grid-template-columns: 1fr; }
+  .record li { grid-template-columns: 1fr auto; }
+  .record .r-date { grid-column: 1 / -1; }
+  .m-a.care { padding: 16px; }
+  .sheetdoc .subj { font-size: 21px; }
 }
 
 @media print {
@@ -193,5 +261,8 @@
   .paperwrap { display: block !important; position: static; background: #fff; }
   .paperscroll { padding: 0; overflow: visible; }
   .sheet { box-shadow: none; padding: 0; max-width: none; font-size: 12pt; color: #000; background: #fff; }
-  .letter p.changed, .letter .blank { background: none; }
+  .letter p.changed, .letter .blank, .sheetdoc .blank { background: none; }
+  .sheetbtns { display: none !important; }
+  .field input, .field textarea { border: 0; border-bottom: 1px solid #999; border-radius: 0; }
+  .ss { break-inside: avoid; }
 }

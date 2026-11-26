@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" fill="none" stroke="#1F1B17" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <title>A new house frame going up, a mailbox with its flag raised, a young staked tree, and a path to the door</title>
+  <!-- ground -->
+  <path d="M24 250H456"/>
+  <!-- wall frame: plates and corner posts -->
+  <path d="M212 250V160M388 250V160M210 160H390M210 156H390"/>
+  <!-- studs, leaving a door and a window opening -->
+  <path d="M234 250V160M256 250V160M278 250V160M366 250V160"/>
+  <!-- door: header and cripple stud above -->
+  <path d="M278 196H322M278 192H322M300 192V160M322 250V160"/>
+  <!-- window between studs 322 and 366: header, sill, cripples -->
+  <path d="M322 186H366M322 214H366M344 186V160M344 214V250"/>
+  <!-- roof truss -->
+  <path d="M200 158L300 98L400 158"/>
+  <path d="M300 98V156M300 156L250 127M300 156L350 127"/>
+  <!-- path to the door, widening toward us -->
+  <path d="M282 250C278 266 262 282 238 296M318 250C324 266 342 282 368 296"/>
+  <!-- mailbox on a post, flag up -->
+  <path d="M120 250V198M112 250H128"/>
+  <path d="M96 198V180C96 172 102 166 110 166H136C144 166 150 172 150 180V198Z"/>
+  <path d="M150 192V158"/>
+  <path d="M150 158H164V168H150"/>
+  <path d="M104 186H122"/>
+  <!-- a young tree, staked and tied -->
+  <path d="M430 250V200M442 250V204M430 214H442"/>
+  <path d="M430 206C420 202 414 192 416 182C424 186 430 194 430 206Z"/>
+  <path d="M430 196C440 190 446 180 444 168C436 174 430 184 430 196Z"/>
+  <path d="M430 186C426 176 426 166 432 158C436 166 434 178 430 186Z"/>
+</svg>

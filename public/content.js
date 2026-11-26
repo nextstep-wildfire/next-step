@@ -178,5 +178,83 @@
       [M('Public adjuster', 'Ajustador público', '公共理赔员'), M('A person you hire, for a fee, to help with your claim. Take your time, and check that the person is licensed and in good standing. [2]', 'Una persona que usted contrata, por una tarifa, para ayudarle con su reclamo. Tómese su tiempo y verifique que tenga licencia y esté en buenos términos. [2]', '您付费聘请来协助处理理赔的人。请不要着急，并核实对方持有执照且信誉良好。[2]')],
       [M('Policy limits', 'Límites de la póliza', '保单额度'), M('The most your policy pays for each type of loss, such as the dwelling, your belongings and living expenses. Ask your insurer in writing to confirm yours.', 'Lo máximo que paga su póliza por cada tipo de pérdida, como la vivienda, sus pertenencias y los gastos de vida. Pida por escrito a su aseguradora que confirme los suyos.', '保单对每类损失的最高赔付额，例如房屋、财物和生活费用。请以书面形式让保险公司确认您的额度。')]
     ];
-  window.NS_CONTENT = { M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS };
+
+  /* Call and visit sheets. Every line is fixed text with its source in public/sources.json, or marked general:
+     general guidance that no source we hold states (listed for review in docs/DESIGN.md). The assistant only
+     writes what to say first and the points taken from the person's own notes. */
+  function G(t, src, only) { var o = { t: t, src: src || [] }; if (!src) o.general = true; if (only) o.only = only; return o; }
+  var SHEETS = {
+    call: {
+      title: 'Call sheet',
+      meta: 'For a phone call with your insurer. Keep it open while you talk and fill in the log as you go.',
+      sections: [
+        { h: 'Before you call', items: [
+          G('Have your policy and its declarations page in front of you, so you can check any limit they mention.', [19]),
+          G('Have your claim number and something to write with.'),
+          G('Open a fresh page in your claim diary for this call.', [16])
+        ] },
+        { h: 'What to say first', say: true },
+        { h: 'What to ask for', ask: true, items: [
+          G('If they offer to settle on the call, you do not have to agree then. Ask for the offer in writing so you can review it with your policy.', [18], ['low']),
+          G('Ask how they will inspect and test for smoke and ash, and who will do it.', [20], ['smoke']),
+          G('Ask when you will hear back, and agree on a date.', [19], ['quiet']),
+          G('If they say something is excluded, limited or has conditions, ask them to point to the exact part of your policy.', [16]),
+          G('Ask for the name, job title and phone number of the person you speak with, and their supervisor’s name.', [19]),
+          G('Ask them to put any answer or promise in writing.', [17])
+        ] },
+        { h: 'While you talk', items: [
+          G('Write down the date, the time, who you spoke with and what was said. The log below is for that.', [18, 19]),
+          G('Stay calm and polite. Assume anything you say may go into their records.', [17]),
+          G('If they ask for a recorded statement, you can wait until you understand your rights. If you agree to one, you can record it yourself too.', [19])
+        ] },
+        { h: 'After the call', followup: true, items: [
+          G('Send a short email that confirms what was said and anything they promised. I can write it from your log.', [17, 18])
+        ] }
+      ],
+      log: [['date', 'Date', 'date'], ['time', 'Time', 'time'], ['who', 'Who you spoke with, and their job title'], ['phone', 'Their phone number', 'tel'], ['said', 'What they said', 'long'], ['next', 'What they will do, and by when', 'long']]
+    },
+    visit: {
+      title: 'Visit sheet',
+      meta: 'For the adjuster’s visit to your home. Keep it with you and fill in the log before they leave.',
+      sections: [
+        { h: 'What to have ready', items: [
+          G('Your policy and its declarations page.', [19]),
+          G('Your own contractor’s estimate, if you have one. The insurer’s estimate can have errors or miss local costs.', [16]),
+          G('Receipts for living costs since the fire, such as hotel bills.', [18]),
+          G('A list of the damage, room by room, so nothing is missed.'),
+          G('Bills for any emergency repairs you have already paid for.')
+        ] },
+        { h: 'What to say when they arrive', say: true },
+        { h: 'What to show them and ask', items: [
+          G('Show them all of the damage, including smoke, soot and ash that is hard to see.', [20], ['standing']),
+          G('Ask how they will inspect and test for smoke and ash, and who will do it.', [20], ['standing']),
+          G('If anyone in the home has asthma or allergies, tell the adjuster.', [21], ['standing']),
+          G('Ask for a written scope of work: the repairs they believe are needed.', [19]),
+          G('If they say something is excluded or limited, ask them to show you the part of the policy.', [16]),
+          G('If they offer to settle on the spot, you do not have to sign then. Ask for the offer in writing and review your policy first.', [18]),
+          G('Ask for their name, company and phone number.', [19]),
+          G('If you rent, your own policy covers your belongings and living costs. Your landlord’s insurance does not cover your belongings.', [15], ['rent'])
+        ] },
+        { h: 'What to photograph', items: [
+          G('All the damage you can see, before any cleanup.', [20, 18], ['standing']),
+          G('The roof, stucco and siding, windows, plumbing, heating and ducts, and interior walls.', [21], ['standing']),
+          G('What is left of the home and your belongings, in photos and video, before any debris removal.', [22, 18], ['lost']),
+          G('Old photos of the home help you remember what you had.', [22], ['lost']),
+          G('Keep damaged items until they have been photographed.', [7]),
+          G('Only go where it is safe.', [7])
+        ] },
+        { h: 'While they are there', items: [
+          G('Take notes during the visit. The log below is for that.', [20]),
+          G('For a serious loss, one look by their adjuster is rarely enough. You may need your own contractor or a specialist too.', [21])
+        ] },
+        { h: 'After the visit', followup: true, items: [
+          G('Send a short email that confirms what the adjuster said and what happens next. I can write it from your log.', [18])
+        ] }
+      ],
+      log: [['date', 'Date', 'date'], ['time', 'Time', 'time'], ['who', 'Adjuster’s name and company'], ['phone', 'Their phone number', 'tel'], ['looked', 'What they looked at', 'long'], ['said', 'What they said', 'long'], ['next', 'What happens next, and by when', 'long']]
+    }
+  };
+  /* The one ask of a follow-up email after a call or a visit. Sourced: confirm what was said in writing [17][18]. */
+  var FOLLOWUP = ['fu', 'Please confirm in writing that this summary of our conversation is correct, or tell me in writing what is different.', M('Confirm what was said', 'Confirmar lo que se dijo', '确认谈话内容')];
+  window.NS_CONTENT = { M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP };
 })();

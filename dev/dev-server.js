@@ -50,6 +50,12 @@ const mockAI = {
       const ask = (last.match(/ASK: (.*)/) || [])[1] || '';
       return { response: 'Subject: Request regarding my claim\n\nDear Claims Team,\n\nI am writing about my claim after the wildfire. My adjuster has not responded for several weeks and I need to move forward.\n\n' + ask + '\n\nPlease reply in writing within 15 calendar days of receiving this letter.\n\nThank you,\n[your name]' };
     }
+    if (sys.startsWith('You help a California wildfire survivor get ready')) {
+      const notes = (last.match(/<notes>([\s\S]*?)<\/notes>/) || [])[1] || '';
+      const call = /SHEET: phone call/.test(last);
+      const pts = notes.trim() ? notes.split(/[.;]\s*/).filter((x) => x.trim()).slice(0, 3).map((x) => 'POINT: ' + x.trim() + '.') : [];
+      return { response: (call ? 'SAY: Hi, my name is [your name], and I am calling about claim [claim number]. I would like you to explain in writing how you calculated the offer, line by line.' : 'SAY: Hi, I am [your name], and this is the home on claim [claim number]. I would like to show you all of the damage, and to get a written scope of work afterward.') + '\n' + pts.join('\n') };
+    }
     if (sys.startsWith('You explain a message')) return { response: 'They are offering $41,200 for the repairs to your home. They say this is based on their adjuster\'s estimate, and they ask you to sign and return the release form by December 15.\nPICK: low a1' };
     if (sys.startsWith('You edit a letter')) {
       const letter = (last.match(/<letter>([\s\S]*)<\/letter>/) || [])[1] || '';
