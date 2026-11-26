@@ -9,9 +9,11 @@
   var KEY = 'ns-desk-v1';
   var SOURCES = {};
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var LANG = window.nsLang && window.nsLang.current() === 'es' ? 'es' : 'en';
+  var LOCALE = LANG === 'es' ? 'es-US' : 'en-US';
 
-  /* ---------- words (English now; Spanish comes later through this table) ---------- */
-  var T = {
+  /* ---------- words: English, then Spanish (an unreviewed draft; strings for a native speaker are listed in docs/DESIGN.md) ---------- */
+  var T_EN = {
     open: 'What’s happening with your insurer?',
     openSub: 'Tap what fits, or tell me in your own words. I’ll help you write to them, one clear ask at a time.',
     o_push: 'They pushed back on my claim', o_msg: 'I got a message from them', o_call: 'A call or visit is coming up',
@@ -76,23 +78,137 @@
     general: 'general guidance', sourcesH: 'Sources',
     care: 'This is a lot to carry. If it would help, take one minute before the next step. Nothing here will be lost.',
     careBreath: 'One minute to breathe', careLines: 'Or talk to someone. Next Step isn’t staffed, but these public lines are:',
-    keepGoing: 'Keep going', careDone: 'Done. Come back to it whenever you need to.'
+    keepGoing: 'Keep going', careDone: 'Done. Come back to it whenever you need to.',
+    msgLbl: 'Message', titleMsg: 'Their message', titleCall: 'Getting ready for a call', titleVisit: 'Getting ready for a visit', titleFu: 'Follow-up email',
+    copiedShort: 'Copied', copiedSheet: 'Copied.', again: 'Again', breatheIn: 'Breathe in', breatheOut: 'Breathe out',
+    callAbout: { denied: 'about their decision', low: 'about their offer', quiet: 'for an update on your claim', smoke: 'about smoke and ash', other: 'for your call with the insurer' },
+    visitStanding: ' for a home that is still standing', visitLost: ' for a home that was destroyed',
+    callLog: 'Call log', visitLog: 'Visit log', fromNotes: 'from your notes', genNote: 'Lines marked general guidance are common sense from us, not from a source. Your policy decides.',
+    explainH: 'What their message says', pinReply: 'Your reply', pinExplained: 'Their message, explained', notSaved: '[Their message, not saved on this device]',
+    histCall: ', call sheet', histVisit: ', visit sheet', histLetter: ', letter',
+    recH: 'Record', recLead: 'Every letter you send, call you make and visit you have, in one place. It stays on this device only.', recCopy: 'Copy as a summary', recAdd: 'Add a call or visit',
+    rfWhat: 'What', rfCall: 'A call', rfVisit: 'A visit', rfLetter: 'A letter I sent', rfDate: 'Date', rfWho: 'Who', rfWhoHolder: 'Name and job title', rfSum: 'What was said or sent', save: 'Save', cancel: 'Cancel',
+    recEmpty: 'Nothing here yet. When you copy a letter or save a call or visit log, it shows up here.', recOpen: 'Open', recRemove: 'Remove', recCopied: 'Copied. Paste it wherever you keep your notes.', recTitle: 'My claim record',
+    kind: { letter: 'Letter', call: 'Call', visit: 'Visit' }, recInsurer: 'Your insurer', recLetter: 'Letter to the insurer', recCall: 'Call with the insurer', recVisit: 'Adjuster visit', recNext: 'Next: ',
+    back: 'Back to the chat', phH: 'Phone lines', phLead: 'Next Step is an AI guide and is not staffed, so no one here will call you back. These are public lines, open to anyone.', phMore: 'Other places to turn', ph911: 'If someone is in danger right now, call 911.', openLink: 'Open',
+    stH: 'Steps of a claim', stLead: 'The usual order of a wildfire claim in California. Yours may differ. Your policy decides.', own: 'I own', rent: 'I rent', stGeneral: 'General guidance, not checked against an official source.', home: 'Home',
+    brH: 'Take a breath', brLead: 'One minute. Breathe in while the circle grows, and out while it settles. You can stop any time.', start: 'Start', seconds: ' seconds', brDone: 'Done. Come back whenever you need to.',
+    pdf: 'Download PDF', pdfDone: 'Saved as a PDF in your downloads.', pdfFooter: 'Next Step. General information from public sources, not legal or insurance advice.', pdfPage: 'Page',
+    fileLetter: 'letter', fileReply: 'reply', fileCall: 'call-sheet', fileVisit: 'visit-sheet',
+    langOther: 'Español', themeDark: 'Dark mode', themeLight: 'Light mode', settingsLbl: 'Settings',
+    basicCtx: { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' },
+    inMyWords: 'In my own words: '
   };
+  var T_ES = {
+    open: '¿Qué está pasando con su aseguradora?',
+    openSub: 'Toque lo que corresponda o cuéntemelo con sus palabras. Le ayudo a escribirles, con un pedido claro a la vez.',
+    o_push: 'Me pusieron trabas con el reclamo', o_msg: 'Recibí un mensaje de ellos', o_call: 'Tengo una llamada o una visita pronto',
+    s_denied: 'Dijeron que no', s_low: 'Ofrecieron menos', s_quiet: 'Dejaron de responder', s_other: 'Otra cosa',
+    askSit: 'Es una situación difícil, y ponerlo por escrito es un buen siguiente paso. ¿Qué hicieron?',
+    askRole: '¿La vivienda es suya o la alquila?',
+    r_own: 'Es mía', r_rent: 'La alquilo', r_unsure: 'No lo sé',
+    askAsk: '¿Qué quiere pedirles? Un solo pedido por carta lo mantiene claro, y después puede escribir otra.',
+    askNotes: 'En pocas palabras, ¿qué pasó? Las fechas, cantidades y nombres ayudan. Puede escribir en español: la carta va en inglés y le muestro lo que dice. Dejo espacios en blanco para lo que falte.',
+    writeNow: 'Escribir mi carta', skipNotes: 'Saltar, dejar espacios en blanco',
+    writing: 'Escribiendo su carta…', writingReply: 'Escribiendo su respuesta…', reading: 'Leyendo su mensaje…', editing: 'Cambiando su carta…',
+    done: 'Su carta está lista. Va en inglés, que es lo que su aseguradora lee, y debajo está lo que dice en español. Rellene lo que está entre [corchetes] en la carta en inglés y luego cópiela en un correo para su ajustador.',
+    doneNoBlanks: 'Su carta está lista. Va en inglés, que es lo que su aseguradora lee, y debajo está lo que dice en español. Léala completa y luego cópiela en un correo para su ajustador.',
+    replyDoneNoBlanks: 'Su respuesta está lista, debajo de la explicación de su mensaje. Va en inglés, con lo que dice en español debajo. Léala completa antes de enviarla.',
+    doneEdit: 'Para cambiarla, escriba sobre la carta o dígamelo aquí.',
+    doneMobile: 'Toque la tarjeta de arriba para abrirla. Para cambiarla, escriba sobre ella o dígamelo aquí.',
+    next: 'Envíela por correo electrónico para que quede constancia. Los 15 días son su pedido, no un plazo legal. Si sigue sin avances, llame al Departamento de Seguros de California: ',
+    another: 'Escribir otra carta', anotherDiff: 'Pedir otra cosa',
+    changed: 'Listo. Las líneas cambiadas están resaltadas en su carta.',
+    lostFacts: 'No pude hacer ese cambio sin perder otros datos de su carta, así que la dejé como estaba. Puede escribir el cambio directamente en la carta.',
+    pasteAsk: 'Pegue abajo lo que le enviaron. Se lo explico en palabras sencillas y le sugiero qué pedir en su respuesta.',
+    pastePrivacy: 'Lo que pegue se envía a la IA para leerlo y no se guarda. No incluya nada que no quiera compartir, como números de cuenta.',
+    pasteHolder: 'Pegue aquí su mensaje',
+    explainedRight: 'Puse lo que dice su mensaje, en palabras sencillas, arriba en su hoja.',
+    suggest: 'Para su respuesta, yo les pediría:', suggested: 'sugerido', otherAsk: 'Elegir otro pedido',
+    replyDone: 'Su respuesta está lista, debajo de la explicación de su mensaje. Va en inglés, con lo que dice en español debajo. Rellene lo que está entre [corchetes] antes de enviarla.',
+    callMsg: 'Tengo una llamada o una visita con mi aseguradora. ¿Cómo me preparo?',
+    isPaste: 'Parece un mensaje de su aseguradora. ¿Quiere que se lo explique y le ayude a responder?',
+    yesExplain: 'Sí, explíquemelo', noJustChat: 'No, son mis palabras',
+    pause: 'El asistente está en pausa en este momento, así que no puedo responder esto. No se perdió nada de lo que escribió. Inténtelo de nuevo en unos 30 minutos. Si necesita a alguien hoy, estas son líneas telefónicas públicas:',
+    pauseQuota: 'El asistente llegó a su límite gratuito del día, así que no puedo responder esto. No se perdió nada de lo que escribió. Inténtelo de nuevo en unos 30 minutos, o mañana. Si necesita a alguien hoy, estas son líneas telefónicas públicas:',
+    tryAgain: 'Intentar de nuevo', basic: 'Usar una carta básica',
+    basicNote: 'Esta carta básica se armó con lo que usted eligió; no la escribió el asistente. Léala con cuidado y agregue sus datos.',
+    breathe: 'Si le ayuda, tómese un minuto para respirar antes del siguiente paso. O vea las líneas telefónicas públicas.',
+    breatheBtn: 'Respirar un momento', phonesBtn: 'Líneas telefónicas',
+    phonesIntro: 'Next Step no tiene personal, así que nadie de aquí le devolverá la llamada. Estas son líneas públicas:',
+    holder: 'Escriba lo que pasó o pegue su mensaje', holderNotes: 'Lo que pasó, con sus palabras', holderFree: 'Haga una pregunta o dígame qué cambiar',
+    kLetter: 'Su carta', kReply: 'Su mensaje y su respuesta',
+    copied: 'Copiada. Péguela en un correo.', copy: 'Copiar',
+    sourceOne: 'Fuente: ', sourceMany: 'Fuentes: ',
+    newChat: 'Nueva conversación', untitled: 'Nueva conversación',
+    kindQ: '¿Cuál de las dos?',
+    k_call: 'Una llamada con mi aseguradora', k_visit: 'El ajustador va a visitar mi vivienda',
+    askCallSit: 'Prepararse un poco facilita la llamada. Le hago una hoja para tener abierta mientras habla. ¿De qué trata la llamada?',
+    c_denied: 'Dijeron que no', c_low: 'Su oferta', c_quiet: 'Necesito saber cómo va', c_other: 'Otra cosa',
+    askHome: 'Ayuda estar listo antes de que lleguen. Le hago una hoja con qué tener listo, qué preguntar y qué fotografiar. ¿La vivienda sigue en pie?',
+    h_standing: 'Sigue en pie, con daños', h_lost: 'Se destruyó',
+    askCallAsk: '¿Qué es lo que más quiere lograr con esta llamada? Elija una cosa. La hoja incluye otras preguntas.',
+    askCallNotes: '¿Hay algo que quiera mencionar en la llamada? Las fechas, cantidades y nombres ayudan. Lo pongo en su hoja y dejo espacios en blanco para lo que falte.',
+    askVisitNotes: '¿Qué quiere que vea el ajustador? Unas palabras sobre habitaciones, daños o preocupaciones. Lo pongo en su hoja.',
+    skipSheet: 'Saltar, hacer la hoja',
+    writingCall: 'Preparando su hoja para la llamada…', writingVisit: 'Preparando su hoja para la visita…',
+    callDone: 'Su hoja para la llamada está lista. Téngala abierta durante la llamada y llene el registro sobre la marcha. Al colgar, guárdela en su Historial, y puedo escribir el correo de seguimiento a partir de ella.',
+    visitDone: 'Su hoja para la visita está lista. Llévela consigo y llene el registro antes de que se vaya el ajustador. Después, guárdela en su Historial, y puedo escribir el correo de seguimiento a partir de ella.',
+    sheetMobile: 'Toque la tarjeta de arriba para abrirla.',
+    basicSheet: 'El asistente está en pausa, así que esta hoja solo tiene la lista. Lo que decir primero es una plantilla sencilla, no la escribió el asistente.',
+    useBasicSheet: 'Usar la lista sin el asistente',
+    kCall: 'Su hoja para la llamada', kVisit: 'Su hoja para la visita',
+    saveRecord: 'Guardar en el Historial', savedRecord: 'Guardado en su Historial.', updateRecord: 'Actualizar en el Historial',
+    followup: 'Escribir el correo de seguimiento', fuNeedLog: 'Primero anote lo que dijeron; luego puedo escribir el correo de seguimiento.',
+    fuLead: 'Aquí tiene un correo de seguimiento a partir de su registro. Les pide confirmar lo que se dijo. Va en inglés, con lo que dice en español debajo.',
+    general: 'orientación general', sourcesH: 'Fuentes',
+    care: 'Esto es mucho para cargar. Si le ayuda, tómese un minuto antes del siguiente paso. Aquí no se perderá nada.',
+    careBreath: 'Un minuto para respirar', careLines: 'O hable con alguien. Next Step no tiene personal, pero estas líneas públicas sí:',
+    keepGoing: 'Seguir', careDone: 'Listo. Vuelva a esto cuando lo necesite.',
+    msgLbl: 'Mensaje', titleMsg: 'Su mensaje', titleCall: 'Preparación para una llamada', titleVisit: 'Preparación para una visita', titleFu: 'Correo de seguimiento',
+    copiedShort: 'Copiado', copiedSheet: 'Copiada.', again: 'Otra vez', breatheIn: 'Inhale', breatheOut: 'Exhale',
+    callAbout: { denied: 'sobre su decisión', low: 'sobre su oferta', quiet: 'para saber cómo va su reclamo', smoke: 'sobre el humo y la ceniza', other: 'para su llamada con la aseguradora' },
+    visitStanding: ', vivienda que sigue en pie', visitLost: ', vivienda destruida',
+    callLog: 'Registro de la llamada', visitLog: 'Registro de la visita', fromNotes: 'de sus notas', genNote: 'Las líneas marcadas como orientación general son sentido común nuestro, no de una fuente. Lo que cuenta es su póliza. Las fuentes están en inglés.',
+    explainH: 'Lo que dice su mensaje', pinReply: 'Su respuesta', pinExplained: 'Su mensaje, explicado', notSaved: '[Su mensaje, no guardado en este dispositivo]',
+    histCall: ', hoja para llamada', histVisit: ', hoja para visita', histLetter: ', carta',
+    recH: 'Historial', recLead: 'Cada carta que envía, llamada que hace y visita que recibe, en un solo lugar. Se queda solo en este dispositivo.', recCopy: 'Copiar como resumen', recAdd: 'Agregar una llamada o visita',
+    rfWhat: 'Qué', rfCall: 'Una llamada', rfVisit: 'Una visita', rfLetter: 'Una carta que envié', rfDate: 'Fecha', rfWho: 'Quién', rfWhoHolder: 'Nombre y cargo', rfSum: 'Qué se dijo o se envió', save: 'Guardar', cancel: 'Cancelar',
+    recEmpty: 'Todavía no hay nada aquí. Cuando copie una carta o guarde el registro de una llamada o visita, aparecerá aquí.', recOpen: 'Abrir', recRemove: 'Quitar', recCopied: 'Copiado. Péguelo donde guarde sus notas.', recTitle: 'Historial de mi reclamo',
+    kind: { letter: 'Carta', call: 'Llamada', visit: 'Visita' }, recInsurer: 'Su aseguradora', recLetter: 'Carta a la aseguradora', recCall: 'Llamada con la aseguradora', recVisit: 'Visita del ajustador', recNext: 'Lo que sigue: ',
+    back: 'Volver a la conversación', phH: 'Líneas telefónicas', phLead: 'Next Step es una guía de IA y no tiene personal, así que nadie de aquí le devolverá la llamada. Estas son líneas públicas, abiertas para cualquier persona.', phMore: 'Otros lugares donde pedir ayuda', ph911: 'Si alguien está en peligro ahora mismo, llame al 911.', openLink: 'Abrir',
+    stH: 'Pasos de un reclamo', stLead: 'El orden habitual de un reclamo por incendio en California. El suyo puede ser distinto. Lo que cuenta es su póliza.', own: 'Soy dueño', rent: 'Alquilo', stGeneral: 'Orientación general, no verificada con una fuente oficial.', home: 'Vivienda',
+    brH: 'Respire un momento', brLead: 'Un minuto. Inhale mientras el círculo crece y exhale mientras se reduce. Puede parar cuando quiera.', start: 'Empezar', seconds: ' segundos', brDone: 'Listo. Vuelva cuando lo necesite.',
+    pdf: 'Descargar PDF', pdfDone: 'Guardado como PDF en sus descargas.', pdfFooter: 'Next Step. Información general de fuentes públicas, no es asesoría legal ni de seguros.', pdfPage: 'Página',
+    fileLetter: 'carta', fileReply: 'respuesta', fileCall: 'hoja-llamada', fileVisit: 'hoja-visita',
+    langOther: 'English', themeDark: 'Modo oscuro', themeLight: 'Modo claro', settingsLbl: 'Ajustes',
+    basicCtx: { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' },
+    inMyWords: 'In my own words (written in Spanish): ',
+    esH: 'Lo que dice su carta, en español', esNote: 'Para que sepa lo que envía. La carta que se envía es la de arriba, en inglés.',
+    esUntranslated: 'Este párrafo no se pudo traducir con seguridad, así que se muestra en inglés. Pida a alguien de confianza que se lo lea.',
+    esStale: 'Cambió la carta. Esta copia es de antes del cambio.', esUpdate: 'Actualizar la copia en español', esFailed: 'La copia en español no está disponible en este momento. La carta en inglés está lista.', esWorking: 'Traduciendo…',
+    sayEs: 'En español: ', sayIntro: 'Dígalo en inglés, o en español si tiene intérprete.'
+  };
+  var T = LANG === 'es' ? T_ES : T_EN;
+  /* Spanish names for source labels and the handoff; the documents themselves are in English. */
+  var LABEL_ES = { 'CDI bulletin 2025-2': 'boletín 2025-2 del CDI', 'CDI wildfire page': 'página del CDI sobre incendios', 'CDI smoke damage order': 'orden del CDI sobre daños por humo', 'CDI complaints': 'quejas ante el CDI', 'CDI SB 495 release': 'comunicado del CDI sobre la ley SB 495', 'CDI claim rights': 'derechos en el reclamo (CDI)', 'CDI living expenses': 'gastos de vida (CDI)', 'United Policyholders wildfire page': 'página de United Policyholders sobre incendios', 'LA County tenant guide': 'guía para inquilinos del Condado de Los Ángeles', 'FEMA rental assistance': 'ayuda de FEMA para el alquiler', 'CDI renters guide': 'guía del CDI para inquilinos', 'CDI top ten tips': 'diez consejos del CDI' };
+  function srcLabel(d) { var l = SOURCES[d].label; return LANG === 'es' ? (LABEL_ES[l] || l) : l; }
+  var HANDOFF_ES = { '23': { title: 'United Policyholders: Ask an Expert', notes: 'United Policyholders es una organización sin fines de lucro para personas aseguradas. Su página Ask an Expert es un foro público y gratuito de preguntas, en inglés. No es una línea telefónica.' } };
 
   /* Public lines. A number shows only if it appears in that source's notes. */
   var PHONES = [
-    { src: '2', num: '1-800-927-4357', who: 'California Department of Insurance', what: 'Questions about your policy or a dispute with your insurer' },
-    { src: '4', num: '1-800-621-3362', who: 'FEMA disaster assistance', what: 'Help with needs insurance does not cover' },
-    { src: '3', num: '1-800-321-2752', who: 'Contractors State License Board', what: 'Check a contractor’s license' },
-    { src: '25', num: '988', who: '988 Suicide & Crisis Lifeline', what: 'Call or text any time, for stress or distress', care: true }
+    LANG === 'es' ? { src: '2', num: '1-800-927-4357', who: 'Departamento de Seguros de California', what: 'Preguntas sobre su póliza o un desacuerdo con su aseguradora' } : { src: '2', num: '1-800-927-4357', who: 'California Department of Insurance', what: 'Questions about your policy or a dispute with your insurer' },
+    LANG === 'es' ? { src: '4', num: '1-800-621-3362', who: 'Asistencia por desastre de FEMA', what: 'Ayuda con necesidades que el seguro no cubre' } : { src: '4', num: '1-800-621-3362', who: 'FEMA disaster assistance', what: 'Help with needs insurance does not cover' },
+    LANG === 'es' ? { src: '3', num: '1-800-321-2752', who: 'Junta Estatal de Licencias de Contratistas', what: 'Verificar la licencia de un contratista' } : { src: '3', num: '1-800-321-2752', who: 'Contractors State License Board', what: 'Check a contractor’s license' },
+    LANG === 'es' ? { src: '25', num: '988', who: '988 Línea de Prevención del Suicidio y Crisis', what: 'Llame o envíe un mensaje de texto a cualquier hora, por estrés o angustia', care: true } : { src: '25', num: '988', who: '988 Suicide & Crisis Lifeline', what: 'Call or text any time, for stress or distress', care: true }
   ];
   /* Insurance lines by default; the care card and the Phone lines page add the 988 line. */
   function phones(withCare) { return PHONES.filter(function (p) { return (withCare || !p.care) && SOURCES[p.src] && SOURCES[p.src].notes.indexOf(p.num) !== -1; }); }
   /* Places to turn that are not phone lines. A source marked pending (TAC, until it approves) is never shown. */
-  function handoffs() { return Object.keys(SOURCES).filter(function (k) { return SOURCES[k].handoff && !SOURCES[k].pending && SOURCES[k].url; }).map(function (k) { return SOURCES[k]; }); }
+  function handoffs() { return Object.keys(SOURCES).filter(function (k) { return SOURCES[k].handoff && !SOURCES[k].pending && SOURCES[k].url; }).map(function (k) { return Object.assign({ id: k }, SOURCES[k]); }); }
   function tel(n) { return 'tel:' + n.replace(/\D/g, ''); }
   function todayISO() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
-  function niceISO(iso) { var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], m[2] - 1, +m[3]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (iso || ''); }
+  function niceISO(iso) { var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], m[2] - 1, +m[3]).toLocaleDateString(LOCALE, { month: 'short', day: 'numeric', year: 'numeric' }) : (iso || ''); }
 
   /* ---------- state ---------- */
   var store = load();
@@ -123,13 +239,20 @@
   /* ---------- helpers ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
-  function L(m) { return m && (m.en || m); }
+  function L(m) { return m && (m[LANG] || m.en || m); }
+  function tr(x) { return LANG === 'es' ? (C.SHEET_ES[x] || x) : x; }
   function isPhone() { return window.matchMedia('(max-width: 900px)').matches; }
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('on'); }, 2400); }
-  function niceDate(ts) { return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+  function niceDate(ts) { return new Date(ts).toLocaleDateString(LOCALE, { month: 'short', day: 'numeric' }); }
   function asksFor(sit) { return (C.ASKS[sit] || C.ASKS.other); }
   function askById(sit, id) { return asksFor(sit).filter(function (a) { return a[0] === id; })[0]; }
-  var PICK_IF = {
+  var PICK_IF = LANG === 'es' ? {
+    denied: { a1: 'Elija esto si no sabe exactamente por qué dijeron que no.', a2: 'Elija esto si quiere ver en qué se basó su decisión.', a3: 'Elija esto si tiene fotos, recibos o presupuestos que muestran la pérdida.' },
+    low: { a1: 'Elija esto si no entiende cómo llegaron a su cifra.', a2: 'Elija esto si tiene el presupuesto de su propio contratista para enviar.', a3: 'Elija esto si no está seguro de lo que cubre su póliza.' },
+    quiet: { a1: 'Elija esto si solo necesita saber en qué va su reclamo.', a2: 'Elija esto si ya intentó comunicarse con su ajustador más de una vez.', a3: 'Elija esto si quiere saber cuánto debe tardar cada paso.' },
+    smoke: { a1: 'Elija esto si nadie le ha explicado cómo revisarán su vivienda.', a2: 'Elija esto si quiere que un profesional haga pruebas en su vivienda.' },
+    other: { a1: 'Elija esto si no sabe qué necesitan para avanzar.', a2: 'Elija esto si ya le dijeron lo que necesitan y usted lo está enviando.' }
+  } : {
     denied: { a1: 'Pick this if you don’t know exactly why they said no.', a2: 'Pick this if you want to see what their decision was based on.', a3: 'Pick this if you have photos, receipts or estimates that show the loss.' },
     low: { a1: 'Pick this if you can’t tell how they reached their number.', a2: 'Pick this if you have your own contractor’s estimate to send.', a3: 'Pick this if you’re not sure what your policy covers.' },
     quiet: { a1: 'Pick this if you just need to know where things stand.', a2: 'Pick this if you’ve already tried your adjuster more than once.', a3: 'Pick this if you want to know how long each step should take.' },
@@ -145,7 +268,7 @@
   }
   function srcLine(ids) {
     if (!ids || !ids.length) return '';
-    return '<p class="src">' + (ids.length > 1 ? T.sourceMany : T.sourceOne) + ids.map(function (d) { return '<a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].label) + '</a>'; }).join(', ') + '</p>';
+    return '<p class="src">' + (ids.length > 1 ? T.sourceMany : T.sourceOne) + ids.map(function (d) { return '<a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(srcLabel(d)) + '</a>'; }).join(', ') + '</p>';
   }
   function linkNums(h) { return h.replace(/\b1-\d{3}-\d{3}-\d{4}\b/g, function (n) { return '<a class="num" href="' + tel(n) + '">' + n + '</a>'; }); }
   function linesHtml(list) {
@@ -180,13 +303,16 @@
       ch.appendChild(b);
     });
     o.appendChild(ch);
+    var lg = el('p', 'lang-line');
+    lg.innerHTML = '<button type="button" class="linkbtn" lang="' + (LANG === 'es' ? 'en' : 'es') + '" data-lang="' + (LANG === 'es' ? 'en' : 'es') + '">' + esc(T.langOther) + '</button>';
+    o.appendChild(lg);
     thread.appendChild(o);
   }
 
   function renderMsg(m, i) {
     if (m.r === 'u') {
       var u = el('div', 'm-u' + (m.paste ? ' paste' : ''));
-      var shown = m.paste ? (pasteMem[m.paste] || '[Their message, not saved on this device]') : m.x;
+      var shown = m.paste ? (pasteMem[m.paste] || T.notSaved) : m.x;
       u.innerHTML = '<p>' + esc(shown) + '</p>';
       return u;
     }
@@ -233,7 +359,7 @@
     if (kind === 'push') { chat.flow = 'letter'; me(label); askSit(); }
     else if (kind === 'msg') { me(label); askPaste(); }
     else if (kind === 'call') { me(label); askKind(); }
-    title(kind === 'msg' ? 'Their message' : '');
+    title(kind === 'msg' ? T.titleMsg : '');
   }
   function title(t) { if (t && !chat.title) { chat.title = t; persist(); } }
 
@@ -312,7 +438,7 @@
   }
 
   function onChoice(key, v, label) {
-    if (key === 'kind') { chat.flow = v; me(label); title(v === 'call' ? 'Getting ready for a call' : 'Getting ready for a visit'); return nextStep(); }
+    if (key === 'kind') { chat.flow = v; me(label); title(v === 'call' ? T.titleCall : T.titleVisit); return nextStep(); }
     if (key === 'home') { chat.home = v; me(label); return nextStep(); }
     if (key === 'sit') { chat.sit = v; me(label); if (!isSheetFlow()) title(L(C.SIT_LABEL[v])); return nextStep(); }
     if (key === 'role') { chat.role = v; me(label); return nextStep(); }
@@ -365,7 +491,7 @@
     var step = chat.step, form = $('composer');
     form.classList.toggle('tall', step === 'paste');
     input.placeholder = step === 'paste' ? T.pasteHolder : step === 'notes' ? T.holderNotes : (chat.letter || chat.sheet) ? T.holderFree : T.holder;
-    $('composerLbl').textContent = step === 'paste' ? T.pasteHolder : 'Message';
+    $('composerLbl').textContent = step === 'paste' ? T.pasteHolder : T.msgLbl;
     autosize();
   }
   function autosize() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, window.innerHeight * 0.4) + 'px'; $('send').disabled = !input.value.trim() || busy; }
@@ -381,7 +507,7 @@
     onTyped(text);
   });
 
-  function looksPasted(t) { return t.length > 400 && /(dear|claim|policy|sincerely|regards|adjuster)/i.test(t) && (t.match(/[.!?]\s/g) || []).length >= 3; }
+  function looksPasted(t) { return t.length > 400 && /(dear|claim|policy|sincerely|regards|adjuster|estimad[oa]|reclamo|p[oó]liza|atentamente|ajustador|asegurad)/i.test(t) && (t.match(/[.!?]\s/g) || []).length >= 3; }
 
   function onTyped(text) {
     var step = chat.step;
@@ -406,7 +532,10 @@
   }
   // Clear requests to change the letter go straight to the rewrite, so they never depend on the chat model.
   function looksLikeEdit(t) {
-    return t.length < 400 && (/^(please |can you |could you )?(make|change|add|remove|take out|delete|fix|replace|shorten|mention|include|put|use|sign|say)\b/i.test(t) || /\bmy (claim|policy) number is\b|\bmy name is\b|\b(shorter|more formal|more polite|less formal)\b/i.test(t));
+    return t.length < 400 && (/^(please |can you |could you )?(make|change|add|remove|take out|delete|fix|replace|shorten|mention|include|put|use|sign|say)\b/i.test(t) || /\bmy (claim|policy) number is\b|\bmy name is\b|\b(shorter|more formal|more polite|less formal)\b/i.test(t) ||
+      // the same requests in Spanish ("hágala más corta", "agregue que...", "mi número de reclamo es...")
+      /^(por favor,? |puede |podr[ií]a )?(h[aá]g[ao]la|haz(la)?|cambi[ae]|agreg[ue]e?|a[nñ]ad[ae]|quit[ae]|borr[ae]|elimin[ae]|corrij[ae]|reemplac[ae]|acort[ae]|mencion[ae]|inclu[iy][ae]?|pon(ga)?|us[ae]|firm[ae]|dig[ae]|ponga)(?![\p{L}])/iu.test(t) ||
+      /mi n[uú]mero de (reclamo|p[oó]liza|reclamaci[oó]n) es|mi nombre es|m[aá]s (corta|breve|formal|amable)|menos formal/i.test(t));
   }
 
   /* ---------- talking to the AI ---------- */
@@ -423,18 +552,24 @@
   }
   function askOf(c) { if (c.ask === 'fu') return C.FOLLOWUP; return c.ask && askById(c.sit, c.ask); }
   function askSentence() { var a = askOf(chat); return a ? a[1] : ''; }
+  function askEs() { if (LANG !== 'es') return ''; if (chat.ask === 'fu') return C.ASK_ES.fu; return ((C.ASK_ES[chat.sit] || {})[chat.ask]) || ''; }
+  function subjectsOf(c) { return { en: c.ask === 'fu' ? C.ASK_SUBJECT.fu : (C.ASK_SUBJECT[c.sit] || {})[c.ask] || '', es: c.ask === 'fu' ? C.ASK_SUBJECT_ES.fu : (C.ASK_SUBJECT_ES[c.sit] || {})[c.ask] || '' }; }
 
   function setBusy(b) { busy = b; $('send').disabled = b || !input.value.trim(); document.body.classList.toggle('busy', b); }
 
   /* Said plainly that it is too much: the care card comes once, whatever the model answers. */
-  function soundsOverwhelmed(t) { return /overwhelm|exhaust|can.?t (do|take|handle|cope with) (this|it|any ?more)|too much for me|falling apart|breaking down|so tired of|hopeless|can.?t cope|give up|losing it|panic/i.test(t); }
+  function soundsOverwhelmed(t) {
+    return /overwhelm|exhaust|can.?t (do|take|handle|cope with) (this|it|any ?more)|too much for me|falling apart|breaking down|so tired of|hopeless|can.?t cope|give up|losing it|panic/i.test(t) ||
+      // Spanish: agobiado, abrumado, no puedo más, ya no aguanto, es demasiado, estoy agotado, me rindo, sin esperanza
+      /agobiad|abrumad|no puedo m[aá]s|ya no puedo|no (lo )?aguanto|ya no aguanto|es demasiado|demasiado para m[ií]|(muy |tan )?cansad[oa] de|agotad[oa]|me rindo|sin esperanza|desesperad[oa]|me estoy derrumbando|me siento perdid[oa]|ataque de p[aá]nico|no puedo con (esto|todo)/i.test(t);
+  }
   function talk(text, alreadyShown) {
     if (!alreadyShown) me(text);
     var care = soundsOverwhelmed(text) && !store.breathe;
     if (!chat.title) title(text.length > 42 ? text.slice(0, 40).replace(/\s+\S*$/, '') + '…' : text);
     var node = el('div', 'm-a'); node.innerHTML = '<p class="tx"><span class="typing" aria-hidden="true"></span></p>';
     thread.appendChild(node); scrollDown(); setBusy(true);
-    var body = { mode: 'chat', stream: true, lang: 'en', role: chat.role === 'unsure' ? '' : chat.role, messages: convo(), paper: !!chat.letter, ask: askSentence(), breatheOffered: !!store.breathe || care, sheet: chat.sheet ? chat.sheet.kind : '', stageLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '' };
+    var body = { mode: 'chat', stream: true, lang: LANG, role: chat.role === 'unsure' ? '' : chat.role, messages: convo(), paper: !!chat.letter, ask: askSentence(), breatheOffered: !!store.breathe || care, sheet: chat.sheet ? chat.sheet.kind : '', stageLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '' };
     stream(body, function (soFar) {
       var c = splitCites(soFar);
       node.innerHTML = c.text.split(/\n{2,}/).map(function (p) { return '<p class="tx">' + esc(p) + '</p>'; }).join('').replace(/<\/p>$/, '<span class="typing" aria-hidden="true"></span></p>');
@@ -458,7 +593,7 @@
     if ((a.type === 'call' || a.type === 'visit') && !chat.letter && !chat.sheet) {
       chat.flow = a.type;
       if (chat.notes == null) chat.notes = userText;
-      title(a.type === 'call' ? 'Getting ready for a call' : 'Getting ready for a visit');
+      title(a.type === 'call' ? T.titleCall : T.titleVisit);
       return nextStep();
     }
     if (a.type === 'letter' && !chat.letter && !chat.sheet) {
@@ -492,9 +627,9 @@
       var end = Date.now() + 60000, inhale = true;
       (function cycle() {
         if (!document.body.contains(node)) return;
-        if (Date.now() >= end) { ring.classList.remove('big'); word.textContent = T.careDone; go.hidden = false; go.textContent = 'Again'; return; }
+        if (Date.now() >= end) { ring.classList.remove('big'); word.textContent = T.careDone; go.hidden = false; go.textContent = T.again; return; }
         ring.classList.toggle('big', inhale); ring.classList.toggle('out', !inhale);
-        word.textContent = inhale ? 'Breathe in' : 'Breathe out';
+        word.textContent = inhale ? T.breatheIn : T.breatheOut;
         setTimeout(cycle, inhale ? 4000 : 6000); inhale = !inhale;
       })();
     });
@@ -546,7 +681,8 @@
   function letterBody() {
     var notes = (chat.notes || '').trim();
     var subj = chat.ask === 'fu' ? C.ASK_SUBJECT.fu : (C.ASK_SUBJECT[chat.sit] || {})[chat.ask];
-    return { mode: 'letter', lang: 'en', subject: subj || '', sit: chat.sit, sitLabel: L(C.SIT_LABEL[chat.sit]), role: chat.role === 'rent' ? 'rent' : 'own', ask: askSentence(), notes: notes, paste: chat.flow === 'reply' && chat.pasteId ? (pasteMem[chat.pasteId] || '') : '', name: '', claim: '', insurer: '', who: 'me' };
+    var subjEs = chat.ask === 'fu' ? C.ASK_SUBJECT_ES.fu : (C.ASK_SUBJECT_ES[chat.sit] || {})[chat.ask];
+    return { mode: 'letter', lang: LANG, subject: subj || '', subjectEs: subjEs || '', askEs: askEs(), sit: chat.sit, sitLabel: L(C.SIT_LABEL[chat.sit]), role: chat.role === 'rent' ? 'rent' : 'own', ask: askSentence(), notes: notes, paste: chat.flow === 'reply' && chat.pasteId ? (pasteMem[chat.pasteId] || '') : '', name: '', claim: '', insurer: '', who: 'me' };
   }
   function writeLetter() {
     chat.step = 'writing'; setComposer();
@@ -555,6 +691,7 @@
     if (chat.flow === 'reply' && !body.paste) body.notes = (body.notes ? body.notes + '\n' : '') + 'I am replying to a message from my insurer.';
     api(body).then(function (j) {
       s.remove(); setBusy(false);
+      chat.letterEs = LANG === 'es' ? (j.es || 'failed') : null; chat.esStale = false;
       placeLetter(j.text, true);
       finishLetter();
     }, function (err) {
@@ -573,10 +710,18 @@
   }
   function basicLetter() {
     var a = askSentence(), home = chat.role === 'rent' ? 'rental home' : 'home';
-    var ctx = { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' }[chat.sit] || '';
+    var ctx = T_EN.basicCtx[chat.sit] || '';
     var out = ['Subject: ' + (C.SIT_SUBJECT[chat.sit] || C.SIT_SUBJECT.other), '', 'Dear Claims Team,', '', 'I am writing about my claim for my ' + home + ', which was affected by the California wildfire. ' + ctx];
-    if ((chat.notes || '').trim()) out.push('', 'In my own words: ' + chat.notes.trim().slice(0, 1200));
+    if ((chat.notes || '').trim()) out.push('', T.inMyWords + chat.notes.trim().slice(0, 1200));
     out.push('', a, '', 'Please reply in writing within 15 calendar days of receiving this letter. I am keeping a record of all communication on this claim.', '', 'Thank you,', '[your name]');
+    if (LANG === 'es') {
+      // every line of the basic letter is ours, so its Spanish copy needs no model
+      var ctxEs = { denied: 'Recibí su decisión sobre mi reclamo.', low: 'Recibí su oferta de liquidación de mi reclamo.', quiet: 'No he recibido respuesta a mis pedidos recientes.', smoke: 'Mi vivienda sigue en pie, pero entró humo y ceniza.', other: '' }[chat.sit] || '';
+      var es = ['Asunto: ' + (C.SIT_SUBJECT_ES[chat.sit] || C.SIT_SUBJECT_ES.other), 'Estimado equipo de reclamos:', 'Les escribo sobre mi reclamo por mi ' + (chat.role === 'rent' ? 'vivienda alquilada' : 'vivienda') + ', afectada por el incendio forestal de California. ' + ctxEs];
+      if ((chat.notes || '').trim()) es.push('En mis propias palabras (escritas en español): ' + chat.notes.trim().slice(0, 1200));
+      es.push(askEs(), 'Les pido que respondan por escrito dentro de los 15 días calendario siguientes a la recepción de esta carta. Llevo un registro de toda la comunicación sobre este reclamo.', 'Gracias,\n[su nombre]');
+      chat.letterEs = es.map(function (x) { return x.trim(); }); chat.esStale = false;
+    }
     placeLetter(out.join('\n'), true);
     chat.basic = true;
     finishLetter(true);
@@ -585,14 +730,14 @@
   /* ---------- call and visit sheets ---------- */
   function sheetBody() {
     var a = askOf(chat);
-    return { mode: 'sheet', lang: 'en', kind: chat.flow, sit: chat.sit || 'other', sitLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '', home: chat.home || 'standing', role: chat.role === 'unsure' ? '' : chat.role, ask: a ? a[1] : '', notes: (chat.notes || '').trim(), name: '', claim: '' };
+    return { mode: 'sheet', lang: LANG, kind: chat.flow, sit: chat.sit || 'other', sitLabel: chat.sit ? L(C.SIT_LABEL[chat.sit]) : '', home: chat.home || 'standing', role: chat.role === 'unsure' ? '' : chat.role, ask: a ? a[1] : '', notes: (chat.notes || '').trim(), name: '', claim: '' };
   }
   function writeSheet() {
     chat.step = 'writing'; setComposer();
     var s = status(chat.flow === 'call' ? T.writingCall : T.writingVisit); setBusy(true);
     api(sheetBody()).then(function (j) {
       s.remove(); setBusy(false);
-      placeSheet({ kind: chat.flow, say: j.say, points: j.points || [] });
+      placeSheet({ kind: chat.flow, say: j.say, points: j.points || [], sayEs: j.sayEs || null, pointsEs: j.pointsEs || null });
       finishSheet();
     }, function (err) {
       s.remove(); setBusy(false);
@@ -603,9 +748,12 @@
   function basicSheet() {
     var a = askOf(chat);
     var say = chat.flow === 'call'
-      ? 'Hi, my name is [your name], and I am calling about claim [claim number].' + (a ? ' I would like to ask you to ' + L(a[2]).charAt(0).toLowerCase() + L(a[2]).slice(1) + '.' : '')
+      ? 'Hi, my name is [your name], and I am calling about claim [claim number].' + (a ? ' I would like to ask you to ' + a[2].en.charAt(0).toLowerCase() + a[2].en.slice(1) + '.' : '')
       : 'Hi, I am [your name], and this is the home on claim [claim number]. I would like to show you all of the damage, and to get a written scope of work afterward.';
-    placeSheet({ kind: chat.flow, say: say, points: [], basic: true });
+    var sayEs = LANG !== 'es' ? null : chat.flow === 'call'
+      ? 'Hola, me llamo [su nombre] y llamo por el reclamo [número de reclamo].' + (a ? ' Quisiera pedirles: ' + a[2].es.charAt(0).toLowerCase() + a[2].es.slice(1) + '.' : '')
+      : 'Hola, soy [su nombre] y esta es la vivienda del reclamo [número de reclamo]. Quisiera mostrarle todos los daños y recibir después un alcance de trabajo por escrito.';
+    placeSheet({ kind: chat.flow, say: say, points: [], basic: true, sayEs: sayEs });
     finishSheet(true);
   }
   function finishSheet(basic) {
@@ -623,7 +771,7 @@
   /* Which checklist lines apply: a line can be only for some situations, a standing or lost home, or renters. */
   function applies(item) {
     if (!item.only) return true;
-    return item.only.some(function (k) { return k === chat.sit || k === chat.home || (k === 'rent' && chat.role === 'rent'); });
+    return item.only.some(function (k) { return k === chat.sit || k === chat.home || (k === 'rent' && chat.role === 'rent') || (k === 'es' && LANG === 'es'); });
   }
   function sheetHtml(fresh) {
     var sh = chat.sheet, def = C.SHEETS[sh.kind], used = [], gen = false;
@@ -632,44 +780,85 @@
       return '<sup>' + item.src.map(String).filter(function (d) { return SOURCES[d]; }).map(function (d) { if (used.indexOf(d) === -1) used.push(d); return used.indexOf(d) + 1; }).sort(function (x, y) { return x - y; }).join(', ') + '</sup>';
     }
     var a = askOf(chat);
-    var CALL_ABOUT = { denied: 'about their decision', low: 'about their offer', quiet: 'for an update on your claim', smoke: 'about smoke and ash', other: 'for your call with the insurer' };
-    var head = sh.kind === 'call' ? def.title + ' ' + (CALL_ABOUT[chat.sit] || CALL_ABOUT.other) : def.title + (chat.home === 'lost' ? ' for a home that was destroyed' : ' for a home that is still standing');
-    var out = ['<p class="subj">' + esc(head) + '</p><p class="meta">' + esc(def.meta) + '</p>'];
+    var out = ['<p class="subj">' + esc(sheetHead()) + '</p><p class="meta">' + esc(tr(def.meta)) + '</p>'];
     def.sections.forEach(function (sec) {
-      var h = '<section class="ss"><h3>' + esc(sec.h) + '</h3>';
-      if (sec.say) h += '<p class="say">' + paraText(sh.say) + '</p>';
+      var h = '<section class="ss"><h3>' + esc(tr(sec.h)) + '</h3>';
+      if (sec.say) {
+        h += '<p class="say"' + (LANG === 'es' ? ' lang="en"' : '') + '>' + paraText(sh.say) + '</p>';
+        if (LANG === 'es') h += sh.sayEs ? '<p class="es-line">' + esc(T.sayEs) + paraText(sh.sayEs) + '</p><p class="es-hint">' + esc(T.sayIntro) + '</p>' : (sh.sayEs === null ? '<p class="es-hint">' + esc(T.esUntranslated) + '</p>' : '');
+      }
       var lis = [];
       if (sec.ask && a) lis.push('<li class="main">' + esc(L(a[2])) + '</li>');
-      if ((sec.ask || (sh.kind === 'visit' && /show/i.test(sec.h))) && sh.points) sh.points.forEach(function (pt) { lis.push('<li class="mine">' + paraText(pt) + ' <span class="gen">from your notes</span></li>'); });
-      (sec.items || []).filter(applies).forEach(function (it) { lis.push('<li>' + esc(it.t) + ref(it) + '</li>'); });
+      if (pointsHere(sec, sh)) sh.points.forEach(function (pt, i) {
+        var es = LANG === 'es' && sh.pointsEs ? sh.pointsEs[i] : '';
+        lis.push('<li class="mine"><span' + (LANG === 'es' ? ' lang="en"' : '') + '>' + paraText(pt) + '</span> <span class="gen">' + esc(T.fromNotes) + '</span>' + (es ? '<span class="es-line">' + esc(T.sayEs) + paraText(es) + '</span>' : '') + '</li>');
+      });
+      (sec.items || []).filter(applies).forEach(function (it) { lis.push('<li>' + esc(tr(it.t)) + ref(it) + '</li>'); });
       if (lis.length) h += '<ul>' + lis.join('') + '</ul>';
       if (sec.followup) h += '<p class="sheetbtns"><button class="btn ghost sm" type="button" data-sheet="followup">' + esc(T.followup) + '</button></p>';
       out.push(h + '</section>');
     });
-    out.push('<section class="ss log"><h3>' + (sh.kind === 'call' ? 'Call log' : 'Visit log') + '</h3><div class="fields">' + def.log.map(function (f) {
+    out.push('<section class="ss log"><h3>' + esc(sh.kind === 'call' ? T.callLog : T.visitLog) + '</h3><div class="fields">' + def.log.map(function (f) {
       var v = esc(sh.log[f[0]] || (f[0] === 'date' ? '' : ''));
-      var input = f[2] === 'long' ? '<textarea rows="3" data-log="' + f[0] + '" id="lg-' + f[0] + '">' + v + '</textarea>' : '<input type="' + (f[2] || 'text') + '" data-log="' + f[0] + '" id="lg-' + f[0] + '" value="' + v + '"' + (f[3] ? ' placeholder="' + esc(f[3]) + '"' : '') + '>';
-      return '<label class="field' + (f[2] === 'long' ? ' wide' : '') + '" for="lg-' + f[0] + '"><span>' + esc(f[1]) + '</span>' + input + '</label>';
+      var input = f[2] === 'long' ? '<textarea rows="3" data-log="' + f[0] + '" id="lg-' + f[0] + '">' + v + '</textarea>' : '<input type="' + (f[2] || 'text') + '" data-log="' + f[0] + '" id="lg-' + f[0] + '" value="' + v + '"' + (f[3] ? ' placeholder="' + esc(tr(f[3])) + '"' : '') + '>';
+      return '<label class="field' + (f[2] === 'long' ? ' wide' : '') + '" for="lg-' + f[0] + '"><span>' + esc(tr(f[1])) + '</span>' + input + '</label>';
     }).join('') + '</div><p class="sheetbtns"><button class="btn sm" type="button" data-sheet="record">' + esc(sh.recorded ? T.updateRecord : T.saveRecord) + '</button></p></section>');
-    if (used.length || gen) out.push('<section class="ss srcs"><h3>' + esc(T.sourcesH) + '</h3><ol>' + used.map(function (d) { return '<li><a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].title) + '</a></li>'; }).join('') + '</ol>' + (gen ? '<p class="gennote">Lines marked general guidance are common sense from us, not from a source. Your policy decides.</p>' : '') + '</section>');
+    if (used.length || gen) out.push('<section class="ss srcs"><h3>' + esc(T.sourcesH) + '</h3><ol>' + used.map(function (d) { return '<li><a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].title) + '</a></li>'; }).join('') + '</ol>' + (gen ? '<p class="gennote">' + esc(T.genNote) + '</p>' : '') + '</section>');
     return out.join('');
   }
+  function sheetHead() {
+    var sh = chat.sheet, def = C.SHEETS[sh.kind];
+    return sh.kind === 'call' ? tr(def.title) + ' ' + (T.callAbout[chat.sit] || T.callAbout.other) : tr(def.title) + (chat.home === 'lost' ? T.visitLost : T.visitStanding);
+  }
+  function pointsHere(sec, sh) { return (sec.ask || (sh.kind === 'visit' && /show/i.test(sec.h))) && sh.points && sh.points.length; }
   function paraText(t) { return esc(t).replace(/\[[^\]\n]{1,40}\]/g, function (m) { return '<span class="blank">' + m + '</span>'; }); }
   function sheetText() {
     var sh = chat.sheet, def = C.SHEETS[sh.kind], a = askOf(chat), lines = [];
-    var node = $('sheetDoc');
-    lines.push(node.querySelector('.subj').textContent, '');
+    lines.push(sheetHead(), '');
     def.sections.forEach(function (sec) {
-      lines.push(sec.h.toUpperCase());
-      if (sec.say) lines.push(sh.say);
+      lines.push(tr(sec.h).toUpperCase());
+      if (sec.say) { lines.push(sh.say); if (LANG === 'es' && sh.sayEs) lines.push(T.sayEs + sh.sayEs); }
       if (sec.ask && a) lines.push('- ' + L(a[2]));
-      if ((sec.ask || (sh.kind === 'visit' && /show/i.test(sec.h))) && sh.points) sh.points.forEach(function (pt) { lines.push('- ' + pt); });
-      (sec.items || []).filter(applies).forEach(function (it) { lines.push('- ' + it.t); });
+      if (pointsHere(sec, sh)) sh.points.forEach(function (pt, i) { lines.push('- ' + pt + (LANG === 'es' && sh.pointsEs && sh.pointsEs[i] ? ' (' + T.sayEs + sh.pointsEs[i] + ')' : '')); });
+      (sec.items || []).filter(applies).forEach(function (it) { lines.push('- ' + tr(it.t)); });
       lines.push('');
     });
-    lines.push((sh.kind === 'call' ? 'CALL LOG' : 'VISIT LOG'));
-    def.log.forEach(function (f) { lines.push(f[1] + ': ' + (f[0] === 'date' ? niceISO(sh.log.date) : (sh.log[f[0]] || ''))); });
+    lines.push((sh.kind === 'call' ? T.callLog : T.visitLog).toUpperCase());
+    def.log.forEach(function (f) { lines.push(tr(f[1]) + ': ' + (f[0] === 'date' ? niceISO(sh.log.date) : (sh.log[f[0]] || ''))); });
     return lines.join('\n');
+  }
+  /* The same paper as blocks for the PDF: the sheet with its source numbers, the log and the sources at the end. */
+  function sheetBlocks() {
+    var sh = chat.sheet, def = C.SHEETS[sh.kind], a = askOf(chat), b = [], used = [], gen = false;
+    function ref(it) {
+      if (it.general) { gen = true; return '  (' + T.general + ')'; }
+      return ' ' + it.src.map(String).filter(function (d) { return SOURCES[d]; }).map(function (d) { if (used.indexOf(d) === -1) used.push(d); return used.indexOf(d) + 1; }).sort(function (x, y) { return x - y; }).map(function (n) { return '[' + n + ']'; }).join('');
+    }
+    b.push({ k: 'subj', t: sheetHead() }, { k: 'meta', t: tr(def.meta) });
+    def.sections.forEach(function (sec) {
+      b.push({ k: 'label', t: tr(sec.h).toUpperCase() });
+      if (sec.say) { b.push({ k: 'say', t: sh.say }); if (LANG === 'es' && sh.sayEs) b.push({ k: 'p', t: T.sayEs + sh.sayEs }); }
+      if (sec.ask && a) b.push({ k: 'lim', t: L(a[2]) });
+      if (pointsHere(sec, sh)) sh.points.forEach(function (pt, i) { b.push({ k: 'li', t: pt + '  (' + T.fromNotes + ')' + (LANG === 'es' && sh.pointsEs && sh.pointsEs[i] ? '\n' + T.sayEs + sh.pointsEs[i] : '') }); });
+      (sec.items || []).filter(applies).forEach(function (it) { b.push({ k: 'li', t: tr(it.t) + ref(it) }); });
+    });
+    b.push({ k: 'label', t: (sh.kind === 'call' ? T.callLog : T.visitLog).toUpperCase() });
+    def.log.forEach(function (f) { b.push({ k: 'field', l: tr(f[1]), t: f[0] === 'date' ? niceISO(sh.log.date) : (sh.log[f[0]] || '') }); });
+    if (used.length || gen) {
+      b.push({ k: 'label', t: T.sourcesH.toUpperCase() });
+      used.forEach(function (d, i) { b.push({ k: 'small', t: (i + 1) + '. ' + SOURCES[d].title + '. ' + SOURCES[d].url }); });
+      if (gen) b.push({ k: 'small', t: T.genNote });
+    }
+    return b;
+  }
+  function letterBlocks() {
+    return paras(chat.letter).map(function (p, i) { return { k: i === 0 && /^Subject:/i.test(p) ? 'subj' : 'p', t: p }; });
+  }
+  function downloadPdf() {
+    var sheet = !!chat.sheet, kind = sheet ? (chat.sheet.kind === 'call' ? T.fileCall : T.fileVisit) : chat.flow === 'reply' ? T.fileReply : T.fileLetter;
+    var r = window.nsPdf.download(sheet ? sheetBlocks() : letterBlocks(), { title: sheet ? sheetHead() : ((chat.letter.match(/^Subject:\s*(.+)$/m) || [])[1] || 'Letter'), file: 'next-step-' + kind + '-' + todayISO() + '.pdf', footer: sheet ? T.pdfFooter : '', pageWord: T.pdfPage });
+    toast(T.pdfDone);
+    window.__lastPdf = r;
   }
   function logSummary(sh) {
     var l = sh.log || {}, bits = [];
@@ -682,7 +871,7 @@
   }
   function sheetRecord() {
     var sh = chat.sheet, l = sh.log || {};
-    recordPut({ chat: chat.id, kind: sh.kind, date: l.date || todayISO(), who: l.who || '', summary: [l.said, l.next ? 'Next: ' + l.next : ''].filter(Boolean).join(' ') || (sh.kind === 'call' ? 'Call with the insurer' : 'Adjuster visit') });
+    recordPut({ chat: chat.id, kind: sh.kind, date: l.date || todayISO(), who: l.who || '', summary: [l.said, l.next ? T.recNext + l.next : ''].filter(Boolean).join(' ') || (sh.kind === 'call' ? T.recCall : T.recVisit) });
     sh.recorded = true; persist();
     var b = $('sheetDoc').querySelector('[data-sheet="record"]'); if (b) b.textContent = T.updateRecord;
     toast(T.savedRecord);
@@ -691,7 +880,7 @@
     var sh = chat.sheet, l = sh.log || {};
     if (!(l.said || l.next || l.looked)) { toast(T.fuNeedLog); var f = $('lg-said'); if (f) f.focus(); return; }
     if (!sh.recorded) sheetRecord();
-    var seed = { role: chat.role, sit: chat.sit || 'other', ask: 'fu', notes: logSummary(sh), flow: 'letter', title: 'Follow-up email' };
+    var seed = { role: chat.role, sit: chat.sit || 'other', ask: 'fu', notes: logSummary(sh), flow: 'letter', title: T.titleFu };
     openChat(newChat(seed));
     say({ r: 'a', x: T.fuLead });
     writeLetter();
@@ -718,32 +907,34 @@
   }
   function letterRecord() {
     if (!chat.letter) return;
-    var subj = (chat.letter.match(/^Subject:\s*(.+)$/m) || [])[1] || 'Letter to the insurer';
-    recordPut({ chat: chat.id, kind: 'letter', date: todayISO(), who: 'Your insurer', summary: subj.replace(/\s+-\s+Claim .*$/, '') });
+    var subj = (chat.letter.match(/^Subject:\s*(.+)$/m) || [])[1] || T.recLetter;
+    // in Spanish the Record shows the Spanish subject, so the person can read their own list
+    if (LANG === 'es') { var se = subjectsOf(chat).es; if (se) subj = se; }
+    recordPut({ chat: chat.id, kind: 'letter', date: todayISO(), who: T.recInsurer, summary: subj.replace(/\s+-\s+Claim .*$/, '') });
   }
-  var KIND_LABEL = { letter: 'Letter', call: 'Call', visit: 'Visit' };
+  var KIND_LABEL = T.kind;
   function recordSorted() { return (store.record || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; }); }
   function recordText() {
-    return ['My claim record', ''].concat(recordSorted().map(function (r) { return niceISO(r.date) + '. ' + KIND_LABEL[r.kind] + (r.who ? ', ' + r.who : '') + '. ' + r.summary; })).join('\n');
+    return [T.recTitle, ''].concat(recordSorted().map(function (r) { return niceISO(r.date) + '. ' + KIND_LABEL[r.kind] + (r.who ? ', ' + r.who : '') + '. ' + r.summary; })).join('\n');
   }
   function pageRecord(adding) {
     var list = recordSorted();
     var rows = list.map(function (r) {
       var c = store.chats.filter(function (x) { return x.id === r.chat; })[0];
       return '<li><span class="r-date">' + esc(niceISO(r.date)) + '</span><div class="r-body"><p class="r-what">' + esc(KIND_LABEL[r.kind]) + (r.who ? '<span>' + esc(r.who) + '</span>' : '') + '</p><p class="r-sum">' + esc(r.summary) + '</p></div>' +
-        '<span class="r-act">' + (c ? '<a href="#/c/' + esc(c.id) + '">Open</a>' : '') + '<button type="button" class="linkbtn" data-del="' + esc(r.id) + '">Remove</button></span></li>';
+        '<span class="r-act">' + (c ? '<a href="#/c/' + esc(c.id) + '">' + esc(T.recOpen) + '</a>' : '') + '<button type="button" class="linkbtn" data-del="' + esc(r.id) + '">' + esc(T.recRemove) + '</button></span></li>';
     }).join('');
-    showPage('record', '<h1>Record</h1><p class="lead">Every letter you send, call you make and visit you have, in one place. It stays on this device only.</p>' +
-      '<div class="row rec-btns">' + (list.length ? '<button class="btn" type="button" id="recCopy">Copy as a summary</button>' : '') + '<button class="btn ghost" type="button" id="recAdd"' + (adding ? ' hidden' : '') + '>Add a call or visit</button></div>' +
+    showPage('record', '<h1>' + esc(T.recH) + '</h1><p class="lead">' + esc(T.recLead) + '</p>' +
+      '<div class="row rec-btns">' + (list.length ? '<button class="btn" type="button" id="recCopy">' + esc(T.recCopy) + '</button>' : '') + '<button class="btn ' + (list.length ? 'ghost' : '') + '" type="button" id="recAdd"' + (adding ? ' hidden' : '') + '>' + esc(T.recAdd) + '</button></div>' +
       (adding ? '<form class="rec-form" id="recForm"><div class="fields">' +
-        '<label class="field"><span>What</span><select id="rfKind"><option value="call">A call</option><option value="visit">A visit</option><option value="letter">A letter I sent</option></select></label>' +
-        '<label class="field"><span>Date</span><input type="date" id="rfDate" value="' + todayISO() + '"></label>' +
-        '<label class="field wide"><span>Who</span><input type="text" id="rfWho" placeholder="Name and job title"></label>' +
-        '<label class="field wide"><span>What was said or sent</span><textarea id="rfSum" rows="3"></textarea></label></div>' +
-        '<div class="row"><button class="btn ghost" type="submit">Save</button><button class="btn ghost" type="button" id="rfCancel">Cancel</button></div></form>' : '') +
-      (list.length ? '<ul class="record">' + rows + '</ul>' : '<p class="empty">Nothing here yet. When you copy a letter or save a call or visit log, it shows up here.</p>'));
+        '<label class="field"><span>' + esc(T.rfWhat) + '</span><select id="rfKind"><option value="call">' + esc(T.rfCall) + '</option><option value="visit">' + esc(T.rfVisit) + '</option><option value="letter">' + esc(T.rfLetter) + '</option></select></label>' +
+        '<label class="field"><span>' + esc(T.rfDate) + '</span><input type="date" id="rfDate" value="' + todayISO() + '"></label>' +
+        '<label class="field wide"><span>' + esc(T.rfWho) + '</span><input type="text" id="rfWho" placeholder="' + esc(T.rfWhoHolder) + '"></label>' +
+        '<label class="field wide"><span>' + esc(T.rfSum) + '</span><textarea id="rfSum" rows="3"></textarea></label></div>' +
+        '<div class="row"><button class="btn" type="submit">' + esc(T.save) + '</button><button class="btn ghost" type="button" id="rfCancel">' + esc(T.cancel) + '</button></div></form>' : '') +
+      (list.length ? '<ul class="record">' + rows + '</ul>' : '<p class="empty">' + esc(T.recEmpty) + '</p>'));
     var pg = $('page');
-    var cp = $('recCopy'); if (cp) cp.addEventListener('click', function () { copyText(recordText(), function () { cp.textContent = 'Copied'; toast('Copied. Paste it wherever you keep your notes.'); setTimeout(function () { cp.textContent = 'Copy as a summary'; }, 2000); }); });
+    var cp = $('recCopy'); if (cp) cp.addEventListener('click', function () { copyText(recordText(), function () { cp.textContent = T.copiedShort; toast(T.recCopied); setTimeout(function () { cp.textContent = T.recCopy; }, 2000); }); });
     $('recAdd').addEventListener('click', function () { pageRecord(true); $('rfWho').focus(); });
     var f = $('recForm');
     if (f) {
@@ -759,10 +950,10 @@
     chat.pendingPaste = null;
     pasteMem[id] = text; chat.pasteId = id; chat.flow = 'reply';
     if (!existing) me('', { paste: id });
-    title('Their message');
+    title(T.titleMsg);
     chat.step = 'reading'; setComposer();
     var s = status(T.reading); setBusy(true);
-    api({ mode: 'explain', lang: 'en', paste: text }).then(function (j) {
+    api({ mode: 'explain', lang: LANG, paste: text }).then(function (j) {
       s.remove(); setBusy(false);
       chat.sit = j.sit; chat.explain = j.text;
       var sug = askById(j.sit, j.ask) ? j.ask : asksFor(j.sit)[0][0];
@@ -785,7 +976,7 @@
   function paras(text) { return String(text || '').replace(/\r/g, '').split(/\n{2,}/).map(function (p) { return p.trim(); }).filter(Boolean); }
   function paraHtml(p, i, cls) {
     var h = esc(p).replace(/\[[^\]\n]{1,40}\]/g, function (m) { return '<span class="blank">' + m + '</span>'; });
-    return '<p class="' + (cls || '') + (i === 0 && /^Subject:/i.test(p) ? ' subj' : '') + '">' + h + '</p>';
+    return '<p class="' + (cls || '') + (i === 0 && /^(Subject|Asunto):/i.test(p) ? ' subj' : '') + '">' + h + '</p>';
   }
   function placeLetter(text, fresh, changedIdx) {
     chat.letter = text; persist();
@@ -807,15 +998,16 @@
     $('paperwrap').hidden = !has;
     $('pin').hidden = !has;
     var kind = chat.sheet ? (chat.sheet.kind === 'call' ? T.kCall : T.kVisit) : chat.flow === 'reply' ? T.kReply : T.kLetter;
-    $('paperKind').textContent = kind; $('pinKind').textContent = chat.sheet ? kind : chat.flow === 'reply' ? (chat.letter ? 'Your reply' : 'Their message, explained') : T.kLetter;
+    $('paperKind').textContent = kind; $('pinKind').textContent = chat.sheet ? kind : chat.flow === 'reply' ? (chat.letter ? T.pinReply : T.pinExplained) : T.kLetter;
     var ex = $('explain');
     if (chat.explain) {
       var c = splitCites(chat.explain);
       ex.hidden = false; ex.classList.toggle('withletter', !!chat.letter);
-      ex.innerHTML = '<h2>What their message says</h2>' + c.text.split(/\n+/).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
+      ex.innerHTML = '<h2>' + esc(T.explainH) + '</h2>' + c.text.split(/\n+/).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
     } else { ex.hidden = true; ex.innerHTML = ''; }
     if (!keepLetter) letterEl.innerHTML = chat.letter ? paras(chat.letter).map(function (p, i) { return paraHtml(p, i, ''); }).join('') : '';
     letterEl.hidden = !chat.letter;
+    renderEs();
     $('copyBtn').disabled = !(chat.letter || chat.sheet); $('printBtn').disabled = !(chat.letter || chat.sheet);
     $('sheet').classList.toggle('is-sheet', !!chat.sheet);
     // One solid button per screen: on a sheet it is Save to Record, so Copy steps back to a ghost.
@@ -825,8 +1017,38 @@
   var editT;
   letterEl.addEventListener('input', function () {
     clearTimeout(editT);
-    editT = setTimeout(function () { chat.letter = readSheet(); persist(); }, 300);
+    editT = setTimeout(function () {
+      chat.letter = readSheet();
+      if (LANG === 'es' && chat.letterEs && !chat.esStale) { chat.esStale = true; renderEs(); }
+      persist();
+    }, 300);
   });
+
+  /* The Spanish copy under the letter: one paragraph per paragraph of the English letter, checked on the server.
+     A paragraph that could not be translated safely is shown in English and said so. */
+  function renderEs() {
+    var box = $('esCopy');
+    if (LANG !== 'es' || !chat.letter || !chat.letterEs) { box.hidden = true; box.innerHTML = ''; return; }
+    var h = '<h2>' + esc(T.esH) + '</h2><p class="es-note">' + esc(T.esNote) + '</p>';
+    if (chat.letterEs === 'failed') h += '<p class="es-note">' + esc(T.esFailed) + '</p>';
+    else {
+      var en = paras(chat.letter);
+      h += chat.letterEs.map(function (p, i) {
+        if (p) return paraHtml(p, i, '');
+        return en[i] ? '<p class="es-raw" lang="en">' + esc(en[i]) + '</p><p class="es-hint">' + esc(T.esUntranslated) + '</p>' : '';
+      }).join('');
+    }
+    if (chat.esStale || chat.letterEs === 'failed') h += '<p class="es-stale">' + (chat.esStale ? esc(T.esStale) + ' ' : '') + '<button type="button" class="btn ghost sm" id="esUpdate">' + esc(T.esUpdate) + '</button></p>';
+    box.innerHTML = h; box.hidden = false;
+    var up = $('esUpdate'); if (up) up.addEventListener('click', updateEs);
+  }
+  function updateEs() {
+    var b = $('esUpdate'); if (b) { b.disabled = true; b.textContent = T.esWorking; }
+    var sj = subjectsOf(chat);
+    api({ mode: 'gloss', lang: 'es', text: chat.letter = readSheet(), ask: askSentence(), askEs: askEs(), subject: sj.en, subjectEs: sj.es }).then(function (j) {
+      chat.letterEs = j.es; chat.esStale = false; persist(); renderEs();
+    }, function () { if (b) { b.disabled = false; b.textContent = T.esUpdate; } toast(T.esFailed); });
+  }
   letterEl.addEventListener('paste', function (e) { e.preventDefault(); var t = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, t); });
   function readSheet() { return [].map.call(letterEl.querySelectorAll('p'), function (p) { return p.innerText.replace(/\n+$/, ''); }).filter(function (x) { return x.trim(); }).join('\n\n') || letterEl.innerText.trim(); }
 
@@ -834,8 +1056,10 @@
     chat.letter = readSheet();
     var before = paras(chat.letter);
     var s = status(T.editing); setBusy(true);
-    api({ mode: 'revise', lang: 'en', sit: chat.sit, ask: askSentence(), letter: chat.letter, instruction: instruction }).then(function (j) {
+    var sj = subjectsOf(chat);
+    api({ mode: 'revise', lang: LANG, sit: chat.sit, ask: askSentence(), askEs: askEs(), subject: sj.en, subjectEs: sj.es, letter: chat.letter, instruction: instruction }).then(function (j) {
       s.remove(); setBusy(false);
+      if (LANG === 'es') { chat.letterEs = j.es || 'failed'; chat.esStale = false; }
       var after = paras(j.text), changed = [];
       after.forEach(function (p, i) { if (before.indexOf(p) === -1) changed.push(i); });
       placeLetter(j.text, false, changed);
@@ -856,10 +1080,11 @@
     var text;
     if (chat.sheet) text = sheetText();
     else { text = chat.letter = readSheet(); letterRecord(); persist(); }
-    copyText(text, function () { var b = $('copyBtn'); b.textContent = 'Copied'; toast(chat.sheet ? 'Copied.' : T.copied); setTimeout(function () { b.textContent = T.copy; }, 2000); });
+    copyText(text, function () { var b = $('copyBtn'); b.textContent = T.copiedShort; toast(chat.sheet ? T.copiedSheet : T.copied); setTimeout(function () { b.textContent = T.copy; }, 2000); });
   });
   function fallbackCopy(t) { var ta = el('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); window.getSelection().removeAllRanges(); }
-  $('printBtn').addEventListener('click', function () { if (chat.letter && !chat.sheet) { chat.letter = readSheet(); letterRecord(); persist(); } window.print(); });
+  /* A real PDF of the paper, made on the device: the letter (in English, the one that is sent), or the whole sheet. */
+  $('printBtn').addEventListener('click', function () { if (chat.letter && !chat.sheet) { chat.letter = readSheet(); letterRecord(); persist(); } downloadPdf(); });
   function openPaper() { if (!isPhone()) return; $('paperwrap').classList.add('open'); document.body.style.overflow = 'hidden'; $('paperClose').focus(); }
   function closePaper() { $('paperwrap').classList.remove('open'); document.body.style.overflow = ''; $('pin').focus(); }
   $('pin').addEventListener('click', openPaper);
@@ -873,7 +1098,7 @@
     list.forEach(function (c) {
       var li = el('li'), a = el('a');
       a.href = '#/c/' + c.id;
-      a.innerHTML = esc(c.title || T.untitled) + '<small>' + esc(niceDate(c.at)) + (c.sheet ? (c.sheet.kind === 'call' ? ', call sheet' : ', visit sheet') : c.letter ? ', letter' : '') + '</small>';
+      a.innerHTML = esc(c.title || T.untitled) + '<small>' + esc(niceDate(c.at)) + (c.sheet ? (c.sheet.kind === 'call' ? T.histCall : T.histVisit) : c.letter ? T.histLetter : '') + '</small>';
       if (chat && c.id === chat.id && !location.hash.match(/^#\/(steps|breathe|phones|record)/)) a.setAttribute('aria-current', 'true');
       li.appendChild(a); ul.appendChild(li);
     });
@@ -906,7 +1131,7 @@
   function showPage(name, html) {
     var p = $('page');
     if ($('paperwrap').classList.contains('open')) { $('paperwrap').classList.remove('open'); document.body.style.overflow = ''; }
-    p.innerHTML = '<div class="page-in"><a class="back" href="#">← Back to the chat</a>' + html + '</div>';
+    p.innerHTML = '<div class="page-in"><a class="back" href="#">← ' + esc(T.back) + '</a>' + html + '</div>';
     p.hidden = false; p.scrollTop = 0;
     p.querySelector('.back').addEventListener('click', function (e) { e.preventDefault(); location.hash = ''; });
     [].forEach.call(document.querySelectorAll('.side-links a'), function (a) { if (a.dataset.page === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -914,11 +1139,11 @@
     var h = p.querySelector('h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
   }
   function pagePhones() {
-    showPage('phones', '<h1>Phone lines</h1><p class="lead">Next Step is an AI guide and is not staffed, so no one here will call you back. These are public lines, open to anyone.</p>' +
+    showPage('phones', '<h1>' + esc(T.phH) + '</h1><p class="lead">' + esc(T.phLead) + '</p>' +
       '<ul class="lines">' + phones(true).map(function (p) { return '<li><span class="who"><b>' + esc(p.who) + '</b>' + esc(p.what) + '</span><a href="' + tel(p.num) + '">' + esc(p.num) + '</a></li>'; }).join('') + '</ul>' +
       srcLine(phones(true).map(function (p) { return p.src; }).filter(function (v, i, a) { return a.indexOf(v) === i; })) +
-      (handoffs().length ? '<h2 class="h-more">Other places to turn</h2><ul class="lines handoffs">' + handoffs().map(function (h) { return '<li><span class="who"><b>' + esc(h.title.replace(/^United Policyholders, /, 'United Policyholders: ')) + '</b>' + esc(h.notes) + '</span><a href="' + esc(h.url) + '" target="_blank" rel="noopener">Open</a></li>'; }).join('') + '</ul>' : '') +
-      '<p class="note">If someone is in danger right now, call 911.</p>');
+      (handoffs().length ? '<h2 class="h-more">' + esc(T.phMore) + '</h2><ul class="lines handoffs">' + handoffs().map(function (h) { var x = LANG === 'es' && HANDOFF_ES[h.id] ? HANDOFF_ES[h.id] : { title: h.title.replace(/^United Policyholders, /, 'United Policyholders: '), notes: h.notes }; return '<li><span class="who"><b>' + esc(x.title) + '</b>' + esc(x.notes) + '</span><a href="' + esc(h.url) + '" target="_blank" rel="noopener">' + esc(T.openLink) + '</a></li>'; }).join('') + '</ul>' : '') +
+      '<p class="note">' + esc(T.ph911) + '</p>');
   }
   var stageRole = 'own';
   function pageSteps() {
@@ -927,29 +1152,29 @@
     var items = order.map(function (id) {
       var s = C.STAGES[id]; if (!s) return '';
       var srcIds = (s.src || []).map(String).filter(function (d) { return SOURCES[d]; });
-      return '<li><div><p class="when">' + esc(L(s.label)) + '</p><h2>' + esc(L(s.title)) + '</h2><ul>' + s.steps.map(function (x) { return '<li>' + esc(L(x)) + '</li>'; }).join('') + '</ul>' + (s.general ? '<p class="src">General guidance, not checked against an official source.</p>' : srcLine(srcIds)) + '</div></li>';
+      return '<li><div><p class="when">' + esc(L(s.label)) + '</p><h2>' + esc(L(s.title)) + '</h2><ul>' + s.steps.map(function (x) { return '<li>' + esc(L(x)) + '</li>'; }).join('') + '</ul>' + (s.general ? '<p class="src">' + esc(T.stGeneral) + '</p>' : srcLine(srcIds)) + '</div></li>';
     }).join('');
-    showPage('steps', '<h1>Steps of a claim</h1><p class="lead">The usual order of a wildfire claim in California. Yours may differ. Your policy decides.</p>' +
-      '<div class="seg" role="group" aria-label="Home"><button type="button" data-r="own" aria-pressed="' + (stageRole === 'own') + '">I own</button><button type="button" data-r="rent" aria-pressed="' + (stageRole === 'rent') + '">I rent</button></div>' +
+    showPage('steps', '<h1>' + esc(T.stH) + '</h1><p class="lead">' + esc(T.stLead) + '</p>' +
+      '<div class="seg" role="group" aria-label="' + esc(T.home) + '"><button type="button" data-r="own" aria-pressed="' + (stageRole === 'own') + '">' + esc(T.own) + '</button><button type="button" data-r="rent" aria-pressed="' + (stageRole === 'rent') + '">' + esc(T.rent) + '</button></div>' +
       '<ol class="stages">' + items + '</ol>');
     [].forEach.call($('page').querySelectorAll('.seg button'), function (b) { b.addEventListener('click', function () { stageRole = b.dataset.r; pageSteps(); $('page').querySelector('.seg button[data-r="' + stageRole + '"]').focus(); }); });
   }
   function pageBreathe() {
-    showPage('breathe', '<h1>Take a breath</h1><p class="lead">One minute. Breathe in while the circle grows, and out while it settles. You can stop any time.</p>' +
+    showPage('breathe', '<h1>' + esc(T.brH) + '</h1><p class="lead">' + esc(T.brLead) + '</p>' +
       '<div class="breath" aria-hidden="true"><div class="ring" id="ring"></div></div><p class="breath-word" id="bword" aria-live="polite"></p><p class="breath-left" id="bleft"></p>' +
-      '<div class="row" style="justify-content:center;margin-top:28px"><button class="btn" type="button" id="bstart">Start</button></div>');
+      '<div class="row" style="justify-content:center;margin-top:28px"><button class="btn" type="button" id="bstart">' + esc(T.start) + '</button></div>');
     $('bstart').addEventListener('click', function () {
       var btn = $('bstart'); btn.hidden = true;
       var end = Date.now() + 60000, phase = 0, ring = $('ring');
       function step() {
         var left = Math.max(0, Math.round((end - Date.now()) / 1000));
-        if (left <= 0) { clearInterval(breathTimer); $('bword').textContent = 'Done. Come back whenever you need to.'; $('bleft').textContent = ''; ring.classList.remove('big'); btn.hidden = false; btn.textContent = 'Again'; return; }
-        $('bleft').textContent = left + ' seconds';
+        if (left <= 0) { clearInterval(breathTimer); $('bword').textContent = T.brDone; $('bleft').textContent = ''; ring.classList.remove('big'); btn.hidden = false; btn.textContent = T.again; return; }
+        $('bleft').textContent = left + T.seconds;
       }
       function cycle() {
         if (Date.now() >= end) return;
-        if (phase === 0) { ring.classList.remove('out'); ring.classList.add('big'); $('bword').textContent = 'Breathe in'; phase = 1; setTimeout(cycle, 4000); }
-        else { ring.classList.add('out'); ring.classList.remove('big'); $('bword').textContent = 'Breathe out'; phase = 0; setTimeout(cycle, 6000); }
+        if (phase === 0) { ring.classList.remove('out'); ring.classList.add('big'); $('bword').textContent = T.breatheIn; phase = 1; setTimeout(cycle, 4000); }
+        else { ring.classList.add('out'); ring.classList.remove('big'); $('bword').textContent = T.breatheOut; phase = 0; setTimeout(cycle, 6000); }
       }
       clearInterval(breathTimer); breathTimer = setInterval(step, 500); step(); cycle();
     });
@@ -967,7 +1192,7 @@
       if (!chat || chat.msgs.length) openChat(newChat()); else { closePage(); renderAll(); }
       if (st[1] === 'letter') return startWith('push', T.o_push);
       if (st[1] === 'msg') return startWith('msg', T.o_msg);
-      chat.flow = st[1]; me(st[1] === 'call' ? T.k_call : T.k_visit); title(st[1] === 'call' ? 'Getting ready for a call' : 'Getting ready for a visit'); return nextStep();
+      chat.flow = st[1]; me(st[1] === 'call' ? T.k_call : T.k_visit); title(st[1] === 'call' ? T.titleCall : T.titleVisit); return nextStep();
     }
     var m = h.match(/^#\/c\/([\w]+)/);
     if (m) {
@@ -978,8 +1203,36 @@
   }
   window.addEventListener('hashchange', route);
 
+  /* ---------- the words that live in the page itself, and the two settings ---------- */
+  var STATIC_ES = {
+    skip: 'Ir al cuadro de mensaje', newChat: 'Nueva conversación', histLbl: 'Conversaciones', histEmpty: 'Sus conversaciones se quedan en este dispositivo.',
+    record: 'Historial', steps: 'Pasos de un reclamo', breathe: 'Respire un momento', phones: 'Líneas telefónicas',
+    fine: 'Información general de fuentes públicas, no es asesoría legal ni de seguros. Next Step es una guía de IA, sin personal. El español es un borrador sin revisar por un hablante nativo.',
+    tap: 'Toque para abrir', close: 'Cerrar', paperfine: 'Es un borrador. Revise cada fecha, número y nombre antes de enviarla.',
+    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
+  };
+  function applyStatic() {
+    document.title = 'Next Step';
+    if (LANG === 'es') {
+      [].forEach.call(document.querySelectorAll('[data-t]'), function (n) { var v = STATIC_ES[n.dataset.t]; if (v) n.textContent = v; });
+      [].forEach.call(document.querySelectorAll('[data-ta]'), function (n) { var v = STATIC_ES[n.dataset.ta]; if (v) n.setAttribute('aria-label', v); });
+      $('composerIn').placeholder = T.holder;
+    }
+    $('copyBtn').textContent = T.copy; $('printBtn').textContent = T.pdf; $('pinKind').textContent = T.kLetter; $('paperKind').textContent = T.kLetter;
+    var lb = $('langBtn'); lb.textContent = T.langOther; lb.setAttribute('lang', LANG === 'es' ? 'en' : 'es');
+    setThemeLabel();
+  }
+  function setThemeLabel() { var d = window.nsTheme && window.nsTheme.current() === 'dark'; var b = $('themeBtn'); b.textContent = d ? T.themeLight : T.themeDark; b.setAttribute('aria-pressed', d ? 'true' : 'false'); }
+  $('themeBtn').addEventListener('click', function () { if (window.nsTheme) window.nsTheme.toggle(); setThemeLabel(); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-lang], #langBtn');
+    if (!b || !window.nsLang) return;
+    persist(); window.nsLang.set(LANG === 'es' ? 'en' : 'es');
+  });
+
   /* ---------- start ---------- */
   function boot() {
+    applyStatic();
     var cur = store.chats.filter(function (c) { return c.id === store.cur; })[0];
     chat = cur || newChat();
     // A chat left mid-way while writing: settle it so it never shows a stuck state.

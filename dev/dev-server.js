@@ -57,7 +57,17 @@ const mockAI = {
       const pts = notes.trim() ? notes.split(/[.;]\s*/).filter((x) => x.trim()).slice(0, 3).map((x) => 'POINT: ' + x.trim() + '.') : [];
       return { response: (call ? 'SAY: Hi, my name is [your name], and I am calling about claim [claim number]. I would like you to explain in writing how you calculated the offer, line by line.' : 'SAY: Hi, I am [your name], and this is the home on claim [claim number]. I would like to show you all of the damage, and to get a written scope of work afterward.') + '\n' + pts.join('\n') };
     }
+    // Spanish copy of English lines. The pretend translation keeps every number and blank, and can be told to
+    // misbehave (an invented number, an added opinion) to prove the checks catch it.
+    if (sys.startsWith('You translate short English lines')) {
+      const lines = [...String(last).matchAll(/^P(\d+): (.*)$/gm)];
+      return { response: lines.map(([, n, t]) => 'P' + n + ': ' + (/GLOSSBAD/.test(t) ? 'Ustedes ofrecieron $99,999, que parece muy baja.' : 'En español: ' + t.replace(/\bI am writing about\b/, 'Le escribo sobre').replace(/\bmy claim\b/g, 'mi reclamo'))).join('\n') };
+    }
     if (sys.startsWith('You explain a message') && /FALLBACK/.test(last)) return { response: 'Your insurer is offering $42,300.\nPICK: other a1' };
+    if (sys.startsWith('You explain a message') && /Spanish/.test(sys)) return { response: 'Su aseguradora le ofrece $41,200 por las reparaciones de su vivienda. La persona debe firmar y devolver el formulario de liberación antes del 15 de diciembre. No menciona la casa de huéspedes.\nPICK: low a1' };
+    if (/LANGUAGE: the person reads Spanish/.test(sys) && /agotad|no puedo m|abrumad/i.test(last) && /BREATHE OFFERED: no/.test(sys)) return { response: 'Es mucho para cargar, y tiene sentido sentirse así. Vamos un paso pequeño a la vez.\nACTION: breathe' };
+    if (/LANGUAGE: the person reads Spanish/.test(sys) && /h[aá]gala|m[aá]s corta|reclamo es/i.test(last) && /a letter to the insurer is written/.test(sys)) return { response: 'Hago ese cambio en su carta ahora.\nACTION: edit' };
+    if (/LANGUAGE: the person reads Spanish/.test(sys)) return { response: 'Su aseguradora debe acusar recibo de un reclamo dentro de los 15 días siguientes al aviso [10]. También puedo escribirle una carta.\nACTION: letter:quiet' };
     if (sys.startsWith('You explain a message') && /need the following/.test(last)) return { response: 'The person is asked to send a list of damaged items with receipts and photographs.\nPICK: other a1' };
     if (sys.startsWith('You explain a message')) return { response: 'They are offering $41,200 for the repairs to your home. They say this is based on their adjuster\'s estimate, and they ask you to sign and return the release form by December 15.\nPICK: low a1' };
     if (sys.startsWith('You edit a letter')) {
@@ -65,7 +75,7 @@ const mockAI = {
       const ins = (last.match(/<instruction>([\s\S]*)<\/instruction>/) || [])[1] || '';
       const paras = letter.split('\n\n');
       if (/LOSEFACTS/.test(ins)) return { response: letter.replace(/\$[\d,]+/g, 'an amount') };
-      if (/short/i.test(ins)) return { response: paras.filter((x, i) => i !== 2).join('\n\n') };
+      if (/short|corta/i.test(ins)) return { response: paras.filter((x, i) => i !== 2).join('\n\n') };
       const num = (ins.match(/\b[A-Z]{0,3}-?\d[\d-]{3,}\b/) || [])[0];
       return { response: num ? letter.replace('[claim number]', num).replace(/^Subject: (.*)$/m, (m, a) => 'Subject: ' + a.replace(/ - Claim .*/, '') + ' - Claim ' + num) : letter.replace('Dear Claims Team,', 'Dear Claims Team,\n\nMy claim number is [claim number].') };
     }

@@ -6,7 +6,7 @@
 
 /* ---------- sidebar: deep ink ---------- */
 .side { background: var(--ink); color: var(--on-ink); display: flex; flex-direction: column; padding: 14px 12px 18px; overflow-y: auto; min-height: 0; }
-:root[data-theme="dark"] .side { background: #0F0D0B; color: #EEE9DF; }
+:root[data-theme="dark"] .side { background: var(--deep); color: var(--on-ink); }
 .side-top { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; }
 .side .brand { color: inherit; }
 .side-close { display: none; color: inherit; }
@@ -268,3 +268,30 @@
   .field input, .field textarea { border: 0; border-bottom: 1px solid #999; border-radius: 0; }
   .ss { break-inside: avoid; }
 }
+
+/* ---------- settings in the sidebar: language and theme ---------- */
+.side-set { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding: 12px 4px 0; border-top: 1px solid var(--ink-line); }
+.side-tog { min-height: 44px; padding: 0 12px; background: transparent; color: var(--on-ink); border: 1px solid var(--ink-line); border-radius: var(--r); font-size: 15px; cursor: pointer; }
+.side-tog:hover { border-color: var(--on-ink-2); }
+.lang-line { margin-top: 20px; }
+.lang-line .linkbtn { padding: 0; font-size: 16px; }
+
+/* ---------- the Spanish copy under the letter (Spanish only) ---------- */
+.es-copy { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 16px; line-height: 1.55; color: var(--ink); }
+.es-copy h2 { font-size: 15px; letter-spacing: 0; color: var(--ink-3); display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.es-copy h2::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.es-copy .es-note { font-size: 15px; color: var(--ink-2); margin-bottom: 16px; }
+.es-copy p { margin: 0 0 .85em; white-space: pre-wrap; }
+.es-copy p.subj { font-weight: 600; }
+.es-copy .blank { background: var(--hl); border-radius: 2px; }
+.es-copy .es-raw { color: var(--ink-2); font-family: var(--serif); }
+.es-hint { font-family: var(--sans); font-size: 15px; color: var(--ink-3); margin-top: -4px; }
+.es-line { display: block; margin-top: 4px; font-family: var(--sans); font-size: 15px; font-style: normal; color: var(--ink-2); }
+.ss .say + .es-line { margin-top: 8px; }
+.es-stale { font-size: 15px; color: var(--ink-2); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+
+/* ---------- dark: the same system flipped ---------- */
+:root[data-theme="dark"] .sheet { box-shadow: 0 0 0 1px var(--rule); }
+:root[data-theme="dark"] .scrim { background: rgba(0, 0, 0, .5); }
+:root[data-theme="dark"] .side-history a:hover, :root[data-theme="dark"] .side-links a:hover { background: rgba(238, 233, 223, .07); }
+@media print { .es-copy { display: none !important; } }

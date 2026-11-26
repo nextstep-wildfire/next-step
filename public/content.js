@@ -1,5 +1,6 @@
 /* Sourced content for Next Step, moved unchanged from the v4 app. Facts here must match public/sources.json
-   (the [n] numbers and src lists point into it). The English ask sentence goes into the letter, so it stays English. */
+   (the [n] numbers and src lists point into it). The English ask sentence goes into the letter, so it stays English;
+   a Spanish reader sees our own Spanish copy of it (ASK_ES). */
 (function () {
   function M(a, b, c) { return { en: a, es: b, zh: c }; }
   var ASKS = {
@@ -10,7 +11,7 @@
     ],
     low: [
       ['a1', 'Please explain in writing how you calculated the offer, line by line, and what it does not include.', M('Show how the number was figured, line by line', 'Mostrar cómo se calculó la cifra, partida por partida', '逐项说明金额是怎么算出来的')],
-      ['a2', 'Please review the second contractor estimate I am sending with this letter and tell me in writing what differs from your estimate.', M('Get a second contractor estimate', 'Obtener un segundo presupuesto de contratista', '获取第二份承包商报价')],
+      ['a2', 'Please review the second contractor estimate I am sending with this letter and tell me in writing what differs from your estimate.', M('Review my own contractor’s estimate', 'Revisar el presupuesto de mi propio contratista', '获取第二份承包商报价')],
       ['a3', 'Please confirm in writing the policy limits that apply to my dwelling, belongings and living expenses.', M('Confirm my policy limits', 'Confirmar los límites de mi póliza', '确认我的保单额度')]
     ],
     quiet: [
@@ -201,7 +202,8 @@
         { h: 'Before you call', items: [
           G('Have your policy and its declarations page in front of you, so you can check any limit they mention.', [19]),
           G('Have your claim number and something to write with.'),
-          G('Open a fresh page in your claim diary for this call.', [16])
+          G('Open a fresh page in your claim diary for this call.', [16]),
+          G('If you would rather speak Spanish, ask at the start of the call whether they can give you an interpreter.', null, ['es'])
         ] },
         { h: 'What to say first', say: true },
         { h: 'What to ask for', ask: true, items: [
@@ -232,7 +234,8 @@
           G('Your own contractor’s estimate, if you have one. The insurer’s estimate can have errors or miss local costs.', [16]),
           G('Receipts for living costs since the fire, such as hotel bills.', [18]),
           G('A list of the damage, room by room, so nothing is missed.'),
-          G('Bills for any emergency repairs you have already paid for.')
+          G('Bills for any emergency repairs you have already paid for.'),
+          G('If you would rather speak Spanish, ask before the visit whether they can send someone who speaks Spanish or an interpreter.', null, ['es'])
         ] },
         { h: 'What to say when they arrive', say: true },
         { h: 'What to show them and ask', items: [
@@ -266,5 +269,90 @@
   };
   /* The one ask of a follow-up email after a call or a visit. Sourced: confirm what was said in writing [17][18]. */
   var FOLLOWUP = ['fu', 'Please confirm in writing that this summary of our conversation is correct, or tell me in writing what is different.', M('Confirm what was said', 'Confirmar lo que se dijo', '确认谈话内容')];
-  window.NS_CONTENT = { M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP, ASK_SUBJECT: ASK_SUBJECT };
+
+  /* Spanish (an unreviewed draft, listed for a native speaker in docs/DESIGN.md).
+     Letters to the insurer stay in English. These are the Spanish copy of each fixed English line, written once by
+     us so the model never translates the ask or the subject. */
+  var ASK_ES = {
+    denied: { a1: 'Les pido que expliquen su decisión por escrito e indiquen las secciones de la póliza en las que se basa.', a2: 'Les pido que me envíen los documentos de mi expediente de reclamo, incluidos el informe del ajustador, el presupuesto y las fotos.', a3: 'Les pido que revisen su decisión de nuevo. Les envío documentos que respaldan mi reclamo.' },
+    low: { a1: 'Les pido que expliquen por escrito cómo calcularon la oferta, partida por partida, y qué no incluye.', a2: 'Les pido que revisen el segundo presupuesto de contratista que envío con esta carta y me indiquen por escrito en qué se diferencia de su presupuesto.', a3: 'Les pido que confirmen por escrito los límites de la póliza que se aplican a mi vivienda, mis pertenencias y mis gastos de vida.' },
+    quiet: { a1: 'Les pido que me envíen por escrito una actualización del estado de mi reclamo y del siguiente paso.', a2: 'Les pido que un supervisor de reclamos revise mi reclamo y se comunique conmigo.', a3: 'Les pido que confirmen por escrito los plazos que se aplican a mi reclamo.' },
+    smoke: { a1: 'Les pido que expliquen por escrito cómo investigarán los daños por humo y ceniza en mi vivienda, incluidas las pruebas.', a2: 'Les pido que confirmen por escrito si pagarán las pruebas de mi vivienda hechas por un profesional calificado, y qué necesitan de mí.' },
+    other: { a1: 'Les pido que indiquen por escrito los documentos, formularios e información que necesitan de mí para tramitar mi reclamo.', a2: 'Les pido que confirmen por escrito, una vez que reciban los documentos que les envío, si necesitan algo más de mí.' },
+    fu: 'Les pido que confirmen por escrito que este resumen de nuestra conversación es correcto, o que me indiquen por escrito qué es diferente.'
+  };
+  var ASK_SUBJECT_ES = {
+    denied: { a1: 'Solicitud de una explicación por escrito de la decisión sobre el reclamo', a2: 'Solicitud de copias de mi expediente de reclamo', a3: 'Solicitud para revisar de nuevo la decisión sobre el reclamo' },
+    low: { a1: 'Solicitud de una explicación partida por partida de la oferta de liquidación', a2: 'Solicitud para revisar el presupuesto de mi contratista', a3: 'Solicitud para confirmar los límites de mi póliza' },
+    quiet: { a1: 'Solicitud de una actualización por escrito de mi reclamo', a2: 'Solicitud de que un supervisor de reclamos revise mi reclamo', a3: 'Solicitud para confirmar los plazos de mi reclamo' },
+    smoke: { a1: 'Solicitud de un plan por escrito para investigar el humo y la ceniza', a2: 'Solicitud para confirmar el pago de las pruebas de humo y ceniza' },
+    other: { a1: 'Solicitud de una lista de lo que necesitan de mí', a2: 'Solicitud para confirmar que no necesitan nada más' },
+    fu: 'Confirmación de nuestra conversación'
+  };
+  var SIT_SUBJECT_ES = {
+    denied: 'Solicitud de una explicación por escrito de la decisión sobre el reclamo',
+    low: 'Solicitud de una explicación por escrito de la oferta de liquidación',
+    quiet: 'Solicitud de una actualización por escrito de mi reclamo',
+    smoke: 'Solicitud de una respuesta por escrito sobre la investigación del humo y la ceniza',
+    other: 'Solicitud sobre mi reclamo'
+  };
+  /* Every fixed line of the call and visit sheets, in Spanish. Keyed by the English, so the sourced English stays the
+     one place a line is defined. */
+  var SHEET_ES = {
+    'Call sheet': 'Hoja para la llamada',
+    'Visit sheet': 'Hoja para la visita',
+    'For a phone call with your insurer. Keep it open while you talk and fill in the log as you go.': 'Para una llamada con su aseguradora. Téngala abierta mientras habla y llene el registro sobre la marcha.',
+    'For the adjuster’s visit to your home. Keep it with you and fill in the log before they leave.': 'Para la visita del ajustador a su vivienda. Llévela consigo y llene el registro antes de que se vaya.',
+    'Before you call': 'Antes de llamar',
+    'What to say first': 'Qué decir primero',
+    'What to ask for': 'Qué pedir',
+    'While you talk': 'Mientras habla',
+    'After the call': 'Después de la llamada',
+    'What to have ready': 'Qué tener listo',
+    'What to say when they arrive': 'Qué decir cuando llegue',
+    'What to show them and ask': 'Qué mostrar y qué preguntar',
+    'What to photograph': 'Qué fotografiar',
+    'While they are there': 'Durante la visita',
+    'After the visit': 'Después de la visita',
+    'Have your policy and its declarations page in front of you, so you can check any limit they mention.': 'Tenga a mano su póliza y su página de declaraciones, para revisar cualquier límite que mencionen.',
+    'Have your claim number and something to write with.': 'Tenga su número de reclamo y algo con qué escribir.',
+    'Open a fresh page in your claim diary for this call.': 'Abra una página nueva en su diario del reclamo para esta llamada.',
+    'If they offer to settle on the call, you do not have to agree then. Ask for the offer in writing so you can review it with your policy.': 'Si le ofrecen un acuerdo durante la llamada, no tiene que aceptarlo en ese momento. Pida la oferta por escrito para revisarla con su póliza.',
+    'Ask how they will inspect and test for smoke and ash, and who will do it.': 'Pregunte cómo van a inspeccionar y hacer pruebas de humo y ceniza, y quién lo hará.',
+    'Ask when you will hear back, and agree on a date.': 'Pregunte cuándo tendrá noticias y acuerden una fecha.',
+    'If they say something is excluded, limited or has conditions, ask them to point to the exact part of your policy.': 'Si le dicen que algo está excluido, limitado o tiene condiciones, pida que le indiquen la parte exacta de su póliza.',
+    'Ask for the name, job title and phone number of the person you speak with, and their supervisor’s name.': 'Pida el nombre, el cargo y el teléfono de la persona con quien habla, y el nombre de su supervisor.',
+    'Ask them to put any answer or promise in writing.': 'Pida que pongan por escrito cualquier respuesta o promesa.',
+    'Write down the date, the time, who you spoke with and what was said. The log below is for that.': 'Anote la fecha, la hora, con quién habló y lo que se dijo. El registro de abajo es para eso.',
+    'Stay calm and polite. Assume anything you say may go into their records.': 'Mantenga la calma y la cortesía. Suponga que todo lo que diga puede quedar en sus registros.',
+    'If they ask for a recorded statement, you can wait until you understand your rights. If you agree to one, you can record it yourself too.': 'Si le piden una declaración grabada, puede esperar hasta entender sus derechos. Si acepta darla, usted también puede grabarla.',
+    'Send a short email that confirms what was said and anything they promised. I can write it from your log.': 'Envíe un correo breve que confirme lo que se dijo y lo que prometieron. Puedo escribirlo a partir de su registro.',
+    'Your policy and its declarations page.': 'Su póliza y su página de declaraciones.',
+    'Your own contractor’s estimate, if you have one. The insurer’s estimate can have errors or miss local costs.': 'El presupuesto de su propio contratista, si lo tiene. El presupuesto de la aseguradora puede tener errores o no incluir costos locales.',
+    'Receipts for living costs since the fire, such as hotel bills.': 'Recibos de gastos de vida desde el incendio, como facturas de hotel.',
+    'A list of the damage, room by room, so nothing is missed.': 'Una lista de los daños, habitación por habitación, para que no se pase nada por alto.',
+    'Bills for any emergency repairs you have already paid for.': 'Facturas de cualquier reparación de emergencia que ya haya pagado.',
+    'Show them all of the damage, including smoke, soot and ash that is hard to see.': 'Muéstrele todos los daños, incluidos el humo, el hollín y la ceniza que cuesta ver.',
+    'If anyone in the home has asthma or allergies, tell the adjuster.': 'Si alguien en la casa tiene asma o alergias, dígaselo al ajustador.',
+    'Ask for a written scope of work: the repairs they believe are needed.': 'Pida un alcance de trabajo por escrito: las reparaciones que consideran necesarias.',
+    'If they say something is excluded or limited, ask them to show you the part of the policy.': 'Si le dicen que algo está excluido o limitado, pida que le muestren la parte de la póliza.',
+    'If they offer to settle on the spot, you do not have to sign then. Ask for the offer in writing and review your policy first.': 'Si le ofrecen un acuerdo en el momento, no tiene que firmar ahí. Pida la oferta por escrito y revise primero su póliza.',
+    'Ask for their name, company and phone number.': 'Pida su nombre, su empresa y su número de teléfono.',
+    'If you rent, your own policy covers your belongings and living costs. Your landlord’s insurance does not cover your belongings.': 'Si alquila, su propia póliza cubre sus pertenencias y sus gastos de vida. El seguro de su arrendador no cubre sus pertenencias.',
+    'All the damage you can see, before any cleanup.': 'Todos los daños que se vean, antes de limpiar.',
+    'The roof, stucco and siding, windows, plumbing, heating and ducts, and interior walls.': 'El techo, el estuco y el revestimiento, las ventanas, la plomería, la calefacción y los conductos, y las paredes interiores.',
+    'What is left of the home and your belongings, in photos and video, before any debris removal.': 'Lo que queda de la vivienda y de sus pertenencias, en fotos y video, antes de retirar los escombros.',
+    'Old photos of the home help you remember what you had.': 'Las fotos antiguas de la vivienda le ayudan a recordar lo que tenía.',
+    'Keep damaged items until they have been photographed.': 'Conserve los artículos dañados hasta que estén fotografiados.',
+    'Only go where it is safe.': 'Vaya solo a donde sea seguro.',
+    'Take notes during the visit. The log below is for that.': 'Tome notas durante la visita. El registro de abajo es para eso.',
+    'For a serious loss, one look by their adjuster is rarely enough. You may need your own contractor or a specialist too.': 'En una pérdida grave, una sola revisión del ajustador rara vez basta. Quizá necesite también a su propio contratista o a un especialista.',
+    'Send a short email that confirms what the adjuster said and what happens next. I can write it from your log.': 'Envíe un correo breve que confirme lo que dijo el ajustador y lo que sigue. Puedo escribirlo a partir de su registro.',
+    'If you would rather speak Spanish, ask at the start of the call whether they can give you an interpreter.': 'Si prefiere hablar en español, pregunte al comienzo de la llamada si pueden darle un intérprete.',
+    'If you would rather speak Spanish, ask before the visit whether they can send someone who speaks Spanish or an interpreter.': 'Si prefiere hablar en español, pregunte antes de la visita si pueden enviar a alguien que hable español o un intérprete.',
+    'Date': 'Fecha', 'Time': 'Hora', 'Who you spoke with': 'Con quién habló', 'Name and job title': 'Nombre y cargo', 'Their phone number': 'Su número de teléfono',
+    'What they said': 'Lo que dijeron', 'What they will do, and by when': 'Lo que harán, y para cuándo', 'Adjuster': 'Ajustador', 'Name and company': 'Nombre y empresa',
+    'What they looked at': 'Qué revisaron', 'What happens next, and by when': 'Lo que sigue, y para cuándo'
+  };
+  window.NS_CONTENT = { ASK_ES: ASK_ES, ASK_SUBJECT_ES: ASK_SUBJECT_ES, SIT_SUBJECT_ES: SIT_SUBJECT_ES, SHEET_ES: SHEET_ES, M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP, ASK_SUBJECT: ASK_SUBJECT };
 })();

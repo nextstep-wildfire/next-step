@@ -14,63 +14,68 @@
 <link rel="stylesheet" href="/desk.css">
 </head>
 <body>
-<a class="skip" href="#composerIn">Skip to the message box</a>
+<a class="skip" href="#composerIn" data-t="skip">Skip to the message box</a>
 <div class="app" id="app">
 
-  <aside class="side" id="side" aria-label="Chats and help">
+  <aside class="side" id="side" aria-label="Chats and help" data-ta="sideAria">
     <div class="side-top">
       <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
-      <button class="iconbtn side-close" id="sideClose" type="button" aria-label="Close menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
+      <button class="iconbtn side-close" id="sideClose" type="button" aria-label="Close menu" data-ta="closeMenu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
     </div>
-    <button class="side-new" id="newChat" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>New chat</button>
+    <button class="side-new" id="newChat" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg><span data-t="newChat">New chat</span></button>
     <nav class="side-history" aria-labelledby="histLbl">
-      <p class="side-lbl" id="histLbl">Chats</p>
+      <p class="side-lbl" id="histLbl" data-t="histLbl">Chats</p>
       <ul id="history"></ul>
-      <p class="side-empty" id="histEmpty">Your chats stay on this device.</p>
+      <p class="side-empty" id="histEmpty" data-t="histEmpty">Your chats stay on this device.</p>
     </nav>
-    <nav class="side-links" aria-label="Help">
-      <a href="#/record" data-page="record">Record</a>
-      <a href="#/steps" data-page="steps">Steps of a claim</a>
-      <a href="#/breathe" data-page="breathe">Take a breath</a>
-      <a href="#/phones" data-page="phones">Phone lines</a>
+    <nav class="side-links" aria-label="Help" data-ta="helpAria">
+      <a href="#/record" data-page="record" data-t="record">Record</a>
+      <a href="#/steps" data-page="steps" data-t="steps">Steps of a claim</a>
+      <a href="#/breathe" data-page="breathe" data-t="breathe">Take a breath</a>
+      <a href="#/phones" data-page="phones" data-t="phones">Phone lines</a>
     </nav>
+    <div class="side-set">
+      <button type="button" class="side-tog" id="langBtn" lang="es">Español</button>
+      <button type="button" class="side-tog" id="themeBtn" aria-pressed="false">Dark mode</button>
+    </div>
   </aside>
   <div class="scrim" id="scrim" hidden></div>
 
   <div class="desk" id="desk">
     <header class="topbar">
-      <button class="iconbtn" id="sideOpen" type="button" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg></button>
+      <button class="iconbtn" id="sideOpen" type="button" aria-label="Open menu" data-ta="openMenu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg></button>
       <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
       <button class="iconbtn" id="newChatTop" type="button" aria-label="New chat"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg></button>
     </header>
 
-    <section class="talk" id="talk" aria-label="Chat">
-      <button class="pin" id="pin" type="button" hidden><span class="pin-k" id="pinKind">Your letter</span><span class="pin-a">Tap to open</span></button>
+    <section class="talk" id="talk" aria-label="Chat" data-ta="chatAria">
+      <button class="pin" id="pin" type="button" hidden><span class="pin-k" id="pinKind">Your letter</span><span class="pin-a" data-t="tap">Tap to open</span></button>
       <div class="thread" id="thread" aria-live="polite"></div>
       <form class="composer" id="composer" autocomplete="off">
         <label class="sr" for="composerIn" id="composerLbl">Message</label>
         <textarea id="composerIn" rows="1" maxlength="2500" placeholder="Type what happened, or paste their message"></textarea>
-        <button class="send" id="send" type="submit" aria-label="Send"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4M5 9l5-5 5 5"/></svg></button>
+        <button class="send" id="send" type="submit" aria-label="Send" data-ta="send"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4M5 9l5-5 5 5"/></svg></button>
       </form>
-      <p class="fine" id="fine">General information from public sources, not legal or insurance advice. Next Step is an AI guide, not staffed.</p>
+      <p class="fine" id="fine" data-t="fine">General information from public sources, not legal or insurance advice. Next Step is an AI guide, not staffed.</p>
     </section>
 
-    <section class="paperwrap" id="paperwrap" aria-label="Your paper" hidden>
+    <section class="paperwrap" id="paperwrap" aria-label="Your paper" data-ta="paperAria" hidden>
       <div class="paperbar">
         <span class="label" id="paperKind">Your letter</span>
         <div class="paperbtns">
           <button class="btn sm" id="copyBtn" type="button">Copy</button>
-          <button class="btn ghost sm" id="printBtn" type="button">Save as PDF</button>
-          <button class="btn ghost sm paperclose" id="paperClose" type="button">Close</button>
+          <button class="btn ghost sm" id="printBtn" type="button">Download PDF</button>
+          <button class="btn ghost sm paperclose" id="paperClose" type="button" data-t="close">Close</button>
         </div>
       </div>
       <div class="paperscroll">
         <article class="sheet" id="sheet">
           <div class="explain" id="explain" hidden></div>
           <div class="sheetdoc" id="sheetDoc" hidden></div>
-          <div class="letter" id="letter" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Your letter. You can type on it."></div>
+          <div class="letter" id="letter" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Your letter. You can type on it." data-ta="letterAria" lang="en"></div>
+          <div class="es-copy" id="esCopy" hidden></div>
         </article>
-        <p class="paperfine">A draft. Check every date, number and name before you send it.</p>
+        <p class="paperfine" data-t="paperfine">A draft. Check every date, number and name before you send it.</p>
       </div>
     </section>
 
@@ -80,6 +85,7 @@
 <p class="toast" id="toast" role="status" aria-live="polite"></p>
 <noscript><p style="padding:24px">Next Step needs JavaScript. For help now, call the California Department of Insurance at 1-800-927-4357.</p></noscript>
 <script src="/content.js" defer></script>
+<script src="/pdf.js" defer></script>
 <script src="/desk.js" defer></script>
 </body>
 </html>

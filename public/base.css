@@ -37,6 +37,10 @@
   --on-ink: #1A1714; --on-ink-2: #4E473F; --ink-line: #D6D0C4;
   color-scheme: dark;
 }
+/* The deep surfaces (the Desk's sidebar, the landing band) stay deep in dark: a darker ink, with the light text tokens. */
+:root[data-theme="dark"] .deep, :root[data-theme="dark"] .side, :root[data-theme="dark"] .band {
+  --deep: #0F0D0B; --on-ink: #EEE9DF; --on-ink-2: #A8A094; --ink-line: #36302A;
+}
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -48,7 +52,7 @@ a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; 
 a:hover { text-decoration-thickness: 2px; }
 button, input, textarea, select { font: inherit; color: inherit; letter-spacing: inherit; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--r); }
-::selection { background: var(--hl); color: #1F1B17; }
+::selection { background: var(--hl); color: var(--ink); }
 [hidden] { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 

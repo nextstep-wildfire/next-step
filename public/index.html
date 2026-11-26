@@ -16,20 +16,24 @@
 <body>
 <header class="top wrap">
   <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
-  <a class="toplink" href="/app/">Open the Desk</a>
+  <nav class="topnav">
+    <button type="button" class="toplink" id="langBtn" lang="es">Español</button>
+    <button type="button" class="iconbtn themebtn" id="themeBtn" aria-pressed="false" aria-label="Dark mode"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 12.5A6.5 6.5 0 0 1 7.5 4.5a6.5 6.5 0 1 0 8 8z"/></svg></button>
+    <a class="toplink desk-link" href="/app/" data-t="openDesk">Open the Desk</a>
+  </nav>
 </header>
 
 <main>
   <section class="hero wrap">
     <div class="hero-text">
-      <p class="label">For California wildfire insurance claims</p>
-      <h1>Every word to your insurer counts. Get each one right.</h1>
-      <p class="lede">Next Step helps you handle every exchange with your insurer: the letter you send, the message they send back, the phone call, the adjuster’s visit. So you ask for everything your policy owes you.</p>
+      <p class="label" data-t="kicker">For California wildfire insurance claims</p>
+      <h1 data-t="h1">Every word to your insurer counts. Get each one right.</h1>
+      <p class="lede" data-t="lede">Next Step helps you handle every exchange with your insurer: the letter you send, the message they send back, the phone call, the adjuster’s visit. So you ask for everything your policy owes you.</p>
       <div class="cta">
-        <a class="btn" id="startBtn" href="/app/">Start</a>
-        <a class="btn ghost" href="#demo" id="watchBtn">Watch it work</a>
+        <a class="btn" id="startBtn" href="/app/" data-t="start">Start</a>
+        <a class="btn ghost" href="#demo" id="watchBtn" data-t="watch">Watch it work</a>
       </div>
-      <p class="honest">Free, no account. General information from public sources, not legal or insurance advice.</p>
+      <p class="honest" data-t="honest">Free, no account. General information from public sources, not legal or insurance advice.</p>
     </div>
     <figure class="art" aria-hidden="true">
       <svg viewBox="16 88 448 214" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -60,53 +64,54 @@
   </section>
 
   <section class="demo wrap" id="demo" aria-labelledby="demoTitle">
-    <p class="label" id="demoTitle">The Desk, writing a letter</p>
-    <p class="sr">An example: someone whose insurer offered $42,300 against a $96,000 contractor estimate taps through four questions, and Next Step writes a short letter asking how the offer was calculated, line by line.</p>
+    <p class="label" id="demoTitle" data-t="demoTitle">The Desk, writing a letter</p>
+    <p class="sr" data-t="demoSr">An example: someone whose insurer offered $42,300 against a $96,000 contractor estimate taps through four questions, and Next Step writes a short letter asking how the offer was calculated, line by line.</p>
     <div class="dk" id="dk" aria-hidden="true">
       <div class="dk-talk">
         <div class="dk-thread" id="dkThread"></div>
-        <div class="dk-box"><span class="dk-in" id="dkIn">Type what happened, or paste their message</span><span class="dk-send"><svg viewBox="0 0 20 20"><path d="M10 16V4M5 9l5-5 5 5"/></svg></span></div>
+        <div class="dk-box"><span class="dk-in" id="dkIn" data-t="holder">Type what happened, or paste their message</span><span class="dk-send"><svg viewBox="0 0 20 20"><path d="M10 16V4M5 9l5-5 5 5"/></svg></span></div>
       </div>
       <div class="dk-paper" id="dkPaper">
-        <div class="dk-bar"><span class="label">Your letter</span><span class="dk-btns"><span class="dk-b solid">Copy</span><span class="dk-b">Save as PDF</span></span></div>
+        <div class="dk-bar"><span class="label" data-t="yourLetter">Your letter</span><span class="dk-btns"><span class="dk-b solid" data-t="copy">Copy</span><span class="dk-b" data-t="pdf">Download PDF</span></span></div>
         <div class="dk-sheet" id="dkSheet"></div>
       </div>
     </div>
-    <p class="demo-foot"><button type="button" class="again" id="dkAgain">Play it again</button><span>A real letter takes about the same few taps, with your own details.</span></p>
+    <p class="demo-foot"><button type="button" class="again" id="dkAgain" data-t="again">Play it again</button><span data-t="demoFoot">A real letter takes about the same few taps, with your own details.</span></p>
   </section>
 
   <section class="ex wrap" aria-labelledby="exTitle">
-    <p class="label">Every exchange</p>
-    <h2 id="exTitle">One desk for everything that passes between you and your insurer.</h2>
+    <p class="label" data-t="exLabel">Every exchange</p>
+    <h2 id="exTitle" data-t="exTitle">One desk for everything that passes between you and your insurer.</h2>
     <ul class="ex-list">
-      <li><h3>The letter</h3><p>They said no, offered less or went quiet. Pick one clear ask and get a finished letter to copy into an email.</p><a href="/app/#/start/letter">Write a letter</a></li>
-      <li><h3>Their message</h3><p>Paste what they sent. Read it in plain words, see what to ask for, and get your reply.</p><a href="/app/#/start/msg">Explain a message</a></li>
-      <li><h3>The call</h3><p>A call sheet with what to say first, what to ask for, and a log to fill in while you talk.</p><a href="/app/#/start/call">Get ready for a call</a></li>
-      <li><h3>The visit</h3><p>A visit sheet with what to have ready, what to ask, and what to photograph before the adjuster comes.</p><a href="/app/#/start/visit">Get ready for a visit</a></li>
+      <li><h3 data-t="ex1h">The letter</h3><p data-t="ex1p">They said no, offered less or went quiet. Pick one clear ask and get a finished letter to copy into an email.</p><a href="/app/#/start/letter" data-t="ex1a">Write a letter</a></li>
+      <li><h3 data-t="ex2h">Their message</h3><p data-t="ex2p">Paste what they sent. Read it in plain words, see what to ask for, and get your reply.</p><a href="/app/#/start/msg" data-t="ex2a">Explain a message</a></li>
+      <li><h3 data-t="ex3h">The call</h3><p data-t="ex3p">A call sheet with what to say first, what to ask for, and a log to fill in while you talk.</p><a href="/app/#/start/call" data-t="ex3a">Get ready for a call</a></li>
+      <li><h3 data-t="ex4h">The visit</h3><p data-t="ex4p">A visit sheet with what to have ready, what to ask, and what to photograph before the adjuster comes.</p><a href="/app/#/start/visit" data-t="ex4a">Get ready for a visit</a></li>
     </ul>
-    <p class="ex-more">Every letter, call and visit goes into one Record you can copy, kept on your device only.</p>
+    <p class="ex-more" data-t="exMore">Every letter, call and visit goes into one Record you can copy, kept on your device only.</p>
   </section>
 
   <section class="band" aria-labelledby="bandTitle">
     <div class="wrap band-in">
       <div class="band-head">
-        <p class="label">If you need a person</p>
-        <h2 id="bandTitle">Next Step isn’t staffed. These public lines are.</h2>
+        <p class="label" data-t="bandLabel">If you need a person</p>
+        <h2 id="bandTitle" data-t="bandTitle">Next Step isn’t staffed. These public lines are.</h2>
       </div>
       <ul class="nums">
-        <li><span>California Department of Insurance, for your policy or a dispute with your insurer</span><a href="tel:18009274357">1-800-927-4357</a></li>
-        <li><span>FEMA disaster assistance, for needs insurance does not cover</span><a href="tel:18006213362">1-800-621-3362</a></li>
-        <li><span>988 Suicide &amp; Crisis Lifeline, call or text any time</span><a href="tel:988">988</a></li>
+        <li><span data-t="n1">California Department of Insurance, for your policy or a dispute with your insurer</span><a href="tel:18009274357">1-800-927-4357</a></li>
+        <li><span data-t="n2">FEMA disaster assistance, for needs insurance does not cover</span><a href="tel:18006213362">1-800-621-3362</a></li>
+        <li><span data-t="n3">988 Suicide &amp; Crisis Lifeline, call or text any time</span><a href="tel:988">988</a></li>
       </ul>
-      <p class="band-honest" id="disclaimer">Next Step is an AI guide, not a person, and no one here will call you back. It gives general information drawn from public sources such as the California Department of Insurance and United Policyholders. It is not legal or insurance advice, it can be wrong, and your own policy is what counts.</p>
+      <p class="band-honest" id="disclaimer" data-t="disclaimer">Next Step is an AI guide, not a person, and no one here will call you back. It gives general information drawn from public sources such as the California Department of Insurance and United Policyholders. It is not legal or insurance advice, it can be wrong, and your own policy is what counts.</p>
     </div>
   </section>
 </main>
 
 <footer class="wrap">
-  <p>A student project from the Fung Fellowship, built with mentorship from The After Collective.</p>
-  <p>Your chats, letters and Record stay in this browser. When you ask for a letter or an answer, what you typed is sent to the AI to write it and is not stored by us.</p>
+  <p data-t="foot1">A student project from the Fung Fellowship, built with mentorship from The After Collective.</p>
+  <p data-t="foot2">Your chats, letters and Record stay in this browser. When you ask for a letter or an answer, what you typed is sent to the AI to write it and is not stored by us.</p>
+  <p data-t="foot3" hidden></p>
 </footer>
-<script src="/landing.js" defer></script>
+<script src="/landing.js"></script>
 </body>
 </html>

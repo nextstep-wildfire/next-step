@@ -67,6 +67,7 @@ body { overflow-x: hidden; }
 
 /* the one deep ink band: real lines set large and light, and the honesty line */
 .band { background: var(--ink); color: var(--on-ink); }
+:root[data-theme="dark"] .band { background: var(--deep); }
 .band-in { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 32px 64px; padding-top: 88px; padding-bottom: 88px; }
 .band .label { color: var(--on-ink-2); }
 .band h2 { font-size: clamp(32px, 3.6vw, 48px); letter-spacing: -0.035em; margin-top: 18px; max-width: 14ch; }
@@ -110,3 +111,11 @@ footer p + p { margin-top: 6px; }
   .nums a { font-size: 34px; }
 }
 .art .fill { fill: var(--paper); }
+
+/* header: language, theme, and the way into the Desk */
+.topnav { display: flex; align-items: center; gap: 4px; }
+button.toplink { background: none; border: 0; padding: 0 10px; cursor: pointer; font-family: var(--sans); }
+.themebtn { color: var(--ink-2); }
+.themebtn:hover { color: var(--ink); }
+.desk-link { padding-left: 10px; }
+@media (max-width: 760px) { .desk-link { display: none; } }
