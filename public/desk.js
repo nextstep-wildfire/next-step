@@ -343,6 +343,7 @@
       me(label);
       if (v === 'breathe') location.hash = '#/breathe';
       else if (v === 'phones') location.hash = '#/phones';
+      else if (v === 'keep' && chat.afterCare) { var ac = chat.afterCare; chat.afterCare = null; act(ac.a, ac.t); }
       setComposer();
     }
   }
@@ -438,7 +439,8 @@
     }).then(function (fin) {
       node.remove(); setBusy(false);
       say({ r: 'a', x: fin.text });
-      if (care) offerCare();
+      // With the care card up, the next step waits for "Keep going" instead of rushing on.
+      if (care) { offerCare(); chat.afterCare = fin.action ? { a: fin.action, t: text } : null; persist(); return; }
       act(fin.action, text);
     }, function (err) {
       node.remove(); setBusy(false);
@@ -610,6 +612,7 @@
   function placeSheet(sh) {
     sh.log = sh.log || {};
     chat.sheet = sh; persist();
+    document.querySelector('.paperscroll').scrollTop = 0;
     renderPaper(false, true);
   }
   /* Which checklist lines apply: a line can be only for some situations, a standing or lost home, or renters. */
@@ -640,7 +643,7 @@
     });
     out.push('<section class="ss log"><h3>' + (sh.kind === 'call' ? 'Call log' : 'Visit log') + '</h3><div class="fields">' + def.log.map(function (f) {
       var v = esc(sh.log[f[0]] || (f[0] === 'date' ? '' : ''));
-      var input = f[2] === 'long' ? '<textarea rows="3" data-log="' + f[0] + '" id="lg-' + f[0] + '">' + v + '</textarea>' : '<input type="' + (f[2] || 'text') + '" data-log="' + f[0] + '" id="lg-' + f[0] + '" value="' + v + '">';
+      var input = f[2] === 'long' ? '<textarea rows="3" data-log="' + f[0] + '" id="lg-' + f[0] + '">' + v + '</textarea>' : '<input type="' + (f[2] || 'text') + '" data-log="' + f[0] + '" id="lg-' + f[0] + '" value="' + v + '"' + (f[3] ? ' placeholder="' + esc(f[3]) + '"' : '') + '>';
       return '<label class="field' + (f[2] === 'long' ? ' wide' : '') + '" for="lg-' + f[0] + '"><span>' + esc(f[1]) + '</span>' + input + '</label>';
     }).join('') + '</div><p class="sheetbtns"><button class="btn sm" type="button" data-sheet="record">' + esc(sh.recorded ? T.updateRecord : T.saveRecord) + '</button></p></section>');
     if (used.length || gen) out.push('<section class="ss srcs"><h3>' + esc(T.sourcesH) + '</h3><ol>' + used.map(function (d) { return '<li><a href="' + esc(SOURCES[d].url) + '" target="_blank" rel="noopener">' + esc(SOURCES[d].title) + '</a></li>'; }).join('') + '</ol>' + (gen ? '<p class="gennote">Lines marked general guidance are common sense from us, not from a source. Your policy decides.</p>' : '') + '</section>');
@@ -781,6 +784,7 @@
   }
   function placeLetter(text, fresh, changedIdx) {
     chat.letter = text; persist();
+    if (fresh) document.querySelector('.paperscroll').scrollTop = 0;
     var ps = paras(text);
     letterEl.innerHTML = ps.map(function (p, i) { return paraHtml(p, i, (fresh && !reduced ? 'in' : '') + (changedIdx && changedIdx.indexOf(i) !== -1 ? ' changed' : '')); }).join('');
     if (fresh && !reduced) [].forEach.call(letterEl.children, function (p, i) { p.style.animationDelay = (i * 110) + 'ms'; });
@@ -809,6 +813,8 @@
     letterEl.hidden = !chat.letter;
     $('copyBtn').disabled = !(chat.letter || chat.sheet); $('printBtn').disabled = !(chat.letter || chat.sheet);
     $('sheet').classList.toggle('is-sheet', !!chat.sheet);
+    // One solid button per screen: on a sheet it is Save to Record, so Copy steps back to a ghost.
+    $('copyBtn').classList.toggle('ghost', !!chat.sheet);
   }
   // Typing on the paper: keep the saved letter in step with what is on the sheet.
   var editT;
@@ -868,6 +874,7 @@
   }
   function openChat(c) {
     chat = c; store.cur = c.id; save();
+    document.querySelector('.paperscroll').scrollTop = 0;
     closePage(); renderAll(); renderHistory(); closeSide();
     var h = thread.querySelector('.opening h1'); if (h && !isPhone()) input.focus();
   }
@@ -892,6 +899,7 @@
   function closePage() { $('page').hidden = true; $('page').innerHTML = ''; clearInterval(breathTimer); [].forEach.call(document.querySelectorAll('.side-links a'), function (a) { a.removeAttribute('aria-current'); }); }
   function showPage(name, html) {
     var p = $('page');
+    if ($('paperwrap').classList.contains('open')) { $('paperwrap').classList.remove('open'); document.body.style.overflow = ''; }
     p.innerHTML = '<div class="page-in"><a class="back" href="#">← Back to the chat</a>' + html + '</div>';
     p.hidden = false; p.scrollTop = 0;
     p.querySelector('.back').addEventListener('click', function (e) { e.preventDefault(); location.hash = ''; });

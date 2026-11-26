@@ -211,7 +211,7 @@
           G('Send a short email that confirms what was said and anything they promised. I can write it from your log.', [17, 18])
         ] }
       ],
-      log: [['date', 'Date', 'date'], ['time', 'Time', 'time'], ['who', 'Who you spoke with, and their job title'], ['phone', 'Their phone number', 'tel'], ['said', 'What they said', 'long'], ['next', 'What they will do, and by when', 'long']]
+      log: [['date', 'Date', 'date'], ['time', 'Time', 'time'], ['who', 'Who you spoke with', 'text', 'Name and job title'], ['phone', 'Their phone number', 'tel'], ['said', 'What they said', 'long'], ['next', 'What they will do, and by when', 'long']]
     },
     visit: {
       title: 'Visit sheet',
@@ -251,7 +251,7 @@
           G('Send a short email that confirms what the adjuster said and what happens next. I can write it from your log.', [18])
         ] }
       ],
-      log: [['date', 'Date', 'date'], ['time', 'Time', 'time'], ['who', 'Adjuster’s name and company'], ['phone', 'Their phone number', 'tel'], ['looked', 'What they looked at', 'long'], ['said', 'What they said', 'long'], ['next', 'What happens next, and by when', 'long']]
+      log: [['date', 'Date', 'date'], ['time', 'Time', 'time'], ['who', 'Adjuster', 'text', 'Name and company'], ['phone', 'Their phone number', 'tel'], ['looked', 'What they looked at', 'long'], ['said', 'What they said', 'long'], ['next', 'What happens next, and by when', 'long']]
     }
   };
   /* The one ask of a follow-up email after a call or a visit. Sourced: confirm what was said in writing [17][18]. */

@@ -28,6 +28,27 @@ for (const [name, opts] of [['desk', { viewport: { width: 1440, height: 900 } }]
   await tap(p, 'suggested'); await tap(p, 'I own it'); await p.waitForSelector('#letter p.subj', { state: 'attached' }); await shot('08-reply');
   for (const r of ['phones', 'steps', 'breathe']) { await p.goto(base + '/app/#/' + r); await p.waitForSelector('#page h1'); await shot('09-' + r); }
   await p.goto(base + '/app/'); if (name === 'phone') { await p.click('#sideOpen'); await shot('10-sidebar'); }
+  // phase 2: call sheet, visit sheet, Record, care card
+  await p.goto(base + '/app/'); await p.click(name === 'phone' ? '#newChatTop' : '#newChat');
+  await tap(p, 'call or visit'); await shot('12-kind');
+  await tap(p, 'phone call'); await tap(p, 'Their offer'); await tap(p, 'I own it'); await p.locator('.choices:not(.done) .choice').first().click();
+  await p.waitForSelector('#composerIn[placeholder*="own words"]'); await send(p, 'They offered $42,300 on Nov 3. My contractor estimate is $96,000. Ask why the detached garage was left out.');
+  await p.waitForSelector('#sheetDoc .ss'); await shot('13-callsheet');
+  await p.fill('#lg-date', '2026-11-20'); await p.fill('#lg-who', 'Dana Ortiz, adjuster'); await p.fill('#lg-said', 'She will send the line-by-line estimate.');
+  await p.locator('#sheetDoc .log').scrollIntoViewIfNeeded(); await shot('14-calllog');
+  await p.click('[data-sheet="record"]');
+  if (name === 'phone') { await p.click('#paperClose'); await shot('15-pinned-sheet'); await p.click('#newChatTop'); } else await p.click('#newChat');
+  await tap(p, 'call or visit'); await tap(p, 'adjuster is visiting'); await tap(p, 'standing'); await tap(p, 'I own it');
+  await p.waitForSelector('#composerIn[placeholder*="own words"]'); await send(p, 'Soot on the kitchen ceiling. Smoke smell in the bedroom closets.');
+  await p.waitForSelector('#sheetDoc .ss'); await shot('16-visitsheet');
+  await p.goto(base + '/app/#/record'); await p.waitForSelector('#page h1'); await shot('17-record');
+  await p.evaluate(() => { const s = JSON.parse(localStorage.getItem('ns-desk-v1')); s.breathe = false; localStorage.setItem('ns-desk-v1', JSON.stringify(s)); });
+  await p.goto(base + '/app/'); await p.click(name === 'phone' ? '#newChatTop' : '#newChat'); await send(p, 'I am so overwhelmed and exhausted'); await p.waitForSelector('.m-a.care'); await shot('18-care');
+  for (const [k, y] of [['19-landing-top', 0], ['20-landing-demo', 'demo'], ['21-landing-exchanges', 'ex'], ['22-landing-band', 'band']]) {
+    await p.goto(base + '/'); await p.evaluate((y) => { if (typeof y === 'string') { document.querySelector(y === 'demo' ? '#demo' : '.' + y).scrollIntoView(); } }, y);
+    if (y === 'demo') { await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 30000 }); await p.waitForTimeout(2500); await p.evaluate(() => document.getElementById('demo').scrollIntoView()); }
+    await shot(k);
+  }
   process.env.MOCK = 'off'; await p.goto(base + '/app/'); await p.click(name === 'phone' ? '#newChatTop' : '#newChat'); await send(p, 'What does depreciation mean?'); await p.waitForSelector('.m-a.pause'); await shot('11-pause'); process.env.MOCK = 'ok';
   await ctx.close();
 }

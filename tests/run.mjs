@@ -407,7 +407,7 @@ await p.context().close();
   await p.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   await p.click('#copyBtn'); await p.waitForTimeout(200);
   const clip = await p.evaluate(() => navigator.clipboard.readText());
-  ok(/WHAT TO SAY FIRST/.test(clip) && /Who you spoke with, and their job title: Dana Ortiz/.test(clip), 'call sheet: Copy gives the whole sheet and the log as text');
+  ok(/WHAT TO SAY FIRST/.test(clip) && /Who you spoke with: Dana Ortiz/.test(clip), 'call sheet: Copy gives the whole sheet and the log as text');
   const fuN = calls.length;
   await p.click('[data-sheet="followup"]');
   await p.waitForSelector('#letter p.subj', { state: 'attached' });
