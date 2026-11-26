@@ -539,7 +539,11 @@ await p.context().close();
   await p.locator('#demo').scrollIntoViewIfNeeded();
   await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 90000 });
   ok(true, 'landing demo: plays through to the letter');
-  ok(await p.evaluate(() => window.__rebuild.done()), 'landing drawing: the animation plays once and rests');
+  ok(await p.evaluate(() => window.__rebuild.plays() >= 1), 'landing drawing: the animation plays through to the finished drawing');
+  await p.evaluate(() => document.querySelector('.art').scrollIntoView({ block: 'center' }));
+  const n0 = await p.evaluate(() => window.__rebuild.plays());
+  await p.waitForFunction((n) => window.__rebuild.plays() > n, n0, { timeout: 15000 });
+  ok(true, 'landing drawing: after a 2 second rest it draws again while on screen');
 
   await p.waitForFunction(() => !window.__demo.running(), null, { timeout: 10000 });
   ok(p.errs.length === 0, 'landing: no page errors ' + p.errs.join('|'));

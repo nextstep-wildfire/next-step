@@ -1,6 +1,7 @@
-/* The landing drawing, played once: the frame draws in with its left corner post missing, a person walks up with a
+/* The landing drawing, played on a loop: the frame draws in with its left corner post missing, a person walks up with a
    letter, posts it and lifts the mailbox flag, steps to the left of the house and knocks the corner post plumb, two
-   front steps set at the door and the staked tree grows in. About 7 seconds, then it rests on the finished drawing.
+   front steps set at the door and the staked tree grows in. About 7 seconds, a 2 second rest on the finished drawing,
+   then it fades and draws again, only while it is on screen.
    Under reduced motion (or with no script) it is simply the finished drawing.
 
    The person is a small hand-made rig drawn in the same 1.5px ink line: a head, a coat-shaped body, single-line limbs.
@@ -317,24 +318,33 @@
   function soft(a, j, b, k) { var m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; return 'Q' + pt([j[0] + (j[0] - m[0]) * k, j[1] + (j[1] - m[1]) * k]) + ' ' + pt(b); }
   function lerp2(a, b, q) { return [lerp(a[0], b[0], q), lerp(a[1], b[1], q)]; }
 
-  /* ---------- playing it once ---------- */
-  var raf = 0, clock = 0, last = 0, done = false;
+  /* ---------- playing it: rest 2 seconds on the finished drawing, fade it out, draw it again ---------- */
+  // It only loops while the drawing is on screen; scrolled away, it waits on the finished drawing and starts again
+  // when it comes back. A hidden tab pauses it too, since the clock only moves on animation frames.
+  var HOLD = 2.0, FADE = 0.45;
+  var raf = 0, clock = 0, last = 0, done = false, plays = 0, visible = false, waiting = false, timer = 0;
   function frame(now) {
     clock += Math.min(0.05, (now - last) / 1000); last = now;
-    if (clock >= END) { render(END); done = true; svg.classList.add('rested'); return; }
+    if (clock >= END) { render(END); done = true; plays++; svg.classList.add('rested'); timer = setTimeout(again, HOLD * 1000); return; }
     render(clock); raf = requestAnimationFrame(frame);
   }
-  function play() { cancelAnimationFrame(raf); clock = 0; done = false; svg.classList.remove('rested'); last = performance.now(); render(0); raf = requestAnimationFrame(frame); }
-  function seek(t) { cancelAnimationFrame(raf); render(clamp(t, 0, END)); }
+  function again() {
+    if (!visible || document.hidden) { waiting = true; return; }
+    svg.style.transition = 'opacity ' + FADE + 's ease'; svg.style.opacity = '0';
+    timer = setTimeout(function () { svg.style.transition = ''; svg.style.opacity = ''; play(); }, FADE * 1000 + 30);
+  }
+  function play() { cancelAnimationFrame(raf); clearTimeout(timer); waiting = false; clock = 0; done = false; svg.classList.remove('rested'); last = performance.now(); render(0); raf = requestAnimationFrame(frame); }
+  function seek(t) { cancelAnimationFrame(raf); clearTimeout(timer); svg.style.transition = ''; svg.style.opacity = ''; render(clamp(t, 0, END)); }
 
   if (reduced) { render(END); done = true; svg.classList.add('rested'); }
   else {
     render(0);
-    var go = function () { setTimeout(play, 150); };
+    var started = false;
+    var wake = function () { if (!started) { started = true; setTimeout(play, 150); } else if (waiting) again(); };
     if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); go(); } }, { threshold: 0.5 });
-      io.observe(svg);
-    } else go();
+      new IntersectionObserver(function (es) { visible = es.some(function (e) { return e.isIntersecting; }); if (visible) wake(); }, { threshold: 0.5 }).observe(svg);
+    } else { visible = true; wake(); }
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && waiting && visible) again(); });
   }
-  window.__rebuild = { END: END, seek: seek, play: play, done: function () { return done; } };
+  window.__rebuild = { END: END, seek: seek, play: play, done: function () { return done; }, plays: function () { return plays; } };
 })();
