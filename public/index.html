@@ -4,64 +4,61 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Next Step: One Clear Step at a Time After a Wildfire</title>
-<meta name="description" content="A free guide for California wildfire survivors dealing with a home insurance claim. A student project from Fung Fellowship. Not legal advice.">
-<link rel="preload" href="/fonts/cinzel.woff2" as="font" type="font/woff2" crossorigin>
+<title>Next Step: Letters to Your Insurer After a Wildfire</title>
+<meta name="description" content="A free guide for California wildfire survivors whose insurer said no, offered less or went quiet. Choose one clear ask and get a short letter to send. General information, not legal advice.">
+<meta name="theme-color" content="#F4F2EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141A1D" media="(prefers-color-scheme: dark)">
+<script src="/theme.js"></script>
 <link rel="preload" href="/fonts/garamond.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/base.css">
 <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
+<div class="light" aria-hidden="true"></div>
 <header class="top">
-  <a class="brand" href="/" aria-label="Next Step home"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-9 7 9"/><path d="M3 19h18"/></svg></span><b>NEXT STEP</b></a>
-  <button class="themebtn" id="themeBtn" type="button" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  <a class="brand" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-8 7 8"/><path d="M3 19h18"/></svg>Next Step</a>
+  <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch between light and dark"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg></button>
 </header>
 
 <main>
   <section class="hero">
-    <div class="copy">
-    <h1 aria-label="Next Step"><span class="w" aria-hidden="true"><i style="--i:0">N</i><i style="--i:1">E</i><i style="--i:2">X</i><i style="--i:3">T</i></span><span class="w" aria-hidden="true"><i style="--i:5">S</i><i style="--i:6">T</i><i style="--i:7">E</i><i style="--i:8">P</i></span></h1>
-    <span class="rule" aria-hidden="true"></span>
-    <p class="hook">Your insurance claim, <em>one clear step</em> at a time.</p>
-    <p class="lede">Next Step explains where you are, writes the letter to your insurer with one clear ask, and points you to a real person when you need one.</p>
+    <p class="eyebrow">For California wildfire insurance claims</p>
+    <h1>When your insurer says no, offers less, or goes quiet.</h1>
+    <p class="lede">Next Step helps you choose one clear thing to ask for, and writes a short, polite letter you can send today. It also shows the usual steps of a claim, in order.</p>
     <div class="cta">
-      <a class="btn" href="/app/">Start</a>
+      <a class="btn" id="startBtn" href="/app/">Start my letter</a>
+      <p class="facts">Free. No account. About 10 minutes.</p>
     </div>
-    </div>
-    <div class="side">
-      <div class="phone">
-        <div class="sb" aria-hidden="true"><span class="tm">9:41</span><span class="isl"></span><span class="ic"><svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" y="0" width="3" height="12" rx=".8"/></svg><svg viewBox="0 0 26 12" width="26" height="12"><rect x=".5" y=".5" width="21" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="18" height="8" rx="2" fill="currentColor"/><rect x="23" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".5"/></svg></span></div>
-        <video id="demo" muted loop playsinline preload="metadata" controls poster="/demo/poster.jpg?v=d12" aria-label="Walkthrough of Next Step: pick your situation, add a few words, get a letter with one clear ask.">
-          <source src="/demo/next-step-demo.mp4?v=d12" type="video/mp4">
-        </video>
-      </div>
-      <div class="stepper" id="stepper" aria-live="off">
-        <div class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <p class="now"><b id="stN">Step 1 of 4</b><span id="stT">Pick Your Situation</span></p>
-      </div>
+    <div class="notice" id="disclaimer">
+      <b>General information, not legal or insurance advice.</b> Next Step draws on public sources such as the California Department of Insurance. It can be wrong, and your own policy is what counts. Check every detail before you send anything.
     </div>
   </section>
 
-  <section class="three rv">
-    <div><span class="n">01</span><h2>Know What Comes Next</h2><p>Plain steps for where you are in the claim, with the source beside every fact.</p></div>
-    <div><span class="n">02</span><h2>Write the Letter</h2><p>One short letter with one clear ask, in your words. Edit it, copy it, send it.</p></div>
-    <div><span class="n">03</span><h2>One Chat per Situation</h2><p>Helping a parent or a neighbor? Start a separate chat for each person, so nothing gets mixed up.</p></div>
+  <section class="how" aria-labelledby="howTitle">
+    <h2 id="howTitle">How it works</h2>
+    <ol>
+      <li><span class="n" aria-hidden="true">1</span><div><h3>Say what happened</h3><p>Pick what your insurer did, then add a few lines in your own words.</p></div></li>
+      <li><span class="n" aria-hidden="true">2</span><div><h3>Choose one ask</h3><p>See every option with a plain note on when it fits. Pick the one that matters most right now.</p></div></li>
+      <li><span class="n" aria-hidden="true">3</span><div><h3>Copy your letter</h3><p>Edit it if you like, copy it into an email, and see what to do while you wait.</p></div></li>
+    </ol>
   </section>
 
-  <section class="not rv">
-    <h2>What This Is Not</h2>
-    <p>A Student Project from Fung Fellowship, built with mentorship from The After Collective. It is not legal or insurance advice, and it can be wrong. Your notes and letters stay on your device.</p>
+  <section class="people" aria-labelledby="peopleTitle">
+    <h2 id="peopleTitle">Need to talk to someone now?</h2>
+    <p class="sub">Next Step is not staffed. These public lines are.</p>
+    <ul>
+      <li><a href="tel:18009274357"><span>California Department of Insurance</span><b>1-800-927-4357</b></a></li>
+      <li><a href="tel:18006213362"><span>FEMA</span><b>1-800-621-3362</b></a></li>
+      <li><a href="tel:911"><span>Emergency</span><b>911</b></a></li>
+      <li><a href="tel:988"><span>Crisis line, call or text</span><b>988</b></a></li>
+    </ul>
   </section>
 </main>
 
-<footer class="rv">
-  <p class="need">Need a Person Now?</p>
-  <ul>
-    <li><a href="tel:18009274357"><span class="who">California Department of Insurance</span><b>1-800-927-4357</b></a></li>
-    <li><a href="tel:18006213362"><span class="who">FEMA</span><b>1-800-621-3362</b></a></li>
-    <li><a href="tel:911"><span class="who">Emergency</span><b>911</b></a></li>
-    <li><a href="tel:988"><span class="who">Crisis Line, Call or Text</span><b>988</b></a></li>
-  </ul>
+<footer>
+  <p>A student project from Fung Fellowship, built with mentorship from The After Collective.</p>
+  <p>Your notes and letters are saved only in this browser. When you ask for a letter or an answer, what you typed is sent to write it and is not stored by us.</p>
 </footer>
 <script src="/landing.js" defer></script>
 </body>

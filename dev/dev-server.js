@@ -41,7 +41,7 @@ const mockAI = {
     if (mode === 'quota') { const e = new Error('4006: you have used up your daily free allocation of 10,000 neurons'); throw e; }
     const sys = input.messages[0].content;
     const last = input.messages[input.messages.length - 1].content;
-    calls.push({ model, sysHead: sys.slice(0, 60), sys, stream: !!input.stream, last: String(last).slice(0, 200) });
+    calls.push({ model, sysHead: sys.slice(0, 60), sys, stream: !!input.stream, last: String(last).slice(0, 200), userFull: String(last) });
     if (process.env.DEMO && sys.startsWith('Write a short letter')) {
       return { response: 'Subject: Request for a written claim status update\n\nDear Claims Team,\n\nI reported my claim in January and sent photos of the damage to my home. For the past seven weeks I have called and emailed my adjuster and have not received a reply.\n\nPlease send me a written update on my claim status and the next step.\n\nPlease reply in writing within 15 calendar days of receiving this letter. I am keeping a record of all communication on this claim.\n\nThank you,\n[your name]' };
     }
