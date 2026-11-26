@@ -134,7 +134,17 @@ ok(/WRITING FOR: someone else \(my mom\)/.test(calls[calls.length - 1].last), 'A
 await p.context().close();
 { const { letterSystemPrompt } = await import('../lib/core.js'); const sp = letterSystemPrompt({ who: 'other' });
   ok(!/what it needs from the policyholder/.test(sp) && /Do NOT add any extra request/.test(sp), 'someone-else letter prompt allows only the one ask');
-  ok(/Use ONLY the facts the person gave/.test(sp) && /eager/.test(sp), 'letter prompt forbids invented feelings and facts'); }
+  ok(/Use ONLY the facts the person gave/.test(sp) && /eager/.test(sp), 'letter prompt forbids invented feelings and facts');
+  ok(/If NO <insurer_message> is included, never write "your recent message"/.test(sp), 'letter prompt: no "your recent message" without a pasted message');
+  ok(/Never turn a question, worry or wish in the notes into a fact/.test(sp) && /staying in a hotel/.test(sp), 'letter prompt: questions in the notes are not facts');
+  ok(/unfortunately/.test(sp) && /"recently"/.test(sp) && /If the notes are empty/.test(sp), 'letter prompt: no judging words, no made-up timing, plain letter for empty notes');
+  const { tidyLetter } = await import('../lib/core.js');
+  const raw = 'Subject: Claim \n\nDear Claims Team,\n\nI received an offer of $42,300 on March 3. \nPlease review the estimate.\nPlease reply in writing within 15 calendar days of receiving this letter.\nThank you,\n[Your Name]';
+  const tidy = tidyLetter(raw, { sit: 'low', claim: 'HO-1' });
+  ok(tidy === 'Subject: Request for a written explanation of the settlement offer - Claim HO-1\n\nDear Claims Team,\n\nI received an offer of $42,300 on March 3.\n\nPlease review the estimate.\n\nPlease reply in writing within 15 calendar days of receiving this letter.\n\nThank you,\n[your name]', 'letter tidy: blank lines between parts, name under the sign-off, a real subject');
+  ok(tidyLetter('Subject: Request for a written update\nDear Claims Team,\nMy adjuster\nhas not answered.\nThank you,\nMaria', { sit: 'quiet' }).includes('My adjuster has not answered.'), 'letter tidy: a sentence wrapped across lines is joined, not split');
+  const words = (t) => t.replace(/\s+/g, ' ').trim();
+  ok(words(tidyLetter(raw.replace('Subject: Claim ', 'Subject: Request for a written explanation of the offer'), { sit: 'low' })) === words(raw.replace('Subject: Claim ', 'Subject: Request for a written explanation of the offer').replace('[Your Name]', '[your name]')), 'letter tidy never changes the wording'); }
 
 // 4. stages as a numbered column, a clear checklist that saves
 p = await page({}, '/app/#/stages'); await p.waitForSelector('.stagelist');

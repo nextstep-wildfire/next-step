@@ -5,7 +5,7 @@ A free guide for California wildfire survivors dealing with a home insurance cla
 - `public/` is the website (plain HTML, CSS and JavaScript, no build step).
 - `functions/api/chat.js` and `lib/core.js` are the small backend. It answers typed questions, writes letters and explains insurer messages. All prompts live on the server, and every rule, number and phone number must come from `public/sources.json`.
 - `dev/dev-server.js` runs everything on your laptop with a pretend AI, so you can test with no account.
-- `tests/run.mjs` is the automated browser test (129 checks).
+- `tests/run.mjs` is the automated browser test (135 checks).
 - `docs/DESIGN.md` explains the look (colour, type, layout) and lists what is flagged and not settled.
 - `docs/FEEDBACK_MAP.md` shows which interview feedback went into this version and what is still open.
 
