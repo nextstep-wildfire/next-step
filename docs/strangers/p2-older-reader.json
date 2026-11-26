@@ -1,0 +1,24 @@
+{
+  "id": "p2-older-reader",
+  "who": "Older reader on a laptop, text zoomed to 125%, reads slowly and watches the demo first. Context: \"They offered $42,300; your contractor says $96,000.\"",
+  "total": 284,
+  "human": 266,
+  "machine": 18,
+  "letterWords": 78,
+  "log": [
+    "wait (landing loads): 0.3s",
+    "read 66 words (landing headline and lede): 35.5s",
+    "wait (watching the demo play): 15.0s",
+    "read 16 words (demo footer): 12.4s",
+    "wait (the Desk opens): 0.4s",
+    "read 47 words (opening question and choices): 26.7s",
+    "read 29 words (what did they do): 18.4s",
+    "read 16 words (own or rent): 12.4s",
+    "read 71 words (the asks with their notes): 37.8s",
+    "read 27 words (what happened, in a few words): 17.5s",
+    "type 73 chars: 48.7s",
+    "wait (the model writes the letter): 2.3s",
+    "read 78 words (reading the letter): 41.0s",
+    "type their name over [your name]: 6.0s"
+  ]
+}

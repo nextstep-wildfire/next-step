@@ -1,0 +1,24 @@
+{
+  "id": "p3-spanish-phone",
+  "who": "Spanish speaker on a 375px phone (browser in Spanish). Context: \"Su aseguradora negó su reclamo por daños de humo.\"",
+  "total": 296,
+  "human": 292,
+  "machine": 4,
+  "letterWords": 85,
+  "log": [
+    "wait (landing loads): 0.3s",
+    "read 73 words (landing headline and lede): 26.1s",
+    "wait (the Desk opens): 0.3s",
+    "read 45 words (opening question and choices): 17.2s",
+    "read 23 words (what did they do): 10.3s",
+    "read 14 words (own or rent): 7.4s",
+    "read 75 words (the asks with their notes): 26.7s",
+    "read 39 words (what happened, in a few words): 15.3s",
+    "type 110 chars: 66.0s",
+    "wait (the model writes the letter): 3.8s",
+    "read 96 words (done message): 33.3s",
+    "read 85 words (reading the letter): 29.8s",
+    "read 125 words (reading the Spanish copy): 42.5s",
+    "tap into the letter and type their name on a phone: 9.0s"
+  ]
+}

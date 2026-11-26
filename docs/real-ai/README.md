@@ -1,7 +1,9 @@
-# Real model output on the desk/phase-2 preview
+# Real model output on the desk/phase-2 and desk/phase-3 previews
 
 Preview: https://desk-phase-2.next-step-2fg.pages.dev (Cloudflare Workers AI, Llama 3.3 70B, the same free model the live site uses).
 Each run is 24 fixed situations from `dev/real-run.mjs`: 8 letters (including Phillipa's $96,000 estimate and $42,300 offer, a renter, a smoke denial, no notes, a worry that must not become a fact, and two follow-up emails from call and visit logs), 4 chat edits, 3 pasted insurer messages with their reply letters, 5 call and visit sheets, and 4 chat messages. Every output was read by a person (Claude), not only by the script.
+
+Runs 6 and 7 are on https://desk-phase-3.next-step-2fg.pages.dev and add 21 Spanish situations (a Spanish speaker's notes, edits, messages, sheets and chats), 45 in all. In Spanish the letter is English with a checked Spanish copy; see docs/DESIGN.md.
 
 ## What was wrong, and what fixed it
 | Found in | Problem | Fix (lib/core.js unless noted) | Held in |
@@ -24,3 +26,10 @@ Each run is 24 fixed situations from `dev/real-run.mjs`: 8 letters (including Ph
 - Run 5, L1: "Your offer of $42,300 is lower than the estimated cost": true from her own numbers, but a comparison she did not write. Not caught by the clean-up.
 - Run 5, R3: an edit adding a photo date kept every date and amount but dropped the denial reason ("no direct physical loss") and the smoke smell. The fact check covers numbers only; words-level facts are the next thing to guard, or a stronger model.
 - An edit that adds a fact to a long letter can still be refused as "would lose details". That is the honest outcome, not a wrong letter.
+| run 6 | "However," added to letters (English and Spanish notes) | Contrast words the notes did not give are dropped, the fact kept | run 7 |
+| run 6 | Ask said twice: "You should explain your decision…" | A sentence that restates the ask or tells the insurer what it should do is dropped | run 7 |
+| run 6 | A question in the notes kept as a second request ("I was wondering if my policy covers a hotel") | Questions in the facts are dropped | run 7 |
+| run 6 | "I have some concerns about the amount" added to what to say on a call | "concerns" (and "preocupaciones") count as an added worry | run 7 |
+| run 6 | The script counted the source number [10] as a number | The script ignores source numbers | run 7 |
+| run 7 | An edit turned "three times" into "multiple" | Number words are facts an edit must keep; otherwise refused honestly | tests (next run) |
+

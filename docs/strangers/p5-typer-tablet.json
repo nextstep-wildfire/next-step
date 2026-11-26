@@ -1,0 +1,25 @@
+{
+  "id": "p5-typer-tablet",
+  "who": "Types instead of tapping, on a 768px tablet, then asks for a change. Context: \"They said no to your detached garage.\"",
+  "total": 188,
+  "human": 180,
+  "machine": 8,
+  "letterWords": 72,
+  "log": [
+    "wait (landing loads): 0.3s",
+    "read 66 words (landing headline and lede): 20.0s",
+    "wait (the Desk opens): 0.4s",
+    "read 47 words (opening question and choices): 14.8s",
+    "type 91 chars: 36.4s",
+    "wait (the model answers): 2.3s",
+    "read 61 words (answer and next question): 18.6s",
+    "read 16 words (own or rent): 6.4s",
+    "read 80 words (the asks with their notes): 23.8s",
+    "wait (the model writes the letter): 2.3s",
+    "read 72 words (reading the letter): 21.6s",
+    "type 15 chars: 6.0s",
+    "wait (the model edits the letter): 2.3s",
+    "read 59 words (re-reading the shorter letter): 18.1s",
+    "type their name over [your name]: 6.0s"
+  ]
+}

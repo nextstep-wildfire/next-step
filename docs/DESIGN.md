@@ -78,6 +78,28 @@ Every text pair is AA (4.5) and every outline is at least 3. The test suite also
 | outline on paper | 3.3 | 3.7 |
 | outline on sheet | 3.7 | 3.4 |
 
+### Five strangers, timed (phase 3)
+Run by `node dev/strangers.mjs <preview url> docs/strangers` against the preview with the real model, Nov 26. Each starts cold on the landing page with one sentence of context and ends when the finished letter is copied. Waits for the site and the model are measured; reading, deciding, tapping and typing are modelled from the words actually on each screen at each person's pace (older reader 130 words a minute, others 190 to 230). A stand-in for five real people, not a replacement: the bar of five real new users still needs five real people. Screenshots of every step and the timing logs are in `docs/strangers`.
+
+| Person | Device | Path | Time to a finished letter |
+|---|---|---|---|
+| Renter, insurer quiet for six weeks | 375 px phone | taps, then a sentence | 3 min 25 s |
+| Older reader, offer too low, watches the demo first | laptop, 125% text | taps, then a sentence | 4 min 44 s |
+| Spanish speaker, smoke claim denied | 375 px phone, browser in Spanish | taps, Spanish notes, reads the Spanish copy | 4 min 56 s |
+| Has the insurer's email open | laptop | pastes their message, takes the suggested ask | 2 min 15 s |
+| Types instead of tapping, then asks for a change | 768 px tablet | types the situation, asks "make it shorter" | 3 min 8 s |
+
+- All five under 5 minutes, against the 10 minute bar. The model was quick (2 to 4 seconds a step); most of the time is reading.
+- The landing demo (about 18 seconds) cost the one person who chose to watch it about 27 seconds including its footer. Start is above it, so no one else waited on it. Not shortened.
+- Pauses found and fixed on the way: on a phone the asks could sit under the message box (a tall question now shows from its first line); "Ver cómo funciona" broke over two lines in its button; "Soy dueño" was gendered (now "Es mía"); the Spanish footer took four lines on a phone; "Get a second contractor estimate" read as if the site would get one (now "Review my own contractor’s estimate").
+- Still worth watching with real people: the phone paper opens over the chat when the letter arrives, so the done message (fill in the [brackets], what happens next) is under it until Close; "Me pusieron trabas con el reclamo" as the first Spanish tap.
+
+### The real model in both languages (runs 6 and 7)
+`node dev/real-run.mjs` now runs 45 situations: the 24 English ones and 21 Spanish ones (7 letters from Spanish notes including "42.300", "96 mil" and "siete semanas", 3 edits asked in Spanish, 3 messages explained in Spanish including one the insurer wrote in Spanish, 3 sheets, 5 chats). Every output is in docs/real-ai/run-6.md and run-7.md.
+- Run 6: the script flagged one false alarm (a source number [10] read as a number). Reading every output found what the script did not: "However," added to letters in both languages, an ask said a second time ("You should explain your decision..."), a question kept as a second request ("I was wondering if my policy covers a hotel"), and "I have some concerns about the amount" added to what to say on a call. All four are now removed in code, and the script flags each.
+- Run 7: no invented number, rule or phone line in either language; every Spanish copy line passed its checks (none had to be shown in English). Two flags, both read: an edit turned "three times" into "multiple" (now refused: number words are facts), and a chat suggested making "a list of questions and concerns" (not a worry put in the person's mouth; that flag no longer applies to chat).
+- Read but not changed: the model's Spanish is correct but sometimes literal ("Estoy escribiendo para..."), and one explanation called the release "recibo" (the prompt now names it "documento de liberación (release)").
+
 ### Spanish strings for a native speaker (unreviewed draft)
 All Spanish is in `T_ES` and `STATIC_ES` (`public/desk.js`), `ES` (`public/landing.js`) and `ASK_ES`, `ASK_SUBJECT_ES`, `SHEET_ES` and the `M(...)` labels (`public/content.js`). Most worth a native speaker's eye:
 1. "Me pusieron trabas con el reclamo" for "They pushed back on my claim" (the first tap).

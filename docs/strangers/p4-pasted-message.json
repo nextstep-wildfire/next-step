@@ -1,0 +1,22 @@
+{
+  "id": "p4-pasted-message",
+  "who": "Has the insurer’s email open on a laptop. Context: \"Your insurer sent you a settlement offer and a release to sign.\"",
+  "total": 135,
+  "human": 129,
+  "machine": 5,
+  "letterWords": 75,
+  "log": [
+    "wait (landing loads): 0.4s",
+    "read 66 words (landing headline and lede): 19.2s",
+    "wait (the Desk opens): 0.4s",
+    "read 47 words (opening question and choices): 14.3s",
+    "read 45 words (paste screen and privacy line): 13.7s",
+    "switch to email, copy the message: 6.0s",
+    "wait (the model explains their message): 2.3s",
+    "read 122 words (explanation and suggested ask): 33.8s",
+    "read 16 words (own or rent): 6.2s",
+    "wait (the model writes the letter): 2.3s",
+    "read 75 words (reading the letter): 21.6s",
+    "type their name over [your name]: 6.0s"
+  ]
+}

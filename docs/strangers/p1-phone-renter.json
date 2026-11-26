@@ -1,23 +1,23 @@
 {
   "id": "p1-phone-renter",
   "who": "Renter on a 375px phone. Context given: \"Your insurer has not answered your emails for six weeks.\"",
-  "total": 203,
-  "human": 199,
+  "total": 205,
+  "human": 202,
   "machine": 3,
-  "letterWords": 72,
+  "letterWords": 80,
   "log": [
     "wait (landing loads): 0.5s",
     "read 66 words (landing headline and lede): 21.4s",
-    "wait (the Desk opens): 0.9s",
+    "wait (the Desk opens): 0.3s",
     "read 47 words (opening question and choices): 15.9s",
     "read 29 words (what did they do): 10.8s",
     "read 16 words (own or rent): 7.1s",
     "read 70 words (the asks with their notes): 22.5s",
     "read 27 words (what happened, in a few words): 10.2s",
     "type 88 chars: 48.0s",
-    "wait (the model writes the letter): 1.8s",
+    "wait (the model writes the letter): 2.3s",
     "read 72 words (done message): 23.1s",
-    "read 72 words (reading the letter): 23.1s",
+    "read 80 words (reading the letter): 25.4s",
     "tap into the letter and type their name on a phone: 9.0s"
   ]
 }
