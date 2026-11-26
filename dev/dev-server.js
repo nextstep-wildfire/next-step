@@ -63,6 +63,7 @@ const mockAI = {
       const letter = (last.match(/<letter>([\s\S]*)<\/letter>/) || [])[1] || '';
       const ins = (last.match(/<instruction>([\s\S]*)<\/instruction>/) || [])[1] || '';
       const paras = letter.split('\n\n');
+      if (/LOSEFACTS/.test(ins)) return { response: letter.replace(/\$[\d,]+/g, 'an amount') };
       if (/short/i.test(ins)) return { response: paras.filter((x, i) => i !== 2).join('\n\n') };
       const num = (ins.match(/\b[A-Z]{0,3}-?\d[\d-]{3,}\b/) || [])[0];
       return { response: num ? letter.replace('[claim number]', num).replace(/^Subject: (.*)$/m, (m, a) => 'Subject: ' + a.replace(/ - Claim .*/, '') + ' - Claim ' + num) : letter.replace('Dear Claims Team,', 'Dear Claims Team,\n\nMy claim number is [claim number].') };

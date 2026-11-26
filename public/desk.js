@@ -24,11 +24,14 @@
     writeNow: 'Write my letter', skipNotes: 'Skip, leave blanks',
     writing: 'Writing your letter…', writingReply: 'Writing your reply…', reading: 'Reading their message…', editing: 'Changing your letter…',
     done: 'Your letter is ready. Fill in anything in [brackets], then copy it into an email to your adjuster.',
+    doneNoBlanks: 'Your letter is ready. Read it through, then copy it into an email to your adjuster.',
+    replyDoneNoBlanks: 'Your reply is ready, under the plain explanation of their message. Read it through before you send it.',
     doneEdit: 'To change it, type on the letter or tell me here.',
-    doneMobile: 'Tap Your letter above to open it. To change it, type on it or tell me here.',
+    doneMobile: 'Tap the card above to open it. To change it, type on it or tell me here.',
     next: 'Send it by email so there’s a record. The 15 days is your request, not a legal deadline. If you are still stuck, call the California Department of Insurance: ',
     another: 'Write another letter', anotherDiff: 'Ask for something different',
     changed: 'Done. The changed lines are highlighted on your letter.',
+    lostFacts: 'I couldn’t make that change without losing other details in your letter, so I left it as it was. You can type the change right on the letter.',
     pasteAsk: 'Paste what they sent below. I’ll explain it in plain words and suggest what to ask for in your reply.',
     pastePrivacy: 'What you paste is sent to the AI to read and is not saved. Leave out anything you don’t want to share, like account numbers.',
     pasteHolder: 'Paste their message here',
@@ -562,7 +565,8 @@
   function finishLetter(basic) {
     chat.step = 'free';
     var cdi = phones()[0];
-    var msg = (basic ? T.basicNote + '\n\n' : '') + (chat.flow === 'reply' ? T.replyDone : T.done) + ' ' + (isPhone() ? T.doneMobile : T.doneEdit) + '\n\n' + T.next + (cdi ? cdi.num + ' [' + cdi.src + '].' : '');
+    var blanks = /\[[^\]\n]{1,40}\]/.test(chat.letter || '');
+    var msg = (basic ? T.basicNote + '\n\n' : '') + (chat.flow === 'reply' ? (blanks ? T.replyDone : T.replyDoneNoBlanks) : (blanks ? T.done : T.doneNoBlanks)) + ' ' + (isPhone() ? T.doneMobile : T.doneEdit) + '\n\n' + T.next + (cdi ? cdi.num + ' [' + cdi.src + '].' : '');
     say({ r: 'a', x: msg, ch: { key: 'more', inline: true, opts: [{ v: 'another', l: T.another }] } });
     setComposer();
     if (isPhone()) openPaper();
@@ -839,6 +843,7 @@
       if (isPhone()) openPaper();
     }, function (err) {
       s.remove(); setBusy(false);
+      if (err && err.code === 'lost_facts') return say({ r: 'a', x: T.lostFacts });
       pause(err, function () { revise(instruction); });
     });
   }
