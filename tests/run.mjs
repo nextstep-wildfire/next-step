@@ -15,6 +15,10 @@ let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log('FAIL', m); } else console.log('ok  ', m); };
 // Playwright's own Chromium if installed, otherwise the Chrome already on this computer.
 const browser = await chromium.launch().catch(() => chromium.launch({ channel: 'chrome' }));
+// Tests never launch the computer's real mail app: the mailto link is read, then its navigation is cancelled.
+const NO_MAIL = () => document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href^="mailto:"]'); if (a) e.preventDefault(); });
+const newCtx = browser.newContext.bind(browser);
+browser.newContext = async (o) => { const c = await newCtx(o); await c.addInitScript(NO_MAIL); return c; };
 const SOURCES = JSON.parse(fs.readFileSync(new URL('../public/sources.json', import.meta.url), 'utf8'));
 const SRC_TEXT = Object.values(SOURCES).map((s) => s.notes).join(' ');
 const DESK = { width: 1440, height: 900 };
@@ -956,7 +960,7 @@ const flat = (t) => t.replace(/\s+/g, ' ');
   ok((await p.evaluate(() => window.__desk.state().store.record.some((r) => r.kind === 'letter'))), 'email: the letter goes into the Record, like Copy');
   // a very long letter: the subject opens, the letter is copied, and it says so
   await p.evaluate(() => { const l = document.getElementById('letter'); const x = document.createElement('p'); x.textContent = 'word '.repeat(1800); l.appendChild(x); });
-  await p.waitForTimeout(450); await p.locator('#emailBtn').click();
+  await p.waitForTimeout(450); await p.locator('#emailBtn').click(); await p.waitForTimeout(400);
   ok(!/body=/.test(await p.locator('#emailBtn').getAttribute('href')) && /long/.test(await p.locator('#toast').innerText()), 'email: a very long letter opens with the subject and is copied, and says so');
   ok(p.errs.length === 0, 'email: no page errors or blocked requests ' + p.errs.join('|'));
   await p.context().close();

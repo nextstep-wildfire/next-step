@@ -10,7 +10,7 @@ const browser = await chromium.launch().catch(() => chromium.launch({ channel: '
 let fails = 0; const ok = (c, m) => { if (!c) fails++; console.log(c ? 'ok  ' : 'FAIL', m); };
 const iso = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
 async function open(o, path) {
-  const ctx = await browser.newContext(Object.assign({ viewport: { width: 1440, height: 900 } }, o || {})); const p = await ctx.newPage();
+  const ctx = await browser.newContext(Object.assign({ viewport: { width: 1440, height: 900 } }, o || {})); await ctx.addInitScript(() => document.addEventListener('click', (e) => { const a = e.target.closest && e.target.closest('a[href^="mailto:"]'); if (a) e.preventDefault(); })); const p = await ctx.newPage();
   p.bad = []; p.counts = []; p.on('console', (m) => { if (m.type() === 'error') p.bad.push(m.text()); }); p.on('pageerror', (e) => p.bad.push(String(e)));
   p.on('response', (r) => { if (r.url().includes('/api/count')) p.counts.push(r.status()); });
   await p.goto(base + path); return p;
