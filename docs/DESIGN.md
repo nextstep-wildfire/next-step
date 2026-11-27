@@ -1,4 +1,4 @@
-# Design decisions (Nov 26, 2026: the Desk, phases 1, 2 and 3)
+# Design decisions (Nov 26, 2026: the Desk, phases 1, 2 and 3, and the handover polish)
 
 Source of every choice: `.claude/skills/website-implementation/references/vision.md` in the workspace. This file records how the vision was built and the numbers behind it.
 
@@ -116,6 +116,60 @@ Run by `node dev/strangers.mjs <preview url> docs/strangers` against the preview
 - **The chat never runs under the open icon.** While closed, the thread's scroll area starts below the icon (the first line sits where it always did).
 - **Phone unchanged.** Under 900 px the sidebar still opens from the menu button in the top bar, over a scrim; the desktop controls do not show there, even if it was closed on a computer.
 
+## Handover polish (Nov 26, branch feature/handover-polish)
+Nine changes for the Dec 8 final and the handover to The After Collective. Each has a check in `tests/run.mjs` (443 checks now, all pass). Preview: https://feature-handover-polish.next-step-2fg.pages.dev. Not merged, not on the live site.
+
+### Open in email
+- A ghost button "Open in email" ("Abrir en el correo") between Copy and Download PDF, on letters only (not on call or visit sheets). Copy stays the one solid button.
+- It is a real link (`mailto:`) built from the letter as it is now, including anything typed on it: the "Subject:" line becomes the subject, the rest is the body, paragraphs kept with real mail line breaks. No address is guessed.
+- The letter is also copied at the same moment, and a line says so ("Opening your email app. The letter is also copied, in case nothing opens."). A computer with no mail app set up opens nothing, and the person must never be left with nothing. A letter whose link would pass 6,000 characters opens with the subject only and says the letter is copied. It goes into the Record like Copy does.
+- On a phone the paper bar is two rows, the same in both languages: Close and Copy, then Open in email and Download PDF at equal width.
+- Dark mode bug found on the way and fixed: a hovered ghost button turned white with near-white text (1.2:1). The white hover now applies only to solid buttons.
+
+### The 15-day check-in
+- When the newest letter in the Record is 15 days old or more, the Desk opens on a clean chat and asks, above the usual three choices: "It has been 21 days since the letter you copied on Nov 5, 2026. Did your insurer reply?" with the letter's subject under it. Two choices: "They replied. Explain it" (goes to pasting their message) and "No reply yet. Write a follow-up". A quiet "Not now" puts it off a week. Under it, one line: "This check uses only what is saved on this device."
+- Nothing is sent to find out: it reads only the Record and the saved chat. The older chat stays in the history untouched. Answered, it never comes back; "Not now" returns after 7 days. It starts at exactly 15 days (14 stays quiet), only a letter triggers it (a call or visit does not), and on a phone the Desk opens scrolled to the question, not past it.
+- "Write a follow-up" writes a letter that points back to the earlier one. Its notes are built only from what is saved: the date, the earlier subject and the number of days ("I sent a letter on November 5, 2026 titled “…”. It has been 21 days and I have not received a reply."). Its one ask is a new fixed line, `NOREPLY` in `content.js`: "Please respond to the request in my earlier letter." Subject: "Following up on my earlier letter". The Spanish copy is fixed text like the other asks.
+- Wording care: it says "copied", not "sent" (the site cannot know), and the 15 days stay "your request, not a legal deadline".
+
+### The sidebar steps aside on a medium screen
+- From 901 to 1150 px wide, when a paper opens the sidebar closes by itself, so the letter is not squeezed (at 1000 px the sheet goes from about 320 to 479 px wide). With no paper again (a new chat) it comes back by itself.
+- It never overrides the person: closing by itself is not remembered, does not take focus, and a sidebar the person closed by hand stays closed. Opening it by hand with a paper up is allowed and remembered. At 1151 px and above, and on a phone, nothing changes.
+
+### New chat beside the open icon
+- With the sidebar closed on a computer, the open-sidebar icon at the top left now has a New chat icon (a square with a pen, 44 px) right beside it. Both are labelled ("New chat", "Nueva conversación"), the New chat icon is the next stop after the open icon in tab order, and it starts a fresh chat and keeps the old one in the history. The two icons share one container (`.rail`) that shows only while the sidebar is closed.
+
+### The drawing at first paint
+- `rebuild.js` used to start from an empty drawing (`render(0)`), so the first second or two of the landing page had a blank space. It now starts on the finished drawing, rests 2.4 seconds once it is on screen, and then fades and draws itself as before. Reduced motion and no script were already the finished drawing. The check compares a first-paint screenshot of the drawing with the same space blank.
+
+### Open to search engines, and the link preview
+- Removed all three blocks: the `robots` meta tag on the landing page, the `X-Robots-Tag: noindex, nofollow` on every page in `public/_headers`, and `Disallow: /` in `robots.txt`. `robots.txt` now allows everything except `/api/` and names the sitemap (`public/sitemap.xml`, the landing page).
+- **Decision: the Desk (`/app/`) stays out of search results** (`noindex, follow`, in its meta tag and in `_headers`). It is an app shell with nothing to read until someone uses it, and the landing page is what a survivor should find. Crawlers can still reach it, so they see the instruction. To index it, delete that meta tag and the two `/app/` blocks in `_headers`.
+- Link preview: Open Graph and Twitter card tags on the landing page (title, description, type, site name, locale, a canonical address, `og.png`). `public/og.png` is 1200 by 630 (62 KB), the real headline and the real drawing in the site's own type and colors, made by `node dev/og-image.mjs` (run it again if the headline or drawing changes). The description keeps "not legal or insurance advice" and promises no money. Also added a favicon (`favicon.svg`) and an Apple touch icon, because a search result shows the site's icon and there was a 404.
+- The address in those tags is https://next-step-2fg.pages.dev. If the site moves to its own domain, change it in five places: `index.html` (canonical, og:url, og:image, twitter:image), `robots.txt` (Sitemap), `sitemap.xml`. The check in `tests/run.mjs` (`SITE`) uses the same address.
+- Preview sites on `*.pages.dev` are marked noindex by Cloudflare itself (seen in the preview's headers; not from our files), so previews do not compete with the live site.
+- Not checked: how the link looks inside a real chat app or in Google. Those fetch only a public live address; check after the merge by pasting the link into a message and in Google's Rich Results and Search Console tools.
+
+### Cookie-free counts
+- Five events, each one small request to this site's own `/api/count` (no outside service, no change to the content security policy, which already allows `connect-src 'self'`): `visit` (landing page, once per tab), `desk` (Desk opened, once per tab), `copy`, `email` and `pdf` (each press). `email` is a fifth event, added beside the four asked for, so the count of letters copied and the count of letters emailed can be told apart; the privacy sentence names it.
+- Each event carries only: what happened, the language (en or es), and whether it was a letter or a call or visit sheet. No cookie, no id, no address, no user agent, nothing typed, nothing from the chat or the letter. The server drops everything else it is sent and refuses other sites, unknown events and large bodies. A browser that sends Do Not Track or Global Privacy Control is never counted. A whole visit leaves no cookies (checked).
+- The sentence, on the landing page footer: "We only count how many people visit, open the Desk, copy or email a letter, or download a PDF, with no cookies and nothing that says who you are." The Desk shows a shorter one in its sidebar: "We only count visits, letters copied or emailed, and PDFs, with no cookies and nothing about you." Spanish for both. Honest limits: a press of Copy counts each press, not each letter; the counts are easy to inflate by calling the address directly, so read them as a rough guide.
+- The counts are written to Cloudflare Workers Analytics Engine (dataset `next_step_counts`, binding `COUNTS`). **That is off until you do one dashboard step** (see Hand-over below): with the binding present before Analytics Engine is enabled on the account, Cloudflare refuses the whole deploy (seen on the first push). With it off, the site works and the counting call is simply ignored. `dev/counts.mjs` reads the numbers back out.
+
+### "Something unclear? Tell us"
+- Built and hidden. One setting, `feedback: false` in `public/config.js`, hides the line and the form everywhere. Turned on, a quiet line under the honesty line on the Desk says "Something unclear? Tell us" and opens a small form that takes the place of the message box: "Tell us what was hard to follow. We read these to make the tool clearer, but we cannot reply and no one is on call. Please leave out names, claim numbers and account details." Send and Cancel; a hidden field catches bots.
+- It sends only the typed words (1,000 characters at most), the language and where on the Desk (letter, sheet or chat) to `/api/feedback`, which passes them to one webhook the owners set (`FEEDBACK_WEBHOOK`, a secret in Cloudflare). Nothing from the chat or the letter goes with it. With no webhook set the server answers "no inbox" and the form says it did not send and keeps what was typed; it never pretends. The form sends by script, not a native form post, because the content security policy forbids that.
+
+### Checked
+- 443 checks pass locally, including a whole visit under the real content security policy (the local server now sends the headers from `_headers` when `CSP=on`). Review shots at 1440, 1000 and 375 px, English and Spanish, light and dark: `node dev/review-handover.mjs <dir>` (no sideways scroll, worst text contrast 4.57:1, AA). On the preview, with the real model and the live policy: `node dev/preview-check.mjs <url> <dir>` (all pass, including a real follow-up letter in both languages), and five timed stranger passes from the landing page to a copied letter: 3 min 23 s, 4 min 46 s, 4 min 56 s, 2 min 7 s, 3 min 13 s (modelled people, real model).
+- Not verified: that Analytics Engine records anything (off until enabled); the feedback webhook end to end; link previews in real apps; real people.
+
+### Hand-over: the Cloudflare steps that are still yours
+1. **Turn on the counts.** Cloudflare dashboard, Workers & Pages, Analytics Engine, enable it for the account (free plan is enough). Then in `wrangler.toml` remove the "# " from the three `analytics_engine_datasets` lines, commit, push; check the preview deploys. To read the numbers: My Profile, API Tokens, Create Custom Token with one permission (Account, Account Analytics, Read); copy the account ID from the Workers & Pages overview page; run `CF_ACCOUNT_ID=... CF_API_TOKEN=... node dev/counts.mjs`.
+2. **Turn on "Tell us"** once The After Collective gives an inbox. Make a webhook that turns an incoming web request into an email to that inbox (any form or automation service; it receives JSON with `text`, `message`, `language` and `where`). In the Pages project, Settings, Variables and Secrets, add a secret `FEEDBACK_WEBHOOK` with its address. Then set `feedback: true` in `public/config.js`, commit, push. That service then holds what people type, so name it in the privacy line.
+3. **If the site gets its own domain**, change the address in the five places above.
+4. Optional after the merge: add the site in Google Search Console and submit `/sitemap.xml`.
+
 ### Spanish strings for a native speaker (unreviewed draft)
 All Spanish is in `T_ES` and `STATIC_ES` (`public/desk.js`), `ES` (`public/landing.js`) and `ASK_ES`, `ASK_SUBJECT_ES`, `SHEET_ES` and the `M(...)` labels (`public/content.js`). Most worth a native speaker's eye:
 1. "Me pusieron trabas con el reclamo" for "They pushed back on my claim" (the first tap).
@@ -128,7 +182,8 @@ All Spanish is in `T_ES` and `STATIC_ES` (`public/desk.js`), `ES` (`public/landi
 8. The 988 line's Spanish name ("988 Línea de Prevención del Suicidio y Crisis") and "Departamento de Seguros de California": check against the agencies' own Spanish pages.
 9. "Elija esto si…" notes under every ask.
 10. The landing intro: "Una herramienta gratuita que le ayuda a comunicarse con su aseguradora después de un incendio en California." and "Empiece con una carta: responda unas preguntas y reciba una carta lista que pide una sola cosa clara. También le explica sus respuestas y le ayuda a prepararse para las llamadas y la visita del ajustador." Also "Cerrar la barra lateral" / "Abrir la barra lateral" for the sidebar controls.
-11. The model's own Spanish (copies, explanations, chat) reads correct but sometimes literal ("Estoy escribiendo para…"); see docs/real-ai/run-7.md.
+11. Handover polish strings: "Abrir en el correo" and the toasts after it; the check-in ("Han pasado {n} días desde la carta que copió el {fecha}. ¿Respondió su aseguradora?", "Respondieron. Explíquemelo", "Aún no responden. Escribir un seguimiento", "Ahora no"); the follow-up letter's fixed ask ("Les pido que respondan a la solicitud de mi carta anterior.") and subject ("Seguimiento de mi carta anterior"); "Nueva conversación" on the icon; the privacy sentences ("Solo contamos… sin cookies y sin nada que diga quién es usted"); and the Tell us line and form ("¿Algo no quedó claro? Cuéntenos").
+12. The model's own Spanish (copies, explanations, chat) reads correct but sometimes literal ("Estoy escribiendo para…"); see docs/real-ai/run-7.md.
 
 ## Grounding the real model (phase 2)
 Real output on the preview showed the free model (Llama 3.3 70B on Workers AI) ignores some prompt rules, so the rules that matter are also enforced in code (`lib/core.js`):
@@ -191,6 +246,8 @@ Dark tokens are behind `data-theme="dark"`, reached by the toggle (phase 3); bot
 - Pasted insurer messages are sent to the AI to read and never saved on the device; after a reload they show as "not saved on this device".
 
 ## Flagged, not settled
+- **The follow-up letter's ask** ("Please respond to the request in my earlier letter.") and the 15 day check-in's reading of "copied" as sent are our wording, general guidance with no source. Same legal review as the rest of the letter format.
+- **Whether `/app/` should be indexed** (now not; see Handover polish).
 - **Letter format and legal wording** (15 calendar days, one-ask structure). Legal review before real use.
 - **988** is now sourced (SAMHSA, source 25) and shown on the care card, the Phone lines page and the landing band. **911** is still not in `sources.json`; it appears only as one plain line on the Phone lines page ("If someone is in danger right now, call 911") and in the chat rules.
 - **"Pick this if" notes** are general guidance, not sourced rules.
