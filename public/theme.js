@@ -3,8 +3,10 @@
    Language: Spanish if the person chose it, or opened a link with ?lang=es, or their browser is set to Spanish;
    English otherwise. The choice is remembered on this device. */
 (function () {
-  var d = document.documentElement, t = null, l = null;
-  try { t = localStorage.getItem('ns-theme'); l = localStorage.getItem('ns-lang'); } catch (e) {}
+  var d = document.documentElement, t = null, l = null, sd = null;
+  try { t = localStorage.getItem('ns-theme'); l = localStorage.getItem('ns-lang'); sd = localStorage.getItem('ns-side'); } catch (e) {}
+  // The Desk's sidebar on a computer: open unless the person closed it on this device.
+  if (sd === 'shut') d.setAttribute('data-side', 'shut');
   if (t === 'dark') d.setAttribute('data-theme', 'dark');
   var q = (location.search.match(/[?&]lang=(en|es)\b/) || [])[1];
   if (q) { l = q; try { localStorage.setItem('ns-lang', q); } catch (e) {} }

@@ -793,5 +793,73 @@ const pdfOf = async (p) => { const [d] = await Promise.all([p.waitForEvent('down
   await p.context().close();
 }
 
+// 30. landing intro: says what the tool is at a glance, letter first; Demo; one honesty line under the buttons
+{
+  p = await page({}, '/');
+  const big = p.locator('.hero .lede-big');
+  ok((await big.innerText()) === 'A free tool that helps you communicate with your insurer after a California wildfire.', 'landing intro: the first line under the headline names the tool');
+  const st = await big.evaluate((e) => { const c = getComputedStyle(e); return { color: c.color, size: parseFloat(c.fontSize), body: getComputedStyle(document.body).color }; });
+  ok(st.color === st.body && st.size >= 21, 'landing intro: the first line is in ink, at least 21px (' + st.size + 'px)');
+  const grey = await p.locator('.hero .lede:not(.lede-big)').innerText();
+  ok(/^Start with a letter/.test(grey) && /replies/.test(grey) && /calls/.test(grey) && /adjuster’s visit/.test(grey), 'landing intro: the grey line starts with the letter and mentions replies, calls and the visit');
+  const hero = await p.locator('.hero').innerText();
+  ok((hero.match(/\bfree\b/gi) || []).length === 1 && !/negotiat/i.test(await p.evaluate(() => document.body.innerText)), 'landing intro: "free" once in the hero, and "negotiate" nowhere');
+  ok((await p.locator('#watchBtn').innerText()) === 'Demo' && (await p.locator('#watchBtn').getAttribute('href')) === '#demo', 'landing: the ghost button says Demo and goes to the demo');
+  ok((await p.locator('.hero .honest').innerText()) === 'General information from public sources, not legal or insurance advice.', 'landing: only the general information line sits under the buttons');
+  await p.context().close();
+  p = await page(PHONE, '/');
+  const sb = await p.locator('#startBtn').boundingBox();
+  ok(sb.y + sb.height <= 760, 'landing intro: Start is above the fold on a 375 by 760 phone (ends at ' + Math.round(sb.y + sb.height) + ')');
+  await p.context().close();
+  p = await page(Object.assign({ locale: 'es-MX' }, PHONE), '/?lang=es');
+  ok((await p.locator('.hero .lede-big').innerText()).startsWith('Una herramienta gratuita que le ayuda a comunicarse') && /^Empiece con una carta/.test(await p.locator('.hero .lede:not(.lede-big)').innerText()) && (await p.locator('#watchBtn').innerText()) === 'Demo', 'landing intro in Spanish: both lines and Demo');
+  ok((await p.locator('.hero .honest').innerText()) === 'Información general de fuentes públicas, no es asesoría legal ni de seguros.', 'landing in Spanish: only the general information line under the buttons');
+  const sbe = await p.locator('#startBtn').boundingBox();
+  ok(sbe.y + sbe.height <= 760 && (await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing intro in Spanish: Empezar above the fold on a 375 by 760 phone, no sideways scroll');
+  await p.context().close();
+}
+
+// 31. the Desk's sidebar on a computer opens and closes, like a drawer; remembered; labelled; the phone menu is unchanged
+{
+  p = await page();
+  const fold = p.locator('#sideFold'), unfold = p.locator('#sideUnfold');
+  ok(await fold.isVisible() && !(await unfold.isVisible()) && (await fold.getAttribute('aria-expanded')) === 'true' && (await fold.getAttribute('aria-label')) === 'Close sidebar' && (await fold.getAttribute('aria-controls')) === 'side', 'sidebar: open first, with a labelled close control (aria-expanded true)');
+  await toLetter(p);
+  const w0 = (await p.locator('#sheet').boundingBox()).width, t0 = (await p.locator('#talk').boundingBox()).width;
+  await fold.focus(); await p.keyboard.press('Enter'); await p.waitForTimeout(450);
+  const w1 = (await p.locator('#sheet').boundingBox()).width, t1 = (await p.locator('#talk').boundingBox()).width;
+  ok((await p.locator('#side').boundingBox()).width < 1 && w1 > w0 && t1 > t0, 'sidebar: closing it by keyboard gives the room to the chat and the paper (sheet ' + Math.round(w0) + ' to ' + Math.round(w1) + ')');
+  ok(await unfold.isVisible() && (await p.evaluate(() => document.activeElement.id)) === 'sideUnfold' && (await unfold.getAttribute('aria-expanded')) === 'false' && (await unfold.getAttribute('aria-label')) === 'Open sidebar', 'sidebar: the open control appears top left, takes focus, aria-expanded false');
+  const ub = await unfold.boundingBox();
+  ok(ub.x < 40 && ub.y < 20 && ub.width >= 44 && ub.height >= 44, 'sidebar: the open control sits at the top left of the Desk, 44px or more');
+  ok(await p.locator('#side').evaluate((e) => getComputedStyle(e).visibility) === 'hidden', 'sidebar: closed, its links leave the tab order');
+  const tb = (await p.locator('#thread').boundingBox()).y;
+  ok(tb >= ub.y + ub.height, 'sidebar: closed, the chat scrolls below the open control, never under it');
+  ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 1440, 'sidebar: closed, no sideways scroll');
+  await p.reload(); await p.waitForSelector('.thread .m-a');
+  ok(await unfold.isVisible() && (await p.evaluate(() => document.documentElement.dataset.side)) === 'shut' && (await fold.getAttribute('aria-expanded')) === 'false', 'sidebar: the closed choice is remembered on this device');
+  await unfold.focus(); await p.keyboard.press('Enter'); await p.waitForTimeout(450);
+  ok((await p.locator('#side').boundingBox()).width > 200 && (await p.evaluate(() => document.activeElement.id)) === 'sideFold' && !(await unfold.isVisible()), 'sidebar: opening it again by keyboard brings it back and focus returns to the close control');
+  await p.reload(); await p.waitForSelector('.thread .m-a');
+  ok((await p.locator('#side').boundingBox()).width > 200, 'sidebar: the open choice is remembered too');
+  const tr = await p.locator('.app').evaluate((e) => getComputedStyle(e).transitionDuration);
+  ok(/0\.24s/.test(tr), 'sidebar: the motion is gentle, a quarter second (' + tr + ')');
+  ok(p.errs.length === 0, 'sidebar: no page errors ' + p.errs.join('|'));
+  await p.context().close();
+  p = await page({ reducedMotion: 'reduce' });
+  ok(/^0s/.test(await p.locator('.app').evaluate((e) => getComputedStyle(e).transitionDuration)), 'sidebar: no motion under reduced motion');
+  await p.context().close();
+  p = await page(Object.assign({ locale: 'es-MX' }, { viewport: DESK }));
+  ok((await p.locator('#sideFold').getAttribute('aria-label')) === 'Cerrar la barra lateral' && (await p.locator('#sideUnfold').getAttribute('aria-label')) === 'Abrir la barra lateral', 'sidebar in Spanish: both controls labelled in Spanish');
+  await p.context().close();
+  // phone: the menu still opens from the top bar; the desktop control is not shown, even if the sidebar was closed on a computer
+  p = await page(PHONE);
+  await p.evaluate(() => { localStorage.setItem('ns-side', 'shut'); }); await p.reload(); await p.waitForSelector('.opening h1, .thread .m-a');
+  ok(!(await p.locator('#sideFold').isVisible()) && !(await p.locator('#sideUnfold').isVisible()) && await p.locator('#sideOpen').isVisible(), 'sidebar on a phone: the menu button stays, the desktop controls do not show');
+  await p.click('#sideOpen'); await p.waitForTimeout(350);
+  ok((await p.locator('#side').boundingBox()).x >= -1 && (await p.locator('#sideOpen').getAttribute('aria-expanded')) === 'true', 'sidebar on a phone: the menu still slides in');
+  await p.context().close();
+}
+
 await browser.close(); server.close();
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);

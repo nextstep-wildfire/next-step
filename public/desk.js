@@ -1135,6 +1135,18 @@
   function openSide() { $('side').classList.add('open'); $('scrim').hidden = false; $('sideOpen').setAttribute('aria-expanded', 'true'); $('sideClose').focus(); }
   function closeSide() { if (!$('side').classList.contains('open')) return; $('side').classList.remove('open'); $('scrim').hidden = true; $('sideOpen').setAttribute('aria-expanded', 'false'); }
   $('sideOpen').addEventListener('click', openSide);
+  // On a computer the sidebar folds away and the chat and paper take the room; the choice stays on this device.
+  function foldSide(shut) {
+    var d = document.documentElement;
+    if (shut) d.setAttribute('data-side', 'shut'); else d.removeAttribute('data-side');
+    try { localStorage.setItem('ns-side', shut ? 'shut' : 'open'); } catch (e) {}
+    $('sideFold').setAttribute('aria-expanded', shut ? 'false' : 'true');
+    $('sideUnfold').setAttribute('aria-expanded', shut ? 'false' : 'true');
+    $(shut ? 'sideUnfold' : 'sideFold').focus();
+  }
+  $('sideFold').addEventListener('click', function () { foldSide(true); });
+  $('sideUnfold').addEventListener('click', function () { foldSide(false); });
+  if (document.documentElement.getAttribute('data-side') === 'shut') $('sideFold').setAttribute('aria-expanded', 'false');
   $('sideClose').addEventListener('click', function () { closeSide(); $('sideOpen').focus(); });
   $('scrim').addEventListener('click', closeSide);
   document.addEventListener('keydown', function (e) {
@@ -1228,13 +1240,13 @@
     record: 'Historial', steps: 'Pasos de un reclamo', breathe: 'Respire un momento', phones: 'Líneas telefónicas',
     fine: 'Información general de fuentes públicas, no es asesoría legal ni de seguros. Guía de IA, sin personal. Español: borrador sin revisar.',
     tap: 'Toque para abrir', close: 'Cerrar', paperfine: 'Es un borrador. Revise cada fecha, número y nombre antes de enviarla.',
-    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
+    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', foldSide: 'Cerrar la barra lateral', unfoldSide: 'Abrir la barra lateral', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
   };
   function applyStatic() {
     document.title = 'Next Step';
     if (LANG === 'es') {
       [].forEach.call(document.querySelectorAll('[data-t]'), function (n) { var v = STATIC_ES[n.dataset.t]; if (v) n.textContent = v; });
-      [].forEach.call(document.querySelectorAll('[data-ta]'), function (n) { var v = STATIC_ES[n.dataset.ta]; if (v) n.setAttribute('aria-label', v); });
+      [].forEach.call(document.querySelectorAll('[data-ta]'), function (n) { var v = STATIC_ES[n.dataset.ta]; if (v) { n.setAttribute('aria-label', v); if (n.title) n.title = v; } });
       $('composerIn').placeholder = T.holder;
     }
     $('copyBtn').textContent = T.copy; $('printBtn').textContent = T.pdf; $('pinKind').textContent = T.kLetter; $('paperKind').textContent = T.kLetter;

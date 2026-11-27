@@ -216,6 +216,24 @@
 .page .handoffs a { font-size: 17px; font-weight: 400; text-decoration: underline; }
 .page .handoffs .who { max-width: 52ch; }
 
+/* ---------- the sidebar on a computer: open or closed, like a drawer, remembered on the device ---------- */
+.side-unfold { display: none; }
+@media (min-width: 901px) {
+  .app { transition: grid-template-columns .24s cubic-bezier(.3, 0, .2, 1); }
+  .side { overflow-x: hidden; }
+  .side > * { flex-shrink: 0; min-width: 240px; }
+  .side-history { flex-shrink: 1; }
+  .side-fold { color: var(--on-ink-2); margin-right: -8px; }
+  .side-fold:hover { color: var(--on-ink); }
+  :root[data-side="shut"] .app { grid-template-columns: 0 1fr; }
+  :root[data-side="shut"] .side { visibility: hidden; padding-left: 0; padding-right: 0; transition: visibility 0s .24s, padding 0s .24s; }
+  :root[data-side="shut"] .side-unfold { display: inline-flex; position: absolute; top: 12px; left: 16px; z-index: 6; color: var(--ink-2); animation: fadein .3s ease .12s both; }
+  /* the chat scrolls below the icon, never under it */
+  :root[data-side="shut"] .thread { margin-top: 56px; padding-top: 0; }
+  .side-unfold:hover { color: var(--ink); background: var(--fill); }
+}
+@media (max-width: 900px) { .side-fold { display: none; } }
+
 /* ---------- phone ---------- */
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }

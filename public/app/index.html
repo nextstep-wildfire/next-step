@@ -20,6 +20,7 @@
   <aside class="side" id="side" aria-label="Chats and help" data-ta="sideAria">
     <div class="side-top">
       <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
+      <button class="iconbtn side-fold" id="sideFold" type="button" aria-label="Close sidebar" title="Close sidebar" data-ta="foldSide" aria-controls="side" aria-expanded="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M8 4.5v11"/></svg></button>
       <button class="iconbtn side-close" id="sideClose" type="button" aria-label="Close menu" data-ta="closeMenu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
     </div>
     <button class="side-new" id="newChat" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg><span data-t="newChat">New chat</span></button>
@@ -42,6 +43,7 @@
   <div class="scrim" id="scrim" hidden></div>
 
   <div class="desk" id="desk">
+    <button class="iconbtn side-unfold" id="sideUnfold" type="button" aria-label="Open sidebar" title="Open sidebar" data-ta="unfoldSide" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="1.5"/><path d="M8 4.5v11"/></svg></button>
     <header class="topbar">
       <button class="iconbtn" id="sideOpen" type="button" aria-label="Open menu" data-ta="openMenu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg></button>
       <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
