@@ -60,7 +60,10 @@ const contrastScan = (p, root) => p.evaluate((rootSel) => {
     let o = 1; for (let n = e; n; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity);
     if (o < 0.99) continue;
     if (e.closest(':disabled, [disabled]')) continue;
-    const fg = rgb(cs.color).slice(0, 3), bg = bgOf(e);
+    let fg = rgb(cs.color).slice(0, 3); const bg = bgOf(e);
+    // text painted with a gradient: judge it by its weakest stop
+    let gc = null; for (let n = e; n && !gc; n = n.parentElement) { const c = getComputedStyle(n); if (/text/.test(c.backgroundClip + c.webkitBackgroundClip)) gc = c; }
+    if (gc) { const stops = (gc.backgroundImage.match(/rgba?\([^)]+\)/g) || []).map((x) => rgb(x).slice(0, 3)); const L = lum(bg); fg = stops.reduce((w, c) => (Math.abs(lum(c) - L) < Math.abs(lum(w) - L) ? c : w), stops[0] || fg); }
     const a = lum(fg), b = lum(bg), r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     out.push({ t: e.textContent.trim().slice(0, 30), r: Math.round(r * 100) / 100, size: parseFloat(cs.fontSize) });
   }
@@ -74,7 +77,7 @@ ok((await p.locator('#startBtn').getAttribute('href')) === '/app/', 'landing Sta
 ok(/not legal or insurance advice/i.test(await p.locator('#disclaimer').innerText()), 'landing keeps the plain disclaimer');
 ok(await p.locator('a[href="tel:18009274357"]').count() >= 1, 'landing lists the CDI number');
 let fams = await p.evaluate(async () => { await document.fonts.ready; return [...new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')))]; });
-ok(fams.every((f) => f === 'Instrument Sans' || f === 'Source Serif 4') && fams.includes('Instrument Sans'), 'landing loads only Instrument Sans, plus Source Serif 4 for the paper in the demo: ' + fams.join(','));
+ok(fams.every((f) => f === 'Geist' || f === 'Source Serif 4') && fams.includes('Geist'), 'landing loads only Geist, plus Source Serif 4 for the paper in the demo: ' + fams.join(','));
 await p.setViewportSize({ width: 375, height: 700 });
 ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing: no sideways scroll at 375px');
 await p.context().close();
@@ -521,38 +524,33 @@ await p.context().close();
   ok(await p.locator('#dk .dk-sheet p.subj').count() === 1 && /\$42,300/.test(await p.locator('#dk').innerText()), 'landing demo: reduced motion shows the finished letter at once');
   ok(await p.locator('.band a[href="tel:18009274357"]').count() === 1 && await p.locator('.band a[href="tel:988"]').count() === 1, 'landing band: real public lines');
   ok(/not staffed|not a person/.test(await p.locator('.band').innerText()) && /not legal or insurance advice/.test(await p.locator('.band').innerText()), 'landing band: the honesty line, plain, in the band');
-  ok(await p.locator('.btn:not(.ghost)').count() === 1, 'landing: one solid button');
+  ok(await p.locator('.hero .btn').count() === 1 && (await p.locator('#startBtn2').getAttribute('href')) === '/app/' && (await p.locator('#startBtn2').innerText()) === (await p.locator('#startBtn').innerText()), 'landing: one primary action in the hero, and the final call to action is the same one');
+  ok(await p.locator('.faq details').count() === 8 && JSON.parse(await p.locator('script[type="application/ld+json"]').textContent()).mainEntity.length === 8, 'landing: eight questions, also as FAQ data for search');
+  ok(await p.locator('#lineTitle .w').count() === 0, 'landing tagline: under reduced motion it is plain full ink text');
+  ok((await p.locator('a.skip').getAttribute('href')) === '#main' && await p.locator('a[href="/privacy/"]').count() === 1 && await p.locator('a[href="/terms/"]').count() === 1, 'landing: skip link, privacy and terms links');
   ok(await p.locator('.label:not(.dk .label)').count() === 0 && (await p.evaluate(() => [...document.querySelectorAll('*')].filter((e) => { const b = getComputedStyle(e, '::before'); return b.content !== 'none' && b.content !== 'normal' && parseFloat(b.width) <= 6 && b.borderRadius === '50%'; }).length)) === 0, 'landing: no section labels or dot ornaments above headings');
   const ltxt = await p.evaluate(() => document.body.innerText);
-  ok(!/[–—!]/.test(ltxt) && !/\b(seamless|empower|effortless|peace of mind|unlock|get more money)\b/i.test(ltxt), 'landing: no dashes, exclamation marks, banned words or money promises');
-  const lcss = fs.readFileSync(new URL('../public/landing.css', import.meta.url), 'utf8');
-  ok(!/gradient\(|backdrop-filter|blur\(/.test(lcss), 'landing: no gradients or blur');
-  ok(await p.locator('.art svg').count() === 1 && await p.locator('img').count() === 0, 'landing: one line illustration, no photos');
-  // the drawing: under reduced motion it is the finished frame at once, the same as the last frame of the animation
-  const rest = await p.evaluate(() => {
-    const s = document.querySelector('.art svg'), q = (id) => s.querySelector('[data-id="' + id + '"]');
-    const drawn = [...s.querySelectorAll('[data-id]')].every((e) => !e.style.strokeDasharray && e.style.visibility !== 'hidden');
-    const out = { done: window.__rebuild.done(), rested: s.classList.contains('rested'), drawn, post: q('post-l').getAttribute('transform') || '', flag: q('flag').getAttribute('transform') || '',
-      person: !!s.querySelector('.who circle'), letter: s.querySelector('.who [clip-path]').style.visibility, html: s.innerHTML };
-    window.__rebuild.seek(window.__rebuild.END);
-    out.same = s.innerHTML === out.html; delete out.html;
-    return out;
-  });
-  ok(rest.done && rest.rested && rest.drawn && !rest.post && !rest.flag && rest.person && rest.letter === 'hidden' && rest.same, 'landing drawing: reduced motion shows the final frame at once (every line drawn, post plumb, flag up, the person resting, letter posted) ' + JSON.stringify(rest));
+  ok(!/[–—!-]/.test(ltxt) && !/\b(seamless|empower|effortless|peace of mind|unlock|get more money)\b/i.test(ltxt), 'landing: no dashes, exclamation marks, banned words or money promises');
+  const lcss = fs.readFileSync(new URL('../public/lp.css', import.meta.url), 'utf8');
+  ok((lcss.match(/gradient\(/g) || []).length === 1 && /\.grad \{ background: linear-gradient/.test(lcss), 'landing: the only gradient is on the hero heading text, never a background');
+  ok(await p.locator('img').count() === 0, 'landing: no photos');
   const tels = await p.$$eval('a[href^="tel:"]', (a) => a.map((x) => x.textContent.trim()));
-  ok(tels.every((n) => SRC_TEXT.includes(n)), 'landing: every number is in sources.json: ' + tels.join(', '));
+  ok(tels.every((n) => SRC_TEXT.replace(/\D/g, ' ').includes(n.replace(/\D/g, ' ')) || SRC_TEXT.replace(/\D/g, '').includes(n.replace(/\D/g, ''))), 'landing: every number is in sources.json: ' + tels.join(', '));
   await p.context().close();
   p = await page({}, '/');
   await p.locator('#demo').scrollIntoViewIfNeeded();
   await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 90000 });
   ok(true, 'landing demo: plays through to the letter');
-  await p.evaluate(() => document.querySelector('.art').scrollIntoView({ block: 'center' }));
-  await p.waitForFunction(() => window.__rebuild.plays() >= 1, null, { timeout: 20000 });
-  ok(true, 'landing drawing: after its first rest the animation plays through to the finished drawing');
-  const n0 = await p.evaluate(() => window.__rebuild.plays());
-  await p.waitForFunction((n) => window.__rebuild.plays() > n, n0, { timeout: 15000 });
-  ok(true, 'landing drawing: after a 2 second rest it draws again while on screen');
-
+  const ls0 = await p.evaluate(() => [window.__line.lit(), window.__line.total]);
+  await p.evaluate(() => { const r = document.getElementById('lineTitle').getBoundingClientRect(); window.scrollBy(0, r.top - innerHeight * 0.5); });
+  await p.waitForTimeout(150);
+  const ls1 = await p.evaluate(() => window.__line.lit());
+  await p.evaluate(() => document.getElementById('lineTitle').scrollIntoView({ block: 'start' }));
+  await p.waitForTimeout(150);
+  const ls2 = await p.evaluate(() => window.__line.lit());
+  ok(ls0[0] < ls0[1] && ls1 > 0 && ls1 < ls0[1] && ls2 === ls0[1], 'landing tagline: words come up one by one as it scrolls in (' + [ls0[0], ls1, ls2, ls0[1]].join('/') + ')');
+  await p.evaluate(() => document.getElementById('faq').scrollIntoView({ block: 'start' })); await p.waitForTimeout(300);
+  ok(await p.locator('#faq.reveal.in').count() === 1 && await p.locator('.reveal').count() >= 6, 'landing: sections rise into place as they are reached');
   await p.waitForFunction(() => !window.__demo.running(), null, { timeout: 10000 });
   ok(p.errs.length === 0, 'landing: no page errors ' + p.errs.join('|'));
   await p.setViewportSize({ width: 375, height: 760 });
@@ -726,11 +724,11 @@ const pdfOf = async (p) => { const [d] = await Promise.all([p.waitForEvent('down
   await p.context().close();
   // landing
   p = await page({}, '/?lang=es');
-  ok(/Cada palabra a su aseguradora cuenta/.test(await p.locator('h1').innerText()) && (await p.locator('#startBtn').innerText()) === 'Empezar', 'landing: ?lang=es shows the landing page in Spanish');
+  ok(/Una carta clara a su aseguradora/.test(await p.locator('h1').innerText()) && (await p.locator('#startBtn').innerText()) === 'Empezar su carta', 'landing: ?lang=es shows the landing page in Spanish');
   ok(await p.locator('[data-t="foot3"]').isVisible() && /borrador/.test(await p.locator('[data-t="foot3"]').innerText()), 'landing: the footer says the Spanish is an unreviewed draft');
   ok(/no es asesoría legal ni de seguros/i.test(await p.locator('#disclaimer').innerText()), 'landing: the honesty line in Spanish');
   const lt = await p.evaluate(() => document.body.innerText);
-  ok(!/[–—!¡]/.test(lt), 'landing in Spanish: no dashes or exclamation marks');
+  ok(!/[–—!¡-]/.test(lt), 'landing in Spanish: no dashes, hyphens or exclamation marks');
   await p.setViewportSize({ width: 375, height: 760 });
   ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing in Spanish: no sideways scroll at 375px');
   await p.goto(base + '/app/'); await p.waitForSelector('.opening h1');
@@ -754,7 +752,7 @@ const pdfOf = async (p) => { const [d] = await Promise.all([p.waitForEvent('down
   await p.waitForSelector('#sheetDoc .ss'); await scan('call sheet');
   for (const r of ['phones', 'steps', 'record']) { await p.goto(base + '/app/#/' + r); await p.waitForSelector('#page h1'); await scan(r); }
   await p.goto(base + '/'); await p.waitForTimeout(300); await scan('landing');
-  ok((await p.locator('.band').evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(15, 13, 11)', 'dark: the landing band stays deep');
+  ok((await p.locator('.band').evaluate((e) => getComputedStyle(e).backgroundColor)) === 'rgb(0, 0, 0)' && (await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(24, 24, 24)', 'dark: the landing uses the approved dark surfaces (#181818 page, #000000 band)');
   await p.click('#themeBtn');
   ok((await p.evaluate(() => getComputedStyle(document.body).backgroundColor)) === 'rgb(244, 241, 234)', 'dark: the landing toggle turns it back to light');
   ok(p.errs.length === 0, 'dark: no page errors ' + p.errs.join('|'));
@@ -798,30 +796,31 @@ const pdfOf = async (p) => { const [d] = await Promise.all([p.waitForEvent('down
   await p.context().close();
 }
 
-// 30. landing intro: says what the tool is at a glance, letter first; Demo; one honesty line under the buttons
+// 30. landing hero, floating nav and phone menu, and the plain pages
 {
   p = await page({}, '/');
-  const big = p.locator('.hero .lede-big');
-  ok((await big.innerText()) === 'A free tool that helps you communicate with your insurer after a California wildfire.', 'landing intro: the first line under the headline names the tool');
-  const st = await big.evaluate((e) => { const c = getComputedStyle(e); return { color: c.color, size: parseFloat(c.fontSize), body: getComputedStyle(document.body).color }; });
-  ok(st.color === st.body && st.size >= 21, 'landing intro: the first line is in ink, at least 21px (' + st.size + 'px)');
-  const grey = await p.locator('.hero .lede:not(.lede-big)').innerText();
-  ok(/^Start with a letter/.test(grey) && /replies/.test(grey) && /calls/.test(grey) && /adjuster’s visit/.test(grey), 'landing intro: the grey line starts with the letter and mentions replies, calls and the visit');
-  const hero = await p.locator('.hero').innerText();
-  ok((hero.match(/\bfree\b/gi) || []).length === 1 && !/negotiat/i.test(await p.evaluate(() => document.body.innerText)), 'landing intro: "free" once in the hero, and "negotiate" nowhere');
-  ok((await p.locator('#watchBtn').innerText()) === 'Demo' && (await p.locator('#watchBtn').getAttribute('href')) === '#demo', 'landing: the ghost button says Demo and goes to the demo');
-  ok((await p.locator('.hero .honest').innerText()) === 'General information from public sources, not legal or insurance advice.', 'landing: only the general information line sits under the buttons');
+  ok((await p.locator('h1').innerText()).replace(/\s+/g, ' ') === 'Get a clear letter to your insurer after a California wildfire', 'landing hero: the headline names the outcome and who it is for');
+  ok(/gradient/.test(await p.locator('h1').evaluate((e) => getComputedStyle(e).backgroundImage)), 'landing hero: the heading carries the text gradient');
+  ok((await p.locator('.hero .proof').innerText()).includes('California Department of Insurance'), 'landing hero: one proof line under the action');
+  ok(await p.locator('.nav').evaluate((e) => getComputedStyle(e).position === 'static' && getComputedStyle(e.parentElement).position === 'fixed' && /blur/.test(getComputedStyle(e).backdropFilter)), 'landing nav: floats, over a blur');
   await p.context().close();
-  p = await page(PHONE, '/');
-  const sb = await p.locator('#startBtn').boundingBox();
-  ok(sb.y + sb.height <= 760, 'landing intro: Start is above the fold on a 375 by 760 phone (ends at ' + Math.round(sb.y + sb.height) + ')');
-  await p.context().close();
-  p = await page(Object.assign({ locale: 'es-MX' }, PHONE), '/?lang=es');
-  ok((await p.locator('.hero .lede-big').innerText()).startsWith('Una herramienta gratuita que le ayuda a comunicarse') && /^Empiece con una carta/.test(await p.locator('.hero .lede:not(.lede-big)').innerText()) && (await p.locator('#watchBtn').innerText()) === 'Demo', 'landing intro in Spanish: both lines and Demo');
-  ok((await p.locator('.hero .honest').innerText()) === 'Información general de fuentes públicas, no es asesoría legal ni de seguros.', 'landing in Spanish: only the general information line under the buttons');
-  const sbe = await p.locator('#startBtn').boundingBox();
-  ok(sbe.y + sbe.height <= 760 && (await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing intro in Spanish: Empezar above the fold on a 375 by 760 phone, no sideways scroll');
-  await p.context().close();
+  for (const [opts, path, label] of [[PHONE, '/', 'English'], [Object.assign({ locale: 'es-MX' }, PHONE), '/?lang=es', 'Spanish']]) {
+    p = await page(opts, path);
+    const sb = await p.locator('#startBtn').boundingBox();
+    ok(sb.y + sb.height <= 760 && (await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'landing hero in ' + label + ': the action is above the fold on a 375 by 760 phone (ends at ' + Math.round(sb.y + sb.height) + '), no sideways scroll');
+    await p.click('#menuBtn'); await p.waitForTimeout(700);
+    const m = await p.locator('#menu').boundingBox();
+    ok(m.height >= 760 && await p.locator('#menu li').count() === 6 && (await p.locator('#menuBtn').getAttribute('aria-expanded')) === 'true', 'landing menu in ' + label + ': a full height panel with its links');
+    await p.keyboard.press('Escape');
+    ok(await p.locator('#menu').isHidden(), 'landing menu in ' + label + ': Escape closes it');
+    ok(p.errs.length === 0, 'landing on a phone in ' + label + ': no page errors ' + p.errs.join('|'));
+    await p.context().close();
+  }
+  for (const [path, want] of [['/privacy/', /stay in this browser/], ['/terms/', /not legal or insurance advice/], ['/no-such-page', /isn’t here/]]) {
+    p = await page({}, path);
+    ok(want.test(await p.locator('main').innerText()) && await p.locator('a[href="/"]').count() >= 1, 'plain page ' + path + ': says what it should and has a way back');
+    await p.context().close();
+  }
 }
 
 // 31. the Desk's sidebar on a computer opens and closes, like a drawer; remembered; labelled; the phone menu is unchanged
@@ -875,25 +874,6 @@ const iso = (daysAgo) => { const d = new Date(); d.setDate(d.getDate() - daysAgo
 const SITE = 'https://next-step-2fg.pages.dev';
 const headersText = fs.readFileSync(new URL('../public/_headers', import.meta.url), 'utf8');
 const flat = (t) => t.replace(/\s+/g, ' ');
-
-// the drawing is there at first paint
-{
-  const ctx = await browser.newContext({ viewport: DESK }); p = await ctx.newPage();
-  await p.goto(base + '/', { waitUntil: 'domcontentloaded' });
-  const t0 = Date.now();
-  const first = await p.evaluate(() => { const s = document.querySelector('.art svg'); return { lines: [...s.querySelectorAll('[data-id]')].every((e) => !e.style.strokeDasharray && e.style.visibility !== 'hidden'), op: getComputedStyle(s).opacity, rested: s.classList.contains('rested') }; });
-  const shot = await p.locator('.art').screenshot();
-  await p.evaluate(() => { document.querySelector('.art svg').style.visibility = 'hidden'; });
-  const blank = await p.locator('.art').screenshot();
-  await p.evaluate(() => { document.querySelector('.art svg').style.visibility = ''; });
-  ok(first.lines && first.op === '1' && first.rested && Date.now() - t0 < 2000, 'landing drawing: finished and fully visible at first paint, not blank ' + JSON.stringify(first));
-  ok(shot.length > blank.length + 1500, 'landing drawing: the first screenshot has the drawing in it (' + shot.length + ' bytes against ' + blank.length + ' blank)');
-  await ctx.close();
-  const ctx2 = await browser.newContext({ viewport: DESK, reducedMotion: 'reduce' }); p = await ctx2.newPage(); await p.goto(base + '/');
-  const rs = await p.locator('.art').screenshot(); await p.evaluate(() => { document.querySelector('.art svg').style.visibility = 'hidden'; });
-  ok(rs.length > (await p.locator('.art').screenshot()).length + 1500, 'landing drawing: under reduced motion it is the finished drawing too');
-  await ctx2.close();
-}
 
 // search engines and the link preview
 {
