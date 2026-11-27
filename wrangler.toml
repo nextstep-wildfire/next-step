@@ -8,8 +8,11 @@ compatibility_date = "2026-10-01"
 [ai]
 binding = "AI"
 
-# Cookie-free counts (landing visits, Desk opens, copied or emailed letters, downloaded PDFs). The dataset is created the
-# first time something is written. No setting in the dashboard is needed to collect; to read the numbers see docs/DESIGN.md.
-[[analytics_engine_datasets]]
-binding = "COUNTS"
-dataset = "next_step_counts"
+# Cookie-free counts (landing visits, Desk opens, copied or emailed letters, downloaded PDFs).
+# OFF until Analytics Engine is switched on for the Cloudflare account: with it off, Cloudflare refuses to deploy a project
+# that names a dataset. The site works without it (the counting call is simply ignored).
+# To turn on: Cloudflare dashboard > Workers & Pages > Analytics Engine > enable, then remove the "# " from the three lines
+# below, commit and push. Details: "Hand-over" in docs/DESIGN.md.
+# [[analytics_engine_datasets]]
+# binding = "COUNTS"
+# dataset = "next_step_counts"
