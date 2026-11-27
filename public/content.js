@@ -272,7 +272,7 @@
   var FOLLOWUP = ['fu', 'Please confirm in writing that this summary of our conversation is correct, or tell me in writing what is different.', M('Confirm what was said', 'Confirmar lo que se dijo', '确认谈话内容')];
 
   /* The one ask of a follow-up letter when an earlier letter got no reply. General guidance, flagged for review like the other follow-up. */
-  var NOREPLY = ['nr', 'Please reply in writing to my earlier letter, or tell me in writing when I can expect a reply.', M('Answer my earlier letter', 'Responder a mi carta anterior', '回复我之前的信')];
+  var NOREPLY = ['nr', 'Please respond to the request in my earlier letter.', M('Answer my earlier letter', 'Responder a mi carta anterior', '回复我之前的信')];
 
   /* Spanish (an unreviewed draft, listed for a native speaker in docs/DESIGN.md).
      Letters to the insurer stay in English. These are the Spanish copy of each fixed English line, written once by
@@ -284,7 +284,7 @@
     smoke: { a1: 'Les pido que expliquen por escrito cómo investigarán los daños por humo y ceniza en mi vivienda, incluidas las pruebas.', a2: 'Les pido que confirmen por escrito si pagarán las pruebas de mi vivienda hechas por un profesional calificado, y qué necesitan de mí.' },
     other: { a1: 'Les pido que indiquen por escrito los documentos, formularios e información que necesitan de mí para tramitar mi reclamo.', a2: 'Les pido que confirmen por escrito, una vez que reciban los documentos que les envío, si necesitan algo más de mí.' },
     fu: 'Les pido que confirmen por escrito que este resumen de nuestra conversación es correcto, o que me indiquen por escrito qué es diferente.',
-    nr: 'Les pido que respondan por escrito a mi carta anterior, o que me indiquen por escrito cuándo puedo esperar una respuesta.'
+    nr: 'Les pido que respondan a la solicitud de mi carta anterior.'
   };
   var ASK_SUBJECT_ES = {
     denied: { a1: 'Solicitud de una explicación por escrito de la decisión sobre el reclamo', a2: 'Solicitud de copias de mi expediente de reclamo', a3: 'Solicitud para revisar de nuevo la decisión sobre el reclamo' },

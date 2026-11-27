@@ -1325,7 +1325,7 @@
     record: 'Historial', steps: 'Pasos de un reclamo', breathe: 'Respire un momento', phones: 'Líneas telefónicas',
     fine: 'Información general de fuentes públicas, no es asesoría legal ni de seguros. Guía de IA, sin personal. Español: borrador sin revisar.',
     tap: 'Toque para abrir', close: 'Cerrar', paperfine: 'Es un borrador. Revise cada fecha, número y nombre antes de enviarla.',
-    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', newChatRail: 'Nueva conversación', sidePrivacy: 'Solo contamos cuántas personas visitan el sitio, abren el Escritorio, copian o envían una carta por correo, o descargan un PDF, sin cookies y sin nada que diga quién es usted.', foldSide: 'Cerrar la barra lateral', unfoldSide: 'Abrir la barra lateral', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
+    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', newChatRail: 'Nueva conversación', sidePrivacy: 'Solo contamos visitas, cartas copiadas o enviadas por correo y PDF, sin cookies y sin nada sobre usted.', foldSide: 'Cerrar la barra lateral', unfoldSide: 'Abrir la barra lateral', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
   };
   function applyStatic() {
     document.title = 'Next Step';
