@@ -26,7 +26,7 @@
     n1: 'Departamento de Seguros de California, para su póliza o un desacuerdo con su aseguradora', n2: 'Asistencia por desastre de FEMA, para necesidades que el seguro no cubre', n3: '988 Línea de Prevención del Suicidio y Crisis, llame o envíe un mensaje de texto a cualquier hora',
     disclaimer: 'Next Step es una guía de IA, no una persona, y nadie de aquí le devolverá la llamada. Da información general tomada de fuentes públicas como el Departamento de Seguros de California y United Policyholders. No es asesoría legal ni de seguros, puede equivocarse, y lo que cuenta es su propia póliza.',
     foot1: 'Un proyecto estudiantil de la Fung Fellowship, hecho con la orientación de The After Collective.',
-    foot2: 'Sus conversaciones, cartas e Historial se quedan en este navegador. Cuando pide una carta o una respuesta, lo que escribió se envía a la IA para escribirla y no lo guardamos.',
+    foot2: 'Sus conversaciones, cartas e Historial se quedan en este navegador. Cuando pide una carta o una respuesta, lo que escribió se envía a la IA para escribirla y no lo guardamos. Solo contamos cuántas personas visitan el sitio, abren el Escritorio, copian o envían una carta por correo, o descargan un PDF, sin cookies y sin nada que diga quién es usted.',
     foot3: 'La versión en español es un borrador que todavía no ha revisado un hablante nativo.'
   };
   var EN = { foot3: 'The Spanish version is a draft not yet reviewed by a native speaker.', langOther: 'Español', dark: 'Dark mode', light: 'Light mode' };
@@ -38,6 +38,7 @@
     document.title = 'Next Step: cada intercambio con su aseguradora después de un incendio';
     var md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute('content', 'Para sobrevivientes de incendios en California: escriba a su aseguradora, entienda lo que le enviaron y prepárese para llamadas y la visita del ajustador. Información general de fuentes públicas, no es asesoría legal ni de seguros.');
   }
+  if (window.nsCount) window.nsCount('visit');
   var lb = document.getElementById('langBtn'), tb = document.getElementById('themeBtn');
   if (lb) { lb.textContent = W.langOther; lb.setAttribute('lang', LANG === 'es' ? 'en' : 'es'); lb.addEventListener('click', function () { window.nsLang.set(LANG === 'es' ? 'en' : 'es'); }); }
   function themeLabel() { var d = window.nsTheme && window.nsTheme.current() === 'dark'; tb.setAttribute('aria-pressed', d ? 'true' : 'false'); tb.setAttribute('aria-label', d ? W.light : W.dark); tb.title = d ? W.light : W.dark; }

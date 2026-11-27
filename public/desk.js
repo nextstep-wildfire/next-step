@@ -98,6 +98,10 @@
     langOther: 'Español', themeDark: 'Dark mode', themeLight: 'Light mode', settingsLbl: 'Settings',
     basicCtx: { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' },
     inMyWords: 'In my own words: ',
+    openEmail: 'Open in email', emailOpened: 'Opening your email app. The letter is also copied, in case nothing opens.', emailLong: 'Your email app is opening with the subject. The letter is long, so it is copied: paste it into the email.',
+    ciLead: 'It has been {n} days since the letter you copied on {date}. Did your insurer reply?', ciReplied: 'They replied. Explain it', ciNone: 'No reply yet. Write a follow-up', ciLater: 'Not now', ciDevice: 'This check uses only what is saved on this device.',
+    ciFuLead: 'Here is a follow-up letter. It points back to your earlier one and asks them to answer in writing.', titleNr: 'Follow-up letter', ciNotes: 'I sent a letter on {date} titled “{subj}”. It has been {n} days and I have not received a reply.',
+    tell: 'Something unclear? Tell us', tellLead: 'Tell us what was hard to follow. We read these to make the tool clearer, but we cannot reply and no one is on call. Please leave out names, claim numbers and account details.', tellHolder: 'What was unclear?', tellSend: 'Send', tellThanks: 'Thank you. We read these to make the tool clearer.', tellFail: 'That did not send. Nothing was lost, and you can try again later.',
     noteBlanks: 'Fill in anything in [brackets], then tap Copy and paste it into an email to your adjuster.', noteDone: 'Read it through, then tap Copy and paste it into an email to your adjuster.', noteCall: 'Keep this open during the call and fill in the log at the bottom as you go.', noteVisit: 'Keep this with you and fill in the log at the bottom before the adjuster leaves.'
   };
   var T_ES = {
@@ -186,6 +190,10 @@
     basicCtx: { denied: 'I received your decision on my claim.', low: 'I received your settlement offer on my claim.', quiet: 'I have not received a response to my recent requests.', smoke: 'My home is still standing, but smoke and ash got in.', other: '' },
     inMyWords: 'In my own words (written in Spanish): ',
     noteBlanks: 'Rellene lo que está entre [corchetes] en la carta en inglés, luego toque Copiar y péguela en un correo para su ajustador. Más abajo está lo que dice en español.', noteDone: 'Léala completa, luego toque Copiar y péguela en un correo para su ajustador. Más abajo está lo que dice en español.', noteCall: 'Téngala abierta durante la llamada y llene el registro de abajo sobre la marcha.', noteVisit: 'Llévela consigo y llene el registro de abajo antes de que se vaya el ajustador.',
+    openEmail: 'Abrir en el correo', emailOpened: 'Abriendo su aplicación de correo. La carta también quedó copiada, por si no se abre nada.', emailLong: 'Su aplicación de correo se abre con el asunto. La carta es larga, así que quedó copiada: péguela en el correo.',
+    ciLead: 'Han pasado {n} días desde la carta que copió el {date}. ¿Respondió su aseguradora?', ciReplied: 'Respondieron. Explíquemelo', ciNone: 'Aún no responden. Escribir un seguimiento', ciLater: 'Ahora no', ciDevice: 'Esta revisión usa solo lo que está guardado en este dispositivo.',
+    ciFuLead: 'Aquí tiene una carta de seguimiento. Se refiere a su carta anterior y les pide responder por escrito.', titleNr: 'Carta de seguimiento', ciNotes: 'I sent a letter on {date} titled “{subj}”. It has been {n} days and I have not received a reply.',
+    tell: '¿Algo no quedó claro? Cuéntenos', tellLead: 'Cuéntenos qué le costó entender. Leemos esto para que la herramienta sea más clara, pero no podemos responder y nadie está de guardia. No incluya nombres, números de reclamo ni datos de cuentas.', tellHolder: '¿Qué no quedó claro?', tellSend: 'Enviar', tellThanks: 'Gracias. Leemos esto para que la herramienta sea más clara.', tellFail: 'No se envió. No se perdió nada, y puede intentarlo más tarde.',
     esH: 'Lo que dice su carta, en español', esNote: 'Para que sepa lo que envía. La carta que se envía es la de arriba, en inglés.',
     esUntranslated: 'Este párrafo no se pudo traducir con seguridad, así que se muestra en inglés. Pida a alguien de confianza que se lo lea.',
     esStale: 'Cambió la carta. Esta copia es de antes del cambio.', esUpdate: 'Actualizar la copia en español', esFailed: 'La copia en español no está disponible en este momento. La carta en inglés está lista.', esWorking: 'Traduciendo…',
@@ -244,6 +252,7 @@
   function L(m) { return m && (m[LANG] || m.en || m); }
   function tr(x) { return LANG === 'es' ? (C.SHEET_ES[x] || x) : x; }
   function isPhone() { return window.matchMedia('(max-width: 900px)').matches; }
+  function count(ev, what) { if (window.nsCount) window.nsCount(ev, what); }
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('on'); }, 2400); }
   function niceDate(ts) { return new Date(ts).toLocaleDateString(LOCALE, { month: 'short', day: 'numeric' }); }
   function asksFor(sit) { return (C.ASKS[sit] || C.ASKS.other); }
@@ -290,7 +299,8 @@
     jumpDown();
   }
   function jumpDown() {
-    var go = function () { thread.style.scrollBehavior = 'auto'; thread.scrollTop = thread.scrollHeight; thread.style.scrollBehavior = ''; };
+    // the check-in is the first thing to read, so a Desk that has one opens at the top, not the bottom
+    var go = function () { thread.style.scrollBehavior = 'auto'; thread.scrollTop = thread.querySelector('.checkin') ? 0 : thread.scrollHeight; thread.style.scrollBehavior = ''; };
     go(); requestAnimationFrame(go);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
   }
@@ -304,6 +314,8 @@
       b.addEventListener('click', function () { if (!busy) startWith(c[0], c[1]); });
       ch.appendChild(b);
     });
+    var due = dueLetter();
+    if (due) o.appendChild(checkinBlock(due));
     o.appendChild(ch);
     var lg = el('p', 'lang-line');
     lg.innerHTML = '<button type="button" class="linkbtn" lang="' + (LANG === 'es' ? 'en' : 'es') + '" data-lang="' + (LANG === 'es' ? 'en' : 'es') + '">' + esc(T.langOther) + '</button>';
@@ -496,6 +508,43 @@
     setComposer();
   }
 
+  /* ---------- coming back after a letter: did the insurer reply? Uses only the Record on this device ---------- */
+  function daysSince(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return 0;
+    var t = new Date(), a = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()), b = Date.UTC(+m[1], m[2] - 1, +m[3]);
+    return Math.round((a - b) / 86400000);
+  }
+  function plusDaysISO(n) { var d = new Date(); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  /* The newest letter in the Record, if it is 15 days old or more and the person has not answered or put it off. */
+  function dueLetter() {
+    var letters = (store.record || []).filter(function (r) { return r.kind === 'letter'; }).sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+    var r = letters[0]; if (!r || r.checked || (r.snooze && r.snooze > todayISO())) return null;
+    var n = daysSince(r.date);
+    return n >= 15 ? { r: r, n: n } : null;
+  }
+  function enDate(iso) { var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], m[2] - 1, +m[3]).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : iso; }
+  function checkinBlock(due) {
+    var b = el('div', 'checkin'); b.setAttribute('role', 'group'); b.setAttribute('aria-labelledby', 'ciLead');
+    b.innerHTML = '<p class="ci-lead" id="ciLead">' + esc(T.ciLead.replace('{n}', due.n).replace('{date}', niceISO(due.r.date))) + '</p>' + (due.r.summary ? '<p class="ci-sub">' + esc(due.r.summary) + '</p>' : '') +
+      '<div class="choices inline"><button type="button" class="choice" data-ci="replied">' + esc(T.ciReplied) + '</button><button type="button" class="choice" data-ci="none">' + esc(T.ciNone) + '</button></div>' +
+      '<p class="ci-foot"><button type="button" class="linkbtn" data-ci="later">' + esc(T.ciLater) + '</button><span>' + esc(T.ciDevice) + '</span></p>';
+    [].forEach.call(b.querySelectorAll('[data-ci]'), function (x) { x.addEventListener('click', function () { if (!busy) answerCheckin(due, x.dataset.ci); }); });
+    return b;
+  }
+  function answerCheckin(due, how) {
+    var r = due.r;
+    if (how === 'later') { r.snooze = plusDaysISO(7); save(); return renderAll(); }
+    r.checked = true; save();
+    if (how === 'replied') return startWith('msg', T.ciReplied);
+    // No reply: a follow-up letter that points back to the earlier one, from what is saved about it
+    var old = store.chats.filter(function (x) { return x.id === r.chat; })[0] || {};
+    var subj = (((old.letter || '').match(/^Subject:\s*(.+)$/m) || [])[1] || r.summary || '').replace(/\s+-\s+Claim .*$/, '').slice(0, 120);
+    chat.flow = 'letter'; chat.ask = 'nr'; chat.sit = old.sit || 'other'; chat.role = old.role || ''; chat.title = T.titleNr;
+    chat.notes = T_EN.ciNotes.replace('{date}', function () { return enDate(r.date); }).replace('{subj}', function () { return subj; }).replace('{n}', due.n);
+    me(T.ciNone); say({ r: 'a', x: T.ciFuLead });
+    writeLetter();
+  }
+
   /* ---------- the composer ---------- */
   var input = $('composerIn');
   function setComposer() {
@@ -561,10 +610,11 @@
     });
     return out.slice(-8);
   }
-  function askOf(c) { if (c.ask === 'fu') return C.FOLLOWUP; return c.ask && askById(c.sit, c.ask); }
+  function fixedAsk(id) { return id === 'fu' || id === 'nr'; }
+  function askOf(c) { if (c.ask === 'fu') return C.FOLLOWUP; if (c.ask === 'nr') return C.NOREPLY; return c.ask && askById(c.sit, c.ask); }
   function askSentence() { var a = askOf(chat); return a ? a[1] : ''; }
-  function askEs() { if (LANG !== 'es') return ''; if (chat.ask === 'fu') return C.ASK_ES.fu; return ((C.ASK_ES[chat.sit] || {})[chat.ask]) || ''; }
-  function subjectsOf(c) { return { en: c.ask === 'fu' ? C.ASK_SUBJECT.fu : (C.ASK_SUBJECT[c.sit] || {})[c.ask] || '', es: c.ask === 'fu' ? C.ASK_SUBJECT_ES.fu : (C.ASK_SUBJECT_ES[c.sit] || {})[c.ask] || '' }; }
+  function askEs() { if (LANG !== 'es') return ''; if (fixedAsk(chat.ask)) return C.ASK_ES[chat.ask]; return ((C.ASK_ES[chat.sit] || {})[chat.ask]) || ''; }
+  function subjectsOf(c) { return { en: fixedAsk(c.ask) ? C.ASK_SUBJECT[c.ask] : (C.ASK_SUBJECT[c.sit] || {})[c.ask] || '', es: fixedAsk(c.ask) ? C.ASK_SUBJECT_ES[c.ask] : (C.ASK_SUBJECT_ES[c.sit] || {})[c.ask] || '' }; }
 
   function setBusy(b) { busy = b; $('send').disabled = b || !input.value.trim(); document.body.classList.toggle('busy', b); }
 
@@ -691,8 +741,8 @@
   /* ---------- the letter ---------- */
   function letterBody() {
     var notes = (chat.notes || '').trim();
-    var subj = chat.ask === 'fu' ? C.ASK_SUBJECT.fu : (C.ASK_SUBJECT[chat.sit] || {})[chat.ask];
-    var subjEs = chat.ask === 'fu' ? C.ASK_SUBJECT_ES.fu : (C.ASK_SUBJECT_ES[chat.sit] || {})[chat.ask];
+    var subj = fixedAsk(chat.ask) ? C.ASK_SUBJECT[chat.ask] : (C.ASK_SUBJECT[chat.sit] || {})[chat.ask];
+    var subjEs = fixedAsk(chat.ask) ? C.ASK_SUBJECT_ES[chat.ask] : (C.ASK_SUBJECT_ES[chat.sit] || {})[chat.ask];
     return { mode: 'letter', lang: LANG, subject: subj || '', subjectEs: subjEs || '', askEs: askEs(), sit: chat.sit, sitLabel: L(C.SIT_LABEL[chat.sit]), role: chat.role === 'rent' ? 'rent' : 'own', ask: askSentence(), notes: notes, paste: chat.flow === 'reply' && chat.pasteId ? (pasteMem[chat.pasteId] || '') : '', name: '', claim: '', insurer: '', who: 'me' };
   }
   function writeLetter() {
@@ -1005,7 +1055,10 @@
       sd.hidden = false; sd.innerHTML = sheetHtml();
       if (freshSheet && !reduced) [].forEach.call(sd.children, function (n, i) { n.classList.add('in'); n.style.animationDelay = (i * 90) + 'ms'; });
     } else { sd.hidden = true; sd.innerHTML = ''; }
+    var hadPaper = $('desk').classList.contains('has-paper');
     $('desk').classList.toggle('has-paper', has);
+    if (has && !hadPaper) sideForPaper(true); else if (!has && hadPaper) sideForPaper(false);
+    var em = $('emailBtn'); em.hidden = !(chat.letter && !chat.sheet); if (chat.letter) em.setAttribute('href', mailtoUrl(chat.letter).url);
     $('paperwrap').hidden = !has;
     $('pin').hidden = !has;
     var kind = chat.sheet ? (chat.sheet.kind === 'call' ? T.kCall : T.kVisit) : chat.flow === 'reply' ? T.kReply : T.kLetter;
@@ -1023,6 +1076,7 @@
     $('sheet').classList.toggle('is-sheet', !!chat.sheet);
     // One solid button per screen: on a sheet it is Save to Record, so Copy steps back to a ghost.
     $('copyBtn').classList.toggle('ghost', !!chat.sheet);
+    $('emailBtn').textContent = T.openEmail;
   }
   // Typing on the paper: keep the saved letter in step with what is on the sheet.
   var editT;
@@ -1099,11 +1153,30 @@
     var text;
     if (chat.sheet) text = sheetText();
     else { text = chat.letter = readSheet(); letterRecord(); persist(); }
+    count('copy', chat.sheet ? 'sheet' : 'letter');
     copyText(text, function () { var b = $('copyBtn'); b.textContent = T.copiedShort; toast(chat.sheet ? T.copiedSheet : T.copied); setTimeout(function () { b.textContent = T.copy; }, 2000); });
   });
   function fallbackCopy(t) { var ta = el('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); window.getSelection().removeAllRanges(); }
   /* A real PDF of the paper, made on the device: the letter (in English, the one that is sent), or the whole sheet. */
-  $('printBtn').addEventListener('click', function () { if (chat.letter && !chat.sheet) { chat.letter = readSheet(); letterRecord(); persist(); } downloadPdf(); });
+  $('printBtn').addEventListener('click', function () { if (chat.letter && !chat.sheet) { chat.letter = readSheet(); letterRecord(); persist(); } count('pdf', chat.sheet ? 'sheet' : 'letter'); downloadPdf(); });
+  /* Open in email: the person's own email app, with the subject and the letter filled in. No address is guessed;
+     the letter is also copied, because a computer with no email app set up opens nothing. */
+  var MAIL_MAX = 6000;
+  function mailtoUrl(text) {
+    var ps = paras(text), subj = '';
+    if (ps.length && /^Subject:/i.test(ps[0])) { subj = ps[0].replace(/^Subject:\s*/i, ''); ps = ps.slice(1); }
+    var body = ps.join('\n\n').replace(/\r?\n/g, '\r\n');
+    var url = 'mailto:?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
+    return url.length > MAIL_MAX ? { url: 'mailto:?subject=' + encodeURIComponent(subj), long: true } : { url: url, long: false };
+  }
+  $('emailBtn').addEventListener('click', function () {
+    if (!chat.letter || chat.sheet) return;
+    chat.letter = readSheet(); letterRecord(); persist();
+    var m = mailtoUrl(chat.letter);
+    this.setAttribute('href', m.url);
+    count('email', 'letter');
+    copyText(chat.letter, function () { toast(m.long ? T.emailLong : T.emailOpened); });
+  });
   function openPaper() { if (!isPhone()) return; $('paperwrap').classList.add('open'); document.body.style.overflow = 'hidden'; $('paperClose').focus(); }
   function closePaper() { $('paperwrap').classList.remove('open'); document.body.style.overflow = ''; $('pin').focus(); }
   $('pin').addEventListener('click', openPaper);
@@ -1136,16 +1209,28 @@
   function closeSide() { if (!$('side').classList.contains('open')) return; $('side').classList.remove('open'); $('scrim').hidden = true; $('sideOpen').setAttribute('aria-expanded', 'false'); }
   $('sideOpen').addEventListener('click', openSide);
   // On a computer the sidebar folds away and the chat and paper take the room; the choice stays on this device.
-  function foldSide(shut) {
+  var autoShut = false;
+  function foldSide(shut, auto) {
     var d = document.documentElement;
     if (shut) d.setAttribute('data-side', 'shut'); else d.removeAttribute('data-side');
-    try { localStorage.setItem('ns-side', shut ? 'shut' : 'open'); } catch (e) {}
     $('sideFold').setAttribute('aria-expanded', shut ? 'false' : 'true');
     $('sideUnfold').setAttribute('aria-expanded', shut ? 'false' : 'true');
+    autoShut = !!auto;
+    if (auto) return;                      // closed or reopened by the page itself: not remembered, focus stays where it is
+    try { localStorage.setItem('ns-side', shut ? 'shut' : 'open'); } catch (e) {}
     $(shut ? 'sideUnfold' : 'sideFold').focus();
+  }
+  /* On a medium screen (about 900 to 1150 px) the sidebar steps aside when a paper opens, so the letter is not squeezed,
+     and comes back when there is no paper again. It never overrides what the person chose by hand. */
+  function sideForPaper(open) {
+    if (isPhone()) return;
+    var shut = document.documentElement.getAttribute('data-side') === 'shut';
+    if (open && window.innerWidth <= 1150 && !shut) foldSide(true, true);
+    else if (!open && autoShut && shut) foldSide(false, true);
   }
   $('sideFold').addEventListener('click', function () { foldSide(true); });
   $('sideUnfold').addEventListener('click', function () { foldSide(false); });
+  $('newChatRail').addEventListener('click', fresh);
   if (document.documentElement.getAttribute('data-side') === 'shut') $('sideFold').setAttribute('aria-expanded', 'false');
   $('sideClose').addEventListener('click', function () { closeSide(); $('sideOpen').focus(); });
   $('scrim').addEventListener('click', closeSide);
@@ -1240,7 +1325,7 @@
     record: 'Historial', steps: 'Pasos de un reclamo', breathe: 'Respire un momento', phones: 'Líneas telefónicas',
     fine: 'Información general de fuentes públicas, no es asesoría legal ni de seguros. Guía de IA, sin personal. Español: borrador sin revisar.',
     tap: 'Toque para abrir', close: 'Cerrar', paperfine: 'Es un borrador. Revise cada fecha, número y nombre antes de enviarla.',
-    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', foldSide: 'Cerrar la barra lateral', unfoldSide: 'Abrir la barra lateral', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
+    letterAria: 'Su carta. Puede escribir sobre ella.', openMenu: 'Abrir menú', closeMenu: 'Cerrar menú', newChatRail: 'Nueva conversación', sidePrivacy: 'Solo contamos cuántas personas visitan el sitio, abren el Escritorio, copian o envían una carta por correo, o descargan un PDF, sin cookies y sin nada que diga quién es usted.', foldSide: 'Cerrar la barra lateral', unfoldSide: 'Abrir la barra lateral', send: 'Enviar', paperAria: 'Su hoja', chatAria: 'Conversación', sideAria: 'Conversaciones y ayuda', helpAria: 'Ayuda'
   };
   function applyStatic() {
     document.title = 'Next Step';
@@ -1261,14 +1346,37 @@
     persist(); window.nsLang.set(LANG === 'es' ? 'en' : 'es');
   });
 
+  /* ---------- "Something unclear? Tell us": built, and hidden until TAC gives us an inbox (public/config.js, feedback) ---------- */
+  function wireTell() {
+    var on = window.NS_CONFIG && window.NS_CONFIG.feedback === true, line = $('tell'), form = $('tellForm');
+    if (!on || !line || !form) return;
+    line.hidden = false;
+    $('tellBtn').textContent = T.tell; $('tellLead').textContent = T.tellLead; $('tellIn').placeholder = T.tellHolder; $('tellIn').setAttribute('aria-label', T.tellHolder); $('tellSend').textContent = T.tellSend; $('tellCancel').textContent = T.cancel;
+    $('tellBtn').addEventListener('click', function () { form.hidden = false; line.hidden = true; $('talk').classList.add('telling'); $('tellIn').focus(); });
+    $('tellCancel').addEventListener('click', function () { form.hidden = true; line.hidden = false; $('talk').classList.remove('telling'); $('tellBtn').focus(); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = $('tellIn').value.trim(); if (!text || $('tellHp').value) return;
+      $('tellSend').disabled = true;
+      fetch('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: text, lang: LANG, where: chat.sheet ? 'sheet' : chat.letter ? 'letter' : 'chat' }) }).then(function (r) {
+        $('tellSend').disabled = false;
+        if (!r.ok) throw new Error('x');
+        $('tellIn').value = ''; form.hidden = true; line.hidden = false; $('talk').classList.remove('telling'); toast(T.tellThanks);
+      }, function () { throw new Error('x'); }).catch(function () { $('tellSend').disabled = false; toast(T.tellFail); });
+    });
+  }
+
   /* ---------- start ---------- */
   function boot() {
     applyStatic();
     var cur = store.chats.filter(function (c) { return c.id === store.cur; })[0];
     chat = cur || newChat();
+    // Back after 15 days or more with a letter that may have had a reply: start on a clean Desk where the check-in shows.
+    if (!location.hash && dueLetter() && chat.msgs.length && new Date(chat.at).toDateString() !== new Date().toDateString()) chat = newChat();
     // A chat left mid-way while writing: settle it so it never shows a stuck state.
     if (chat.step === 'writing' || chat.step === 'reading') chat.step = (chat.letter || chat.sheet) ? 'free' : (chat.flow === 'reply' ? 'paste' : 'notes');
-    renderAll(); renderHistory(); route();
+    renderAll(); renderHistory(); route(); wireTell();
+    count('desk');
     window.addEventListener('resize', function () { if (!isPhone()) closePaper(); });
   }
   fetch('/sources.json').then(function (r) { return r.json(); }).then(function (s) { SOURCES = s; }, function () {}).then(boot);

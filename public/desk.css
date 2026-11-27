@@ -217,7 +217,7 @@
 .page .handoffs .who { max-width: 52ch; }
 
 /* ---------- the sidebar on a computer: open or closed, like a drawer, remembered on the device ---------- */
-.side-unfold { display: none; }
+.rail { display: none; }
 @media (min-width: 901px) {
   .app { transition: grid-template-columns .24s cubic-bezier(.3, 0, .2, 1); }
   .side { overflow-x: hidden; }
@@ -227,10 +227,10 @@
   .side-fold:hover { color: var(--on-ink); }
   :root[data-side="shut"] .app { grid-template-columns: 0 1fr; }
   :root[data-side="shut"] .side { visibility: hidden; padding-left: 0; padding-right: 0; transition: visibility 0s .24s, padding 0s .24s; }
-  :root[data-side="shut"] .side-unfold { display: inline-flex; position: absolute; top: 12px; left: 16px; z-index: 6; color: var(--ink-2); animation: fadein .3s ease .12s both; }
+  :root[data-side="shut"] .rail { display: flex; gap: 2px; position: absolute; top: 12px; left: 16px; z-index: 6; color: var(--ink-2); animation: fadein .3s ease .12s both; }
   /* the chat scrolls below the icon, never under it */
   :root[data-side="shut"] .thread { margin-top: 56px; padding-top: 0; }
-  .side-unfold:hover { color: var(--ink); background: var(--fill); }
+  .rail .iconbtn:hover { color: var(--ink); background: var(--fill); }
 }
 @media (max-width: 900px) { .side-fold { display: none; } }
 
@@ -258,8 +258,11 @@
   .paperwrap.open { display: flex; }
   .paperbar { padding: 8px 12px 8px 16px; }
   .paperbar .label { display: none; }
-  .paperbtns { width: 100%; }
-  .paperclose { display: inline-flex; order: -1; margin-right: auto; }
+  /* Close and Copy on the first row; Open in email and Download PDF share the second, equal width, in both languages */
+  .paperbtns { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .paperbtns .btn { min-width: 0; padding: 0 10px; }
+  .paperclose { display: inline-flex; order: -2; }
+  #copyBtn { order: -1; }
   .paperscroll { padding: 16px 12px 40px; }
   .papernote:not([hidden]) { display: block; margin: 0 4px 14px; font-size: 16px; line-height: 1.45; color: var(--ink); }
   .sheet { padding: 28px 22px 36px; font-size: 17px; }
@@ -312,3 +315,21 @@
 :root[data-theme="dark"] .scrim { background: rgba(0, 0, 0, .5); }
 :root[data-theme="dark"] .side-history a:hover, :root[data-theme="dark"] .side-links a:hover { background: rgba(238, 233, 223, .07); }
 @media print { .es-copy { display: none !important; } }
+
+/* ---------- coming back after a letter: did they reply? ---------- */
+.checkin { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--rule); max-width: 520px; }
+.ci-lead { font-size: 18px; line-height: 1.4; }
+.ci-sub { margin-top: 4px; font-size: 15px; color: var(--ink-2); }
+.checkin .choices { margin-top: 14px; }
+.ci-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 4px; font-size: 15px; color: var(--ink-3); }
+.ci-foot .linkbtn { margin-left: -8px; }
+.opening .checkin + .choices { margin-top: 20px; }
+
+/* ---------- "Something unclear? Tell us" (off until public/config.js says feedback: true) ---------- */
+.tell { margin: -10px 0 8px; }
+.tell .linkbtn { padding: 0 2px; min-height: 44px; color: var(--ink-3); }
+.tellform { padding: 4px 2px 18px; font-size: 15px; color: var(--ink-2); }
+.tellform textarea { width: 100%; margin-top: 10px; padding: 10px 12px; font: inherit; font-size: 16px; color: var(--ink); background: var(--sheet); border: 1px solid var(--edge); border-radius: var(--r); resize: vertical; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.side-privacy { margin: 12px 0 0; padding: 0 12px; font-size: 15px; line-height: 1.4; color: var(--on-ink-2); }
+.talk.telling .composer, .talk.telling .fine { display: none; }

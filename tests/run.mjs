@@ -6,7 +6,7 @@ for (const dir of [new URL('../', import.meta.url).pathname, process.env.PLAYWRI
   try { chromium = createRequire(dir.replace(/\/?$/, '/') + 'x.js')('playwright').chromium; break; } catch (e) {}
 }
 if (!chromium) { console.log('Playwright not found. Run: npm i -D playwright && npx playwright install chromium (or set PLAYWRIGHT_DIR)'); process.exit(1); }
-import { server, calls } from '../dev/dev-server.js';
+import { server, calls, counts, feedback } from '../dev/dev-server.js';
 
 const PORT = 8799;
 await new Promise((r) => server.listen(PORT, r));
@@ -542,8 +542,9 @@ await p.context().close();
   await p.locator('#demo').scrollIntoViewIfNeeded();
   await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 90000 });
   ok(true, 'landing demo: plays through to the letter');
-  ok(await p.evaluate(() => window.__rebuild.plays() >= 1), 'landing drawing: the animation plays through to the finished drawing');
   await p.evaluate(() => document.querySelector('.art').scrollIntoView({ block: 'center' }));
+  await p.waitForFunction(() => window.__rebuild.plays() >= 1, null, { timeout: 20000 });
+  ok(true, 'landing drawing: after its first rest the animation plays through to the finished drawing');
   const n0 = await p.evaluate(() => window.__rebuild.plays());
   await p.waitForFunction((n) => window.__rebuild.plays() > n, n0, { timeout: 15000 });
   ok(true, 'landing drawing: after a 2 second rest it draws again while on screen');
@@ -859,6 +860,325 @@ const pdfOf = async (p) => { const [d] = await Promise.all([p.waitForEvent('down
   await p.click('#sideOpen'); await p.waitForTimeout(350);
   ok((await p.locator('#side').boundingBox()).x >= -1 && (await p.locator('#sideOpen').getAttribute('aria-expanded')) === 'true', 'sidebar on a phone: the menu still slides in');
   await p.context().close();
+}
+
+
+// ---------------------------------------------------------------------------
+// Handover polish (Dec 8): open in email, the 15-day check-in, the sidebar on a medium screen, the drawing at first paint,
+// the New chat icon, search engines, the link preview, cookie-free counts and the hidden "Tell us" form.
+// ---------------------------------------------------------------------------
+const iso = (daysAgo) => { const d = new Date(); d.setDate(d.getDate() - daysAgo); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+const SITE = 'https://next-step-2fg.pages.dev';
+const headersText = fs.readFileSync(new URL('../public/_headers', import.meta.url), 'utf8');
+const flat = (t) => t.replace(/\s+/g, ' ');
+
+// the drawing is there at first paint
+{
+  const ctx = await browser.newContext({ viewport: DESK }); p = await ctx.newPage();
+  await p.goto(base + '/', { waitUntil: 'domcontentloaded' });
+  const t0 = Date.now();
+  const first = await p.evaluate(() => { const s = document.querySelector('.art svg'); return { lines: [...s.querySelectorAll('[data-id]')].every((e) => !e.style.strokeDasharray && e.style.visibility !== 'hidden'), op: getComputedStyle(s).opacity, rested: s.classList.contains('rested') }; });
+  const shot = await p.locator('.art').screenshot();
+  await p.evaluate(() => { document.querySelector('.art svg').style.visibility = 'hidden'; });
+  const blank = await p.locator('.art').screenshot();
+  await p.evaluate(() => { document.querySelector('.art svg').style.visibility = ''; });
+  ok(first.lines && first.op === '1' && first.rested && Date.now() - t0 < 2000, 'landing drawing: finished and fully visible at first paint, not blank ' + JSON.stringify(first));
+  ok(shot.length > blank.length + 1500, 'landing drawing: the first screenshot has the drawing in it (' + shot.length + ' bytes against ' + blank.length + ' blank)');
+  await ctx.close();
+  const ctx2 = await browser.newContext({ viewport: DESK, reducedMotion: 'reduce' }); p = await ctx2.newPage(); await p.goto(base + '/');
+  const rs = await p.locator('.art').screenshot(); await p.evaluate(() => { document.querySelector('.art svg').style.visibility = 'hidden'; });
+  ok(rs.length > (await p.locator('.art').screenshot()).length + 1500, 'landing drawing: under reduced motion it is the finished drawing too');
+  await ctx2.close();
+}
+
+// search engines and the link preview
+{
+  const idx = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const app = fs.readFileSync(new URL('../public/app/index.html', import.meta.url), 'utf8');
+  const robots = fs.readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8');
+  const starBlock = headersText.split(/\n(?=\S)/).find((b) => b.startsWith('/*')) || '';
+  ok(!/name="robots"/i.test(idx) && !/noindex/i.test(idx), 'search: the landing page has no noindex tag');
+  ok(!/x-robots-tag/i.test(starBlock), 'search: _headers no longer blocks the whole site');
+  ok(!/^Disallow:\s*\/\s*$/m.test(robots) && /^Allow:\s*\/\s*$/m.test(robots) && /^Sitemap:\s*https:\/\/next-step-2fg\.pages\.dev\/sitemap\.xml/m.test(robots), 'search: robots.txt lets crawlers in and names the sitemap');
+  ok(/Disallow:\s*\/api\//.test(robots), 'search: robots.txt keeps crawlers off the API');
+  ok(/name="robots" content="noindex, follow"/.test(app) && /\/app\/\*?\n\s+X-Robots-Tag: noindex, follow/.test(headersText), 'search: the Desk shell stays out of results (noindex, follow) and says so');
+  const sm = await (await fetch(base + '/sitemap.xml')).text();
+  ok(sm.includes('<loc>' + SITE + '/</loc>'), 'search: sitemap lists the landing page');
+  const meta = (name, attr = 'property') => (idx.match(new RegExp('<meta ' + attr + '="' + name + '" content="([^"]*)"')) || [])[1];
+  ok(idx.includes('<link rel="canonical" href="' + SITE + '/">') && meta('og:url') === SITE + '/', 'preview: canonical and og:url point at the live address');
+  ok(meta('og:title') && meta('og:description') && meta('og:type') === 'website' && meta('og:site_name') === 'Next Step', 'preview: Open Graph title, description, type and site name');
+  ok(meta('og:image') === SITE + '/og.png' && meta('twitter:image', 'name') === SITE + '/og.png' && meta('twitter:card', 'name') === 'summary_large_image' && meta('og:image:alt') && meta('og:image:width') === '1200' && meta('og:image:height') === '630', 'preview: absolute image address, large card, alt text and size');
+  const png = Buffer.from(await (await fetch(base + '/og.png')).arrayBuffer());
+  ok(png.slice(1, 4).toString() === 'PNG' && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630 && png.length < 300000, 'preview: og.png is a 1200 by 630 PNG under 300 KB (' + png.length + ' bytes)');
+  ok(!/[–—!]/.test([meta('og:title'), meta('og:description'), meta('twitter:description')].join(' ')), 'preview: no dashes or exclamation marks in the preview words');
+  ok(!/(guarantee|more money|maximi[sz]e)/i.test(meta('og:description')) && /not legal or insurance advice/.test(meta('og:description')), 'preview: no promise of money, keeps the plain disclaimer');
+}
+
+// the CSP still covers everything: same-origin only, and nothing new is allowed in for the counts, the email button or the form
+{
+  const csp = (headersText.match(/Content-Security-Policy: (.*)/) || [])[1] || '';
+  ok(/default-src 'self'/.test(csp) && /connect-src 'self'(;|$)/.test(csp) && /script-src 'self'(;|$)/.test(csp) && !/https?:\/\/|\*/.test(csp.replace(/frame-ancestors 'none'/, '')), 'csp: every source is this site only; no outside host was added');
+  ok(/form-action 'none'/.test(csp), 'csp: forms cannot submit natively (the Tell us form sends with script instead)');
+  // A whole visit under the real policy: landing, Desk, a letter, Copy, Open in email, PDF, counts, the Tell us form.
+  process.env.CSP = 'on';
+  const r = await fetch(base + '/app/'); ok(/default-src 'self'/.test(r.headers.get('content-security-policy') || '') && /noindex, follow/.test(r.headers.get('x-robots-tag') || ''), 'csp: the local server sends the real headers for this check');
+  const ctx = await browser.newContext({ viewport: DESK }); await ctx.route('**/config.js', (rt) => rt.fulfill({ contentType: 'text/javascript', headers: { 'content-security-policy': r.headers.get('content-security-policy') }, body: 'window.NS_CONFIG = { feedback: true };' }));
+  const q = await ctx.newPage(); const bad = []; q.on('console', (m) => { if (m.type() === 'error') bad.push(m.text()); }); q.on('pageerror', (e) => bad.push(String(e))); q.on('requestfailed', (rq) => { if (!rq.url().startsWith('mailto:')) bad.push('failed ' + rq.url()); });
+  await q.goto(base + '/'); await q.waitForSelector('#startBtn'); await q.waitForTimeout(500);
+  await q.goto(base + '/app/'); await q.waitForSelector('.opening h1');
+  await toLetter(q); await q.click('#copyBtn'); await q.locator('#emailBtn').click();
+  await Promise.all([q.waitForEvent('download'), q.click('#printBtn')]);
+  await q.click('#tellBtn'); await q.fill('#tellIn', 'test'); process.env.FEEDBACK = 'on'; await q.click('#tellSend'); await q.waitForTimeout(500); delete process.env.FEEDBACK;
+  await q.goto(base + '/app/#/record'); await q.waitForTimeout(300);
+  ok(bad.length === 0, 'csp: a whole visit under the real policy (counts, copy, email, PDF, the form, the Record) breaks nothing ' + bad.join('|'));
+  await ctx.close();
+  process.env.CSP = 'off';
+}
+
+// open in email
+{
+  p = await page(); await toLetter(p);
+  const row = await p.evaluate(() => { const b = (id) => document.getElementById(id).getBoundingClientRect(); return { copy: b('copyBtn'), email: b('emailBtn'), pdf: b('printBtn') }; });
+  ok(await p.locator('#emailBtn').isVisible() && (await p.locator('#emailBtn').innerText()) === 'Open in email', 'email: an "Open in email" button shows on the letter');
+  ok(row.email.left >= row.copy.right - 1 && row.email.right <= row.pdf.left + 1 && Math.abs(row.email.top - row.copy.top) < 2, 'email: it sits beside Copy, between Copy and Download PDF');
+  ok(await p.locator('#copyBtn').evaluate((e) => !e.classList.contains('ghost')) && await p.locator('#emailBtn').evaluate((e) => e.classList.contains('ghost')), 'email: Copy stays the one solid button, email is a ghost');
+  const letter = await p.evaluate(() => window.__desk.state().chat.letter);
+  const subj = letter.match(/^Subject:\s*(.+)$/m)[1];
+  await p.locator('#letter p').last().click(); await p.keyboard.type(' P.S. Typed by hand.'); await p.waitForTimeout(450);
+  await p.locator('#emailBtn').click();
+  const href = await p.locator('#emailBtn').getAttribute('href');
+  const q = new URL(href.replace('mailto:', 'http://x/')).searchParams;
+  ok(/^mailto:\?subject=/.test(href) && q.get('subject') === subj, 'email: the mailto link carries the letter’s subject line: ' + q.get('subject'));
+  ok(q.get('body').startsWith('Dear Claims Team,') && !/^Subject:/m.test(q.get('body')) && /P\.S\. Typed by hand\./.test(q.get('body')) && /\r\n\r\n/.test(q.get('body')), 'email: the body is the letter as it is now, with the person’s own typing, paragraphs kept');
+  ok(!/%0A(?!%)/.test(href.replace(/%0D%0A/g, '')), 'email: line breaks are real mail line breaks');
+  ok(/also copied/.test(await p.locator('#toast').innerText()), 'email: it says the letter is also copied, in case no email app opens');
+  ok(counts.some((c) => c.blobs[0] === 'email' && c.blobs[2] === 'letter'), 'email: one count, nothing about the letter');
+  ok((await p.evaluate(() => window.__desk.state().store.record.some((r) => r.kind === 'letter'))), 'email: the letter goes into the Record, like Copy');
+  // a very long letter: the subject opens, the letter is copied, and it says so
+  await p.evaluate(() => { const l = document.getElementById('letter'); const x = document.createElement('p'); x.textContent = 'word '.repeat(1800); l.appendChild(x); });
+  await p.waitForTimeout(450); await p.locator('#emailBtn').click();
+  ok(!/body=/.test(await p.locator('#emailBtn').getAttribute('href')) && /long/.test(await p.locator('#toast').innerText()), 'email: a very long letter opens with the subject and is copied, and says so');
+  ok(p.errs.length === 0, 'email: no page errors or blocked requests ' + p.errs.join('|'));
+  await p.context().close();
+  for (const [loc, nm] of [['en-US', 'English'], ['es-MX', 'Spanish']]) {
+    p = await page(Object.assign({ locale: loc }, PHONE));
+    if (loc === 'en-US') await toLetter(p); else { await pick(p, 0); await pick(p, 2); await pick(p, 0); await pick(p, 0); await pick(p, 0); await p.waitForSelector('#letter p.subj', { state: 'attached' }); }
+    await p.waitForSelector('#paperwrap.open'); await p.waitForTimeout(300);
+    const bx = await p.evaluate(() => ['paperClose', 'copyBtn', 'emailBtn', 'printBtn'].map((id) => { const r = document.getElementById(id).getBoundingClientRect(); return { id, l: r.left, r: r.right, t: r.top, h: r.height }; }));
+    ok(bx.every((b) => b.l >= 0 && b.r <= 375 && b.h >= 44) && (await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'email on a 375px phone in ' + nm + ': Close, Copy, Open in email and Download PDF all fit, 44px tall, no sideways scroll ' + JSON.stringify(bx.map((b) => [b.id, Math.round(b.l), Math.round(b.r)])));
+    ok(Math.abs(bx[2].t - bx[3].t) < 2 && bx[2].t > bx[1].t, 'email on a 375px phone in ' + nm + ': Open in email and Download PDF share the second row');
+    await p.context().close();
+  }
+  p = await page({ colorScheme: 'dark' }); await toLetter(p); await p.click('#themeBtn'); await p.locator('#emailBtn').hover(); await p.waitForTimeout(300);
+  const hv = await p.$eval('#emailBtn', (e) => getComputedStyle(e).backgroundColor + '|' + getComputedStyle(e).color);
+  ok(hv.split('|')[0] !== 'rgb(255, 255, 255)', 'dark mode: a ghost button hovered keeps its dark fill and readable text (' + hv + ')');
+  await p.context().close();
+  p = await page({}, '/app/#/start/call'); await p.waitForSelector('.choices:not(.done) .choice');
+  ok(await p.locator('#emailBtn').isHidden(), 'email: not on a call or visit sheet, only on a letter');
+  await p.context().close();
+  p = await page({ locale: 'es-MX' });
+  await pick(p, 0); await pick(p, 2); await pick(p, 0); await pick(p, 0); await pick(p, 0);
+  await p.waitForSelector('#letter p.subj', { state: 'attached' });
+  ok((await p.locator('#emailBtn').innerText()) === 'Abrir en el correo', 'email in Spanish: the button is labelled in Spanish');
+  ok(/^mailto:\?subject=Request/.test(await p.locator('#emailBtn').getAttribute('href')), 'email in Spanish: what opens is the English letter, the one the insurer reads');
+  await p.context().close();
+}
+
+// the 15-day check-in
+{
+  const seed = (daysAgo, extra = {}) => ({ chats: [{ id: 'cold', at: Date.now() - (daysAgo + 1) * 86400000, title: 'They went quiet', step: 'free', flow: 'letter', sit: 'quiet', role: 'own', ask: 'a1', notes: 'Seven weeks.', msgs: [{ r: 'u', x: 'They pushed back on my claim' }, { r: 'a', x: 'Your letter is ready.' }], letter: 'Subject: Request for a written update on my claim\n\nDear Claims Team,\n\nI have not had a reply.\n\nThank you,\n[your name]' }], cur: 'cold', record: [Object.assign({ id: 'r1', chat: 'cold', kind: 'letter', date: iso(daysAgo), who: 'Your insurer', summary: 'Request for a written update on my claim' }, extra)] });
+  const open = async (data, o = {}, path) => { const ctx = await browser.newContext(Object.assign({ viewport: DESK }, o)); const pg = await ctx.newPage(); pg.errs = []; pg.on('pageerror', (e) => pg.errs.push(String(e))); pg.on('console', (m) => { if (m.type() === 'error') pg.errs.push(m.text()); }); pg.reqs = []; pg.on('request', (r) => pg.reqs.push(new URL(r.url()).pathname)); await pg.addInitScript((d) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('ns-desk-v1', JSON.stringify(d)); sessionStorage.setItem('seeded', '1'); } }, data); await pg.goto(base + (path || '/app/')); await pg.waitForSelector('.thread .m-a, .opening h1'); return pg; };
+  p = await open(seed(20));
+  ok(await p.locator('.checkin').isVisible() && /It has been 20 days since the letter you copied on/.test(await p.locator('.ci-lead').innerText()) && /Did your insurer reply\?/.test(await p.locator('.ci-lead').innerText()), 'check-in: after 15 days or more the Desk asks whether the insurer replied');
+  ok((await p.locator('.checkin .ci-sub').innerText()) === 'Request for a written update on my claim', 'check-in: it names which letter');
+  ok((await p.locator('.checkin .choice').allInnerTexts()).join('|') === 'They replied. Explain it|No reply yet. Write a follow-up', 'check-in: offers to explain the reply or write a follow-up');
+  ok(await p.locator('.opening .choice').count() === 5 && await p.locator('.opening h1').isVisible(), 'check-in: it sits on a clean Desk, above the usual three choices (the old chat is in the history)');
+  ok((await p.locator('#history li').count()) === 1 && !(await p.evaluate(() => window.__desk.state().chat.letter)), 'check-in: the old letter chat is untouched in the history and the Desk starts on a new chat');
+  const nets = p.reqs.filter((u) => u.startsWith('/api/') && u !== '/api/count'); ok(nets.length === 0, 'check-in: working it out sends nothing; it only reads this device (' + nets.join(',') + ')');
+  ok(/stays?|only what is saved on this device/i.test(await p.locator('.ci-foot').innerText()), 'check-in: says it uses only what is on this device');
+  ok(!/[–—!]/.test(await p.locator('.checkin').innerText()), 'check-in: no dashes or exclamation marks');
+  const sizes = await minSize(p, '.checkin button'); ok(sizes.every((x) => x >= 44), 'check-in: every tap target is 44px or more');
+  ok(worst(await contrastScan(p, '.checkin')).r >= 4.5, 'check-in: text passes AA contrast, light');
+  await p.locator('.checkin [data-ci="later"]').click();
+  ok(await p.locator('.checkin').count() === 0 && await p.evaluate(() => window.__desk.state().store.record[0].snooze > new Date().toISOString().slice(0, 10)), 'check-in: "Not now" puts it off a week and hides it');
+  await p.reload(); await p.waitForSelector('.opening h1, .thread .m-a');
+  ok(await p.locator('.checkin').count() === 0, 'check-in: put off, it does not come back on reload');
+  await p.context().close();
+  p = await open(seed(20));
+  await p.locator('.checkin [data-ci="replied"]').click();
+  await p.waitForSelector('#composerIn[placeholder*="Paste"]');
+  ok(/Paste what they sent/.test(await lastA(p).innerText()) && (await p.evaluate(() => window.__desk.state().store.record[0].checked)) === true, 'check-in: "They replied" goes straight to pasting their message, and is not asked again');
+  await p.context().close();
+  p = await open(seed(20));
+  calls.length = 0;
+  await p.locator('.checkin [data-ci="none"]').click();
+  await p.waitForSelector('#letter p.subj', { state: 'attached' });
+  const fu = await p.evaluate(() => window.__desk.state().chat);
+  ok(/Following up on my earlier letter/.test(fu.letter) && fu.ask === 'nr' && fu.sit === 'quiet', 'check-in: "No reply yet" writes a follow-up letter whose subject says so');
+  ok(calls.some((c) => /I sent a letter on .* titled “Request for a written update on my claim”\. It has been 20 days and I have not received a reply\./.test(c.userFull)), 'check-in: the follow-up is written from the saved letter: date, subject and days, nothing invented');
+  ok(calls.some((c) => /Please reply in writing to my earlier letter, or tell me in writing when I can expect a reply\./.test(c.userFull)), 'check-in: the one ask is to answer the earlier letter in writing');
+  await p.reload(); await p.waitForSelector('.thread .m-a');
+  ok(await p.locator('.checkin').count() === 0, 'check-in: answered, it is gone');
+  await p.context().close();
+  p = await open(seed(14)); ok(await p.locator('.checkin').count() === 0 && (await p.evaluate(() => window.__desk.state().chat.letter)).length > 0, 'check-in: at 14 days it stays quiet and the chat is left as it was'); await p.context().close();
+  p = await open(seed(15)); ok(await p.locator('.checkin').count() === 1, 'check-in: it starts at exactly 15 days'); await p.context().close();
+  p = await open({ chats: [], cur: null, record: [{ id: 'r2', kind: 'call', date: iso(30), who: 'Adjuster', summary: 'Spoke.' }] }); ok(await p.locator('.checkin').count() === 0, 'check-in: a call alone does not trigger it; only a letter does'); await p.context().close();
+  p = await open(seed(20), { locale: 'es-MX' });
+  ok(/Han pasado 20 días desde la carta que copió el/.test(await p.locator('.ci-lead').innerText()) && (await p.locator('.checkin .choice').allInnerTexts()).join('|') === 'Respondieron. Explíquemelo|Aún no responden. Escribir un seguimiento', 'check-in in Spanish: words and buttons');
+  await p.locator('.checkin [data-ci="none"]').click(); await p.waitForSelector('#letter p.subj', { state: 'attached' });
+  ok(/Following up on my earlier letter/.test(await p.locator('#letter').innerText()) && /Seguimiento de mi carta anterior/.test(await p.locator('#esCopy').innerText()), 'check-in in Spanish: the follow-up letter is English, with its Spanish copy beside it');
+  await p.context().close();
+  p = await open(seed(20), { colorScheme: 'dark' }); await p.evaluate(() => window.nsTheme.toggle()); ok(worst(await contrastScan(p, '.checkin')).r >= 4.5, 'check-in: text passes AA contrast, dark'); await p.context().close();
+  p = await open(seed(20), PHONE);
+  ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375 && await p.locator('.checkin .choice').first().isVisible(), 'check-in on a phone: no sideways scroll, the choices are there');
+  ok(await p.evaluate(() => { const r = document.querySelector('.ci-lead').getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; }), 'check-in on a phone: the question is in view when the Desk opens, not scrolled past');
+  await p.context().close();
+}
+
+// the sidebar steps aside on a medium screen, and the New chat icon sits beside the open icon
+{
+  const W = (w, h = 800) => ({ viewport: { width: w, height: h } });
+  p = await page(W(1000));
+  ok((await p.locator('#side').boundingBox()).width > 200, 'medium screen: the sidebar is open before there is a paper');
+  await toLetter(p);
+  await p.waitForTimeout(450);
+  ok((await p.locator('#side').boundingBox()).width < 1 && await p.locator('#sideUnfold').isVisible(), 'medium screen (1000px): the sidebar closes by itself when the paper opens');
+  ok((await p.evaluate(() => localStorage.getItem('ns-side'))) === null && (await p.evaluate(() => document.activeElement.id)) !== 'sideUnfold', 'medium screen: closing by itself is not remembered and does not grab focus');
+  const sw = (await p.locator('#sheet').boundingBox()).width;
+  ok(sw >= 440, 'medium screen: the letter has room (' + Math.round(sw) + 'px wide)');
+  ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 1000, 'medium screen: no sideways scroll');
+  const bar = await p.evaluate(() => { const r = document.querySelector('.paperbar').getBoundingClientRect(), b = document.querySelector('.paperbtns').getBoundingClientRect(); return { r: r.right, b: b.right, h: r.height }; });
+  ok(bar.b <= bar.r && bar.h < 90, 'medium screen: Copy, Open in email and Download PDF fit on one row');
+  // the New chat icon beside the open icon
+  const ub = await p.locator('#sideUnfold').boundingBox(), nb = await p.locator('#newChatRail').boundingBox();
+  ok(await p.locator('#newChatRail').isVisible() && nb.x >= ub.x + ub.width - 1 && nb.x - (ub.x + ub.width) < 12 && Math.abs(nb.y - ub.y) < 2 && nb.width >= 44 && nb.height >= 44, 'new chat icon: beside the open sidebar icon, 44px or more');
+  ok((await p.locator('#newChatRail').getAttribute('aria-label')) === 'New chat' && (await p.locator('#newChatRail').getAttribute('title')) === 'New chat', 'new chat icon: labelled New chat');
+  await p.locator('#sideUnfold').focus(); await p.keyboard.press('Tab');
+  ok((await p.evaluate(() => document.activeElement.id)) === 'newChatRail', 'new chat icon: the next stop after the open sidebar icon in tab order');
+  const chatsBefore = await p.evaluate(() => window.__desk.state().store.chats.length);
+  await p.keyboard.press('Enter'); await p.waitForTimeout(450);
+  ok(await p.locator('.opening h1').isVisible() && await p.locator('#paperwrap').isHidden() && (await p.evaluate(() => window.__desk.state().store.chats.length)) === chatsBefore, 'new chat icon: starts a fresh chat and keeps the old one in the history');
+  ok((await p.locator('#side').boundingBox()).width > 200 && !(await p.locator('#newChatRail').isVisible()), 'medium screen: with no paper the sidebar comes back by itself, and the icon goes with the closed state');
+  ok((await p.evaluate(() => localStorage.getItem('ns-side'))) === null, 'medium screen: still nothing remembered, so the person’s own choice is never overwritten');
+  await toLetter(p); await p.waitForTimeout(450);
+  await p.click('#sideUnfold'); await p.waitForTimeout(450);
+  ok((await p.locator('#side').boundingBox()).width > 200 && (await p.evaluate(() => localStorage.getItem('ns-side'))) === 'open', 'medium screen: opening it by hand with a paper up is allowed and remembered');
+  ok(p.errs.length === 0, 'medium screen: no page errors ' + p.errs.join('|'));
+  await p.context().close();
+  // closed by hand first: opening a paper and starting a new chat leave it closed
+  p = await page(W(1000));
+  await p.click('#sideFold'); await p.waitForTimeout(450); await toLetter(p); await p.click('#newChatRail'); await p.waitForTimeout(450);
+  ok((await p.locator('#side').boundingBox()).width < 1 && await p.locator('#newChatRail').isVisible(), 'medium screen: a sidebar the person closed stays closed through a new chat');
+  await p.context().close();
+  for (const [w, shut] of [[901, true], [1150, true], [1151, false], [1440, false]]) {
+    p = await page(W(w)); await toLetter(p); await p.waitForTimeout(450);
+    ok(((await p.locator('#side').boundingBox()).width < 1) === shut, 'sidebar and paper at ' + w + 'px: ' + (shut ? 'closes itself' : 'stays open'));
+    await p.context().close();
+  }
+  p = await page(PHONE); await p.evaluate(() => 0);
+  ok(!(await p.locator('#newChatRail').isVisible()) && await p.locator('#newChatTop').isVisible(), 'phone: the top bar keeps its own New chat; the rail icon is not shown');
+  await p.context().close();
+  p = await page(Object.assign({ locale: 'es-MX' }, W(1000))); await p.click('#sideFold'); await p.waitForTimeout(450);
+  ok((await p.locator('#newChatRail').getAttribute('aria-label')) === 'Nueva conversación', 'new chat icon in Spanish: labelled');
+  await p.context().close();
+  p = await page({ colorScheme: 'dark', viewport: DESK }); await p.click('#themeBtn'); await p.click('#sideFold'); await p.waitForTimeout(450);
+  const ic = await p.$eval('#newChatRail', (e) => getComputedStyle(e).color), bgc = await p.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  ok(ic !== bgc, 'new chat icon: visible against the paper in dark mode (' + ic + ' on ' + bgc + ')');
+  await p.context().close();
+}
+
+// cookie-free counts
+{
+  counts.length = 0;
+  const ctx = await browser.newContext({ viewport: DESK }); p = await ctx.newPage(); p.errs = []; p.on('console', (m) => { if (m.type() === 'error') p.errs.push(m.text()); });
+  const resp = []; p.on('response', (r) => { if (r.url().includes('/api/count')) resp.push(r); });
+  await p.goto(base + '/'); await p.waitForTimeout(400);
+  ok(counts.length === 1 && counts[0].blobs[0] === 'visit' && counts[0].blobs[1] === 'en', 'counts: a landing visit is one count');
+  await p.reload(); await p.waitForTimeout(300);
+  ok(counts.length === 1, 'counts: a reload in the same tab is not a second visit');
+  await p.goto(base + '/app/'); await p.waitForSelector('.opening h1'); await p.waitForTimeout(400);
+  ok(counts.length === 2 && counts[1].blobs[0] === 'desk', 'counts: opening the Desk is one count');
+  await toLetter(p);
+  await p.click('#copyBtn'); await p.waitForTimeout(300);
+  ok(counts.length === 3 && counts[2].blobs.join() === 'copy,en,letter', 'counts: a copied letter is one count: ' + (counts[2] && counts[2].blobs.join()));
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#printBtn')]); await p.waitForTimeout(300);
+  ok(counts.length === 4 && counts[3].blobs.join() === 'pdf,en,letter', 'counts: a downloaded PDF is one count: ' + (counts[3] && counts[3].blobs.join()));
+  ok(counts.every((c) => c.doubles.length === 1 && c.doubles[0] === 1 && c.blobs.length === 3 && c.indexes.length === 1), 'counts: each one is only what happened, the language and letter or sheet; nothing else is sent');
+  ok(resp.length >= 4 && resp.every((r) => r.status() === 204 && !r.headers()['set-cookie']), 'counts: answered with nothing, and never sets a cookie');
+  ok((await ctx.cookies()).length === 0, 'counts: the browser holds no cookies after a whole visit');
+  ok(p.errs.length === 0, 'counts: allowed by the security policy, no console errors ' + p.errs.join('|'));
+  await ctx.close();
+  // a sheet copy is counted as a sheet, in Spanish as es
+  counts.length = 0;
+  p = await page(Object.assign({ locale: 'es-MX' }, {}), '/app/#/start/call'); await p.waitForTimeout(300);
+  ok(counts.some((c) => c.blobs[0] === 'desk' && c.blobs[1] === 'es'), 'counts: the language is counted as es for a Spanish reader');
+  await p.context().close();
+  // Do Not Track and Global Privacy Control are never counted
+  counts.length = 0;
+  for (const flag of ['doNotTrack', 'globalPrivacyControl']) {
+    const c2 = await browser.newContext({ viewport: DESK }); const q = await c2.newPage();
+    await q.addInitScript((f) => { Object.defineProperty(navigator, f, { value: f === 'doNotTrack' ? '1' : true }); }, flag);
+    await q.goto(base + '/'); await q.goto(base + '/app/'); await q.waitForSelector('.opening h1'); await q.waitForTimeout(300); await c2.close();
+  }
+  ok(counts.length === 0, 'counts: a browser that says Do Not Track or Global Privacy Control is never counted');
+  // the server side
+  const ev = await import('../lib/events.js');
+  const mk = (b, h) => new Request('http://x.test/api/count', { method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, h || {}), body: typeof b === 'string' ? b : JSON.stringify(b) });
+  const wrote = []; const env = { COUNTS: { writeDataPoint: (d) => wrote.push(d) } };
+  ok((await ev.handleCount(mk({ e: 'pdf', l: 'es', w: 'sheet' }), env)).status === 204 && wrote[0].blobs.join() === 'pdf,es,sheet', 'counts server: a good event is written');
+  ok((await ev.handleCount(mk({ e: 'visit', l: 'xx', w: 'secret text', ip: '1.2.3.4', text: 'my claim' }), env)).status === 204 && wrote[1].blobs.join() === 'visit,en,' && !JSON.stringify(wrote[1]).includes('secret') && !JSON.stringify(wrote[1]).includes('1.2.3.4'), 'counts server: anything else in the request is dropped, never stored');
+  ok((await ev.handleCount(mk({ e: 'hack' }), env)).status === 400 && (await ev.handleCount(mk('nope'), env)).status === 400 && (await ev.handleCount(mk({ e: 'copy', pad: 'x'.repeat(400) }), env)).status === 400, 'counts server: unknown events, bad JSON and big bodies are refused');
+  ok((await ev.handleCount(mk({ e: 'copy' }, { origin: 'https://evil.example' }), env)).status === 403 && (await ev.handleCount(new Request('http://x.test/api/count'), env)).status === 405, 'counts server: other sites and GET are refused');
+  ok((await ev.handleCount(mk({ e: 'copy' }), {})).status === 204, 'counts server: with no Cloudflare dataset (a local run) it does nothing and does not fail');
+  const wr = fs.readFileSync(new URL('../wrangler.toml', import.meta.url), 'utf8');
+  ok(/\[\[analytics_engine_datasets\]\]\s*\nbinding = "COUNTS"\s*\ndataset = "next_step_counts"/.test(wr), 'counts: wrangler.toml binds the dataset the function writes to');
+  const priv = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  ok(/data-t="foot2">[^<]*We only count how many people visit, open the Desk, copy or email a letter, or download a PDF, with no cookies and nothing that says who you are\./.test(priv), 'counts: the landing privacy line says so in one plain sentence');
+  p = await page({}, '/'); ok(/no cookies/.test(await p.locator('[data-t="foot2"]').innerText()) && !/[–—!]/.test(await p.locator('[data-t="foot2"]').innerText()), 'counts: that sentence shows on the landing page'); await p.context().close();
+  p = await page({}, '/?lang=es'); ok(/sin cookies/.test(await p.locator('[data-t="foot2"]').innerText()), 'counts: and in Spanish'); await p.context().close();
+  p = await page(); ok(/no cookies/.test(await p.locator('.side-privacy').innerText()), 'counts: the Desk says it too, in its sidebar'); await p.context().close();
+  p = await page(ES); ok(/sin cookies/.test(await p.locator('.side-privacy').innerText()), 'counts: the Desk says it in Spanish'); await p.context().close();
+  p = await page({ viewport: DESK }, '/?lang=es'); ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 1440, 'counts: Spanish footer fits'); await p.context().close();
+}
+
+// "Something unclear? Tell us": built, hidden until there is an inbox
+{
+  p = await page();
+  ok(await p.locator('#tell').isHidden() && await p.locator('#tellForm').isHidden() && !/Something unclear/.test(await p.evaluate(() => document.body.innerText)), 'tell us: hidden by default, no trace on screen');
+  ok(/feedback: false/.test(fs.readFileSync(new URL('../public/config.js', import.meta.url), 'utf8')), 'tell us: the one setting, public/config.js, is off');
+  await p.context().close();
+  const on = async (o, path) => { const ctx = await browser.newContext(Object.assign({ viewport: DESK }, o || {})); await ctx.route('**/config.js', (r) => r.fulfill({ contentType: 'text/javascript', body: 'window.NS_CONFIG = { feedback: true };' })); const pg = await ctx.newPage(); pg.errs = []; pg.on('console', (m) => { if (m.type() === 'error') pg.errs.push(m.text()); }); await pg.goto(base + (path || '/app/')); await pg.waitForSelector('.opening h1, .thread .m-a'); return pg; };
+  p = await on();
+  ok(await p.locator('#tellBtn').isVisible() && (await p.locator('#tellBtn').innerText()) === 'Something unclear? Tell us', 'tell us: with the setting on, one quiet line says Something unclear? Tell us');
+  ok((await p.locator('#tellBtn').evaluate((e) => getComputedStyle(e).textDecorationLine)) !== undefined && (await minSize(p, '#tellBtn')).every((x) => x >= 44), 'tell us: the line is a 44px tap target');
+  ok(worst(await contrastScan(p, '#tell')).r >= 4.5, 'tell us: the line passes AA contrast');
+  await p.click('#tellBtn');
+  ok(await p.locator('#tellForm').isVisible() && /leave out names, claim numbers and account details/.test(await p.locator('#tellLead').innerText()) && /cannot reply/.test(await p.locator('#tellLead').innerText()), 'tell us: the form is honest that nobody replies, and says what to leave out');
+  ok(worst(await contrastScan(p, '#tellForm')).r >= 4.5 && !/[–—!]/.test(await p.locator('#tellForm').innerText()), 'tell us: form passes AA contrast, no dashes or exclamation marks');
+  feedback.length = 0; process.env.FEEDBACK = 'off';
+  await p.fill('#tellIn', 'I did not understand what the 15 days means.'); await p.click('#tellSend'); await p.waitForTimeout(400);
+  ok(/did not send/.test(await p.locator('#toast').innerText()) && (await p.inputValue('#tellIn')).length > 0 && feedback.length === 0, 'tell us: with no inbox set up it says it did not send, and keeps what was typed');
+  process.env.FEEDBACK = 'on';
+  await p.click('#tellSend'); await p.waitForTimeout(500);
+  ok(feedback.length === 1 && feedback[0].message === 'I did not understand what the 15 days means.' && feedback[0].where === 'chat' && feedback[0].language === 'en' && Object.keys(feedback[0]).sort().join() === 'language,message,text,where', 'tell us: sends only the words typed, the language and where on the Desk, nothing from the chat or letter');
+  ok(/Thank you/.test(await p.locator('#toast').innerText()) && await p.locator('#tellForm').isHidden() && await p.locator('#tellBtn').isVisible(), 'tell us: thanks them and puts the form away');
+  await p.click('#tellBtn'); await p.evaluate(() => { document.getElementById('tellHp').value = 'bot'; }); await p.fill('#tellIn', 'spam'); await p.click('#tellSend'); await p.waitForTimeout(300);
+  ok(feedback.length === 1, 'tell us: a filled-in hidden field (a bot) sends nothing');
+  ok(p.errs.filter((e) => !/503/.test(e)).length === 0, 'tell us: no blocked requests or page errors (the one 503 is the test of a missing inbox) ' + p.errs.join('|'));
+  await p.context().close();
+  p = await on(ES);
+  ok((await p.locator('#tellBtn').innerText()) === '¿Algo no quedó claro? Cuéntenos', 'tell us in Spanish: the line'); await p.click('#tellBtn');
+  ok(/no podemos responder/.test(await p.locator('#tellLead').innerText()), 'tell us in Spanish: the form'); await p.context().close();
+  p = await on(PHONE); ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375 && await p.locator('#tellBtn').isVisible(), 'tell us on a phone: no sideways scroll'); await p.click('#tellBtn'); ok((await p.evaluate(() => document.documentElement.scrollWidth)) <= 375, 'tell us on a phone: the open form fits'); await p.context().close();
+  const ev = await import('../lib/events.js');
+  const fr = (b) => new Request('http://x.test/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
+  ok((await ev.handleFeedback(fr({ text: 'hello' }), {})).status === 503, 'tell us server: with no inbox set it says no_inbox and sends nothing');
+  ok((await ev.handleFeedback(fr({ text: '   ' }), { FEEDBACK_WEBHOOK: 'x' })).status === 400, 'tell us server: an empty message is refused');
+  let sent = null;
+  const r3 = await ev.handleFeedback(fr({ text: 'a'.repeat(1200), where: 'bogus', lang: 'es', ssn: '1' }), { FEEDBACK_WEBHOOK: 'https://hook.test/x' }, async (u, o) => { sent = { u, b: JSON.parse(o.body) }; return { ok: true }; });
+  ok(r3.status === 200 && sent.u === 'https://hook.test/x' && sent.b.message.length === 1000 && sent.b.where === 'chat' && !JSON.stringify(sent.b).includes('ssn'), 'tell us server: forwards to the one webhook, 1000 characters at most, only known fields');
+  ok((await ev.handleFeedback(fr({ text: 'hi' }), { FEEDBACK_WEBHOOK: 'https://hook.test/x' }, async () => ({ ok: false }))).status === 502, 'tell us server: if the inbox fails, it says so rather than pretending');
+  delete process.env.FEEDBACK;
 }
 
 await browser.close(); server.close();

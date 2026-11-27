@@ -6,12 +6,28 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handle } from '../lib/core.js';
+import { handleCount, handleFeedback } from '../lib/events.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const SOURCES = JSON.parse(fs.readFileSync(path.join(root, 'sources.json'), 'utf8'));
 const port = Number(process.argv[2] || 8788);
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain', '.woff2': 'font/woff2', '.mp4': 'video/mp4', '.jpg': 'image/jpeg' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain', '.woff2': 'font/woff2', '.png': 'image/png', '.xml': 'application/xml', '.mp4': 'video/mp4', '.jpg': 'image/jpeg' };
+// With CSP=on, the same security headers the deployed site sends (public/_headers), so a blocked request shows up locally.
+// Off by default because the test tool itself evaluates strings, which the policy rightly forbids.
+function headersFor(pathname) {
+  const out = {}; let on = false;
+  if (process.env.CSP !== 'on') return out;
+  for (const line of fs.readFileSync(path.join(root, '_headers'), 'utf8').split('\n')) {
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    if (!/^\s/.test(line)) { on = line.trim() === '/*' || line.trim() === pathname || (line.trim().endsWith('/*') && pathname.startsWith(line.trim().slice(0, -1))); continue; }
+    if (on) { const i = line.indexOf(':'); out[line.slice(0, i).trim()] = line.slice(i + 1).trim(); }
+  }
+  return out;
+}
 export const calls = [];
+// Counts and feedback the pretend site received (the real one writes to Cloudflare); FEEDBACK=on pretends an inbox is set up.
+export const counts = [];
+export const feedback = [];
 
 // Wraps a finished answer as a Workers AI style event stream, in small pieces so a word, a [n] source number or the
 // ACTION line can be split across pieces. MOCK_DELAY (ms) slows it down for tests.
@@ -102,15 +118,23 @@ const server = http.createServer(async (req, res) => {
     const env = process.env.MOCK === 'off' ? {} : process.env.ANTHROPIC_API_KEY ? { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY } : { AI: mockAI };
     const request = new Request(url.href, { method: req.method, headers: req.headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks) });
     const r = await handle(request, env, SOURCES);
-    res.writeHead(r.status, Object.fromEntries(r.headers));
+    res.writeHead(r.status, Object.assign(Object.fromEntries(r.headers), headersFor('/*')));
     if (r.body) { const rd = r.body.getReader(); for (;;) { const x = await rd.read(); if (x.done) break; res.write(x.value); } }
     res.end(); return;
+  }
+  if (url.pathname === '/api/count' || url.pathname === '/api/feedback') {
+    const chunks = []; for await (const c of req) chunks.push(c);
+    const request = new Request(url.href, { method: req.method, headers: req.headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : Buffer.concat(chunks) });
+    const env = { COUNTS: { writeDataPoint: (d) => counts.push(d) } };
+    if (process.env.FEEDBACK === 'on') env.FEEDBACK_WEBHOOK = 'http://inbox.test/hook';
+    const r = url.pathname === '/api/count' ? await handleCount(request, env) : await handleFeedback(request, env, async (u, o) => { feedback.push(JSON.parse(o.body)); return { ok: true }; });
+    res.writeHead(r.status, Object.assign(Object.fromEntries(r.headers), headersFor('/*'))); res.end(r.body ? await r.text() : ''); return;
   }
   let p = path.join(root, url.pathname);
   if (url.pathname.endsWith('/')) p = path.join(p, 'index.html');
   else if (fs.existsSync(p) && fs.statSync(p).isDirectory()) { res.writeHead(301, { location: url.pathname + '/' + url.search }); res.end(); return; }
   if (!p.startsWith(root) || !fs.existsSync(p)) { res.writeHead(404); res.end('not found'); return; }
-  res.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); res.end(fs.readFileSync(p));
+  res.writeHead(200, Object.assign({ 'content-type': types[path.extname(p)] || 'application/octet-stream' }, headersFor('/*'), headersFor(url.pathname))); res.end(fs.readFileSync(p));
 });
 if (process.argv[1] && process.argv[1].endsWith('dev-server.js')) server.listen(port, () => console.log('dev server on', port));
 export { server };

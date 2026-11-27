@@ -49,7 +49,8 @@
     quiet: { a1: 'Request for a written update on my claim', a2: 'Request for a claims supervisor to review my claim', a3: 'Request to confirm the deadlines on my claim' },
     smoke: { a1: 'Request for a written plan for the smoke and ash investigation', a2: 'Request to confirm payment for smoke and ash testing' },
     other: { a1: 'Request for a list of what you need from me', a2: 'Request to confirm nothing else is needed' },
-    fu: 'Confirming our conversation'
+    fu: 'Confirming our conversation',
+    nr: 'Following up on my earlier letter'
   };
   var SIT_STAGE = { denied: 'td', low: 'tl', quiet: 'ts', smoke: 'sm', other: 's4' };
   var STAGES = {
@@ -270,6 +271,9 @@
   /* The one ask of a follow-up email after a call or a visit. Sourced: confirm what was said in writing [17][18]. */
   var FOLLOWUP = ['fu', 'Please confirm in writing that this summary of our conversation is correct, or tell me in writing what is different.', M('Confirm what was said', 'Confirmar lo que se dijo', '确认谈话内容')];
 
+  /* The one ask of a follow-up letter when an earlier letter got no reply. General guidance, flagged for review like the other follow-up. */
+  var NOREPLY = ['nr', 'Please reply in writing to my earlier letter, or tell me in writing when I can expect a reply.', M('Answer my earlier letter', 'Responder a mi carta anterior', '回复我之前的信')];
+
   /* Spanish (an unreviewed draft, listed for a native speaker in docs/DESIGN.md).
      Letters to the insurer stay in English. These are the Spanish copy of each fixed English line, written once by
      us so the model never translates the ask or the subject. */
@@ -279,7 +283,8 @@
     quiet: { a1: 'Les pido que me envíen por escrito una actualización del estado de mi reclamo y del siguiente paso.', a2: 'Les pido que un supervisor de reclamos revise mi reclamo y se comunique conmigo.', a3: 'Les pido que confirmen por escrito los plazos que se aplican a mi reclamo.' },
     smoke: { a1: 'Les pido que expliquen por escrito cómo investigarán los daños por humo y ceniza en mi vivienda, incluidas las pruebas.', a2: 'Les pido que confirmen por escrito si pagarán las pruebas de mi vivienda hechas por un profesional calificado, y qué necesitan de mí.' },
     other: { a1: 'Les pido que indiquen por escrito los documentos, formularios e información que necesitan de mí para tramitar mi reclamo.', a2: 'Les pido que confirmen por escrito, una vez que reciban los documentos que les envío, si necesitan algo más de mí.' },
-    fu: 'Les pido que confirmen por escrito que este resumen de nuestra conversación es correcto, o que me indiquen por escrito qué es diferente.'
+    fu: 'Les pido que confirmen por escrito que este resumen de nuestra conversación es correcto, o que me indiquen por escrito qué es diferente.',
+    nr: 'Les pido que respondan por escrito a mi carta anterior, o que me indiquen por escrito cuándo puedo esperar una respuesta.'
   };
   var ASK_SUBJECT_ES = {
     denied: { a1: 'Solicitud de una explicación por escrito de la decisión sobre el reclamo', a2: 'Solicitud de copias de mi expediente de reclamo', a3: 'Solicitud para revisar de nuevo la decisión sobre el reclamo' },
@@ -287,7 +292,8 @@
     quiet: { a1: 'Solicitud de una actualización por escrito de mi reclamo', a2: 'Solicitud de que un supervisor de reclamos revise mi reclamo', a3: 'Solicitud para confirmar los plazos de mi reclamo' },
     smoke: { a1: 'Solicitud de un plan por escrito para investigar el humo y la ceniza', a2: 'Solicitud para confirmar el pago de las pruebas de humo y ceniza' },
     other: { a1: 'Solicitud de una lista de lo que necesitan de mí', a2: 'Solicitud para confirmar que no necesitan nada más' },
-    fu: 'Confirmación de nuestra conversación'
+    fu: 'Confirmación de nuestra conversación',
+    nr: 'Seguimiento de mi carta anterior'
   };
   var SIT_SUBJECT_ES = {
     denied: 'Solicitud de una explicación por escrito de la decisión sobre el reclamo',
@@ -354,5 +360,5 @@
     'What they said': 'Lo que dijeron', 'What they will do, and by when': 'Lo que harán, y para cuándo', 'Adjuster': 'Ajustador', 'Name and company': 'Nombre y empresa',
     'What they looked at': 'Qué revisaron', 'What happens next, and by when': 'Lo que sigue, y para cuándo'
   };
-  window.NS_CONTENT = { ASK_ES: ASK_ES, ASK_SUBJECT_ES: ASK_SUBJECT_ES, SIT_SUBJECT_ES: SIT_SUBJECT_ES, SHEET_ES: SHEET_ES, M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP, ASK_SUBJECT: ASK_SUBJECT };
+  window.NS_CONTENT = { ASK_ES: ASK_ES, ASK_SUBJECT_ES: ASK_SUBJECT_ES, SIT_SUBJECT_ES: SIT_SUBJECT_ES, SHEET_ES: SHEET_ES, M: M, ASKS: ASKS, SIT_LABEL: SIT_LABEL, SIT_SUBJECT: SIT_SUBJECT, SIT_STAGE: SIT_STAGE, STAGES: STAGES, OWN_ORDER: OWN_ORDER, RENT_ORDER: RENT_ORDER, OWN_LIST: OWN_LIST, RENT_LIST: RENT_LIST, RENT_MAP: RENT_MAP, WORDS: WORDS, SHEETS: SHEETS, FOLLOWUP: FOLLOWUP, NOREPLY: NOREPLY, ASK_SUBJECT: ASK_SUBJECT };
 })();

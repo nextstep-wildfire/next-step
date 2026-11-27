@@ -7,3 +7,9 @@ compatibility_date = "2026-10-01"
 # Free AI binding (10,000 Neurons per day at no charge on the Workers Free plan).
 [ai]
 binding = "AI"
+
+# Cookie-free counts (landing visits, Desk opens, copied or emailed letters, downloaded PDFs). The dataset is created the
+# first time something is written. No setting in the dashboard is needed to collect; to read the numbers see docs/DESIGN.md.
+[[analytics_engine_datasets]]
+binding = "COUNTS"
+dataset = "next_step_counts"

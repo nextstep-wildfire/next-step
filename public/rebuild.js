@@ -2,6 +2,7 @@
    letter, posts it and lifts the mailbox flag, steps to the left of the house and knocks the corner post plumb, two
    front steps set at the door and the staked tree grows in. About 7 seconds, a 2 second rest on the finished drawing,
    then it fades and draws again, only while it is on screen.
+   It always opens on the finished drawing, so there is no empty space at first paint; after a short rest it plays.
    Under reduced motion (or with no script) it is simply the finished drawing.
 
    The person is a small hand-made rig drawn in the same 1.5px ink line: a head, a coat-shaped body, single-line limbs.
@@ -321,7 +322,7 @@
   /* ---------- playing it: rest 2 seconds on the finished drawing, fade it out, draw it again ---------- */
   // It only loops while the drawing is on screen; scrolled away, it waits on the finished drawing and starts again
   // when it comes back. A hidden tab pauses it too, since the clock only moves on animation frames.
-  var HOLD = 2.0, FADE = 0.45;
+  var HOLD = 2.0, FADE = 0.45, FIRST_REST = 2.4;
   var raf = 0, clock = 0, last = 0, done = false, plays = 0, visible = false, waiting = false, timer = 0;
   function frame(now) {
     clock += Math.min(0.05, (now - last) / 1000); last = now;
@@ -336,11 +337,11 @@
   function play() { cancelAnimationFrame(raf); clearTimeout(timer); waiting = false; clock = 0; done = false; svg.classList.remove('rested'); last = performance.now(); render(0); raf = requestAnimationFrame(frame); }
   function seek(t) { cancelAnimationFrame(raf); clearTimeout(timer); svg.style.transition = ''; svg.style.opacity = ''; render(clamp(t, 0, END)); }
 
-  if (reduced) { render(END); done = true; svg.classList.add('rested'); }
-  else {
-    render(0);
+  // First paint is the finished drawing, never an empty space. After a short rest it fades and draws itself once more.
+  render(END); done = true; svg.classList.add('rested');
+  if (!reduced) {
     var started = false;
-    var wake = function () { if (!started) { started = true; setTimeout(play, 150); } else if (waiting) again(); };
+    var wake = function () { if (!started) { started = true; timer = setTimeout(again, FIRST_REST * 1000); } else if (waiting) again(); };
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) { visible = es.some(function (e) { return e.isIntersecting; }); if (visible) wake(); }, { threshold: 0.5 }).observe(svg);
     } else { visible = true; wake(); }
