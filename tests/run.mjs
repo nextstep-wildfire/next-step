@@ -521,7 +521,10 @@ await p.context().close();
   ok(await p.locator('#dk .dk-sheet p.subj').count() === 1 && /\$42,300/.test(await p.locator('#dk').innerText()), 'landing demo: reduced motion shows the finished letter at once');
   ok(await p.locator('.band a[href="tel:18009274357"]').count() === 1 && await p.locator('.band a[href="tel:988"]').count() === 1, 'landing band: real public lines');
   ok(/not staffed|not a person/.test(await p.locator('.band').innerText()) && /not legal or insurance advice/.test(await p.locator('.band').innerText()), 'landing band: the honesty line, plain, in the band');
-  ok(await p.locator('.btn:not(.ghost)').count() === 1, 'landing: one solid button');
+  ok(await p.locator('.hero .btn:not(.ghost)').count() === 1 && await p.locator('.close .btn:not(.ghost)').count() === 1 && await p.locator('.btn:not(.ghost)').count() === 2 && (await p.locator('#startBtn2').getAttribute('href')) === '/app/', 'landing: one solid button per screen, the same Start at the top and the close');
+  ok(await p.locator('.faq details').count() === 8 && JSON.parse(await p.locator('script[type="application/ld+json"]').textContent()).mainEntity.length === 8, 'landing: eight plain questions, also as FAQ data for search');
+  ok(await p.locator('#lineTitle .w').count() === 0 && (await p.locator('#lineTitle').innerText()).split(/\s+/).length >= 12, 'landing line: under reduced motion it is plain full ink text, no word wrapping');
+  ok((await p.locator('a.skip').getAttribute('href')) === '#main' && await p.locator('main#main').count() === 1, 'landing: a skip to content link');
   ok(await p.locator('.label:not(.dk .label)').count() === 0 && (await p.evaluate(() => [...document.querySelectorAll('*')].filter((e) => { const b = getComputedStyle(e, '::before'); return b.content !== 'none' && b.content !== 'normal' && parseFloat(b.width) <= 6 && b.borderRadius === '50%'; }).length)) === 0, 'landing: no section labels or dot ornaments above headings');
   const ltxt = await p.evaluate(() => document.body.innerText);
   ok(!/[–—!]/.test(ltxt) && !/\b(seamless|empower|effortless|peace of mind|unlock|get more money)\b/i.test(ltxt), 'landing: no dashes, exclamation marks, banned words or money promises');
@@ -546,6 +549,14 @@ await p.context().close();
   await p.locator('#demo').scrollIntoViewIfNeeded();
   await p.waitForSelector('#dk.has-paper .dk-sheet p.subj', { timeout: 90000 });
   ok(true, 'landing demo: plays through to the letter');
+  const lineStart = await p.evaluate(() => [window.__line.lit(), window.__line.total]);
+  await p.evaluate(() => { const r = document.getElementById('lineTitle').getBoundingClientRect(); window.scrollBy(0, r.top - innerHeight * 0.5); });
+  await p.waitForTimeout(150);
+  const lineMid = await p.evaluate(() => window.__line.lit());
+  await p.evaluate(() => document.getElementById('lineTitle').scrollIntoView({ block: 'start' }));
+  await p.waitForTimeout(150);
+  const lineEnd = await p.evaluate(() => window.__line.lit());
+  ok(lineStart[0] < lineStart[1] && lineMid > 0 && lineMid < lineStart[1] && lineEnd === lineStart[1], 'landing line: words come up to full ink one by one as it scrolls in, then all of it (' + [lineStart[0], lineMid, lineEnd, lineStart[1]].join('/') + ')');
   await p.evaluate(() => document.querySelector('.art').scrollIntoView({ block: 'center' }));
   await p.waitForFunction(() => window.__rebuild.plays() >= 1, null, { timeout: 20000 });
   ok(true, 'landing drawing: after its first rest the animation plays through to the finished drawing');
@@ -795,6 +806,13 @@ const pdfOf = async (p) => { const [d] = await Promise.all([p.waitForEvent('down
   const V = await pdfOf(p);
   ok(/\(VISIT LOG\) Tj/.test(V.text) && /debris/.test(V.text) && /next-step-visit-sheet-/.test(V.name), 'PDF: the visit sheet downloads as a PDF');
   ok(p.errs.length === 0, 'PDF: no page errors ' + p.errs.join('|'));
+  await p.context().close();
+}
+
+// 30a. the page that is not there: branded, a way back, out of search
+{
+  p = await page({}, '/no-such-page');
+  ok(/isn’t here/.test(await p.locator('h1').innerText()) && (await p.locator('.lost a.btn').first().getAttribute('href')) === '/' && (await p.locator('meta[name="robots"]').getAttribute('content')) === 'noindex', '404: branded page with a way back, not indexed');
   await p.context().close();
 }
 

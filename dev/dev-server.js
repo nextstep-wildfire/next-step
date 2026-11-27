@@ -133,7 +133,7 @@ const server = http.createServer(async (req, res) => {
   let p = path.join(root, url.pathname);
   if (url.pathname.endsWith('/')) p = path.join(p, 'index.html');
   else if (fs.existsSync(p) && fs.statSync(p).isDirectory()) { res.writeHead(301, { location: url.pathname + '/' + url.search }); res.end(); return; }
-  if (!p.startsWith(root) || !fs.existsSync(p)) { res.writeHead(404); res.end('not found'); return; }
+  if (!p.startsWith(root) || !fs.existsSync(p)) { const nf = path.join(root, '404.html'); if (fs.existsSync(nf)) { res.writeHead(404, Object.assign({ 'content-type': 'text/html; charset=utf-8' }, headersFor('/*'))); res.end(fs.readFileSync(nf)); } else { res.writeHead(404); res.end('not found'); } return; }
   res.writeHead(200, Object.assign({ 'content-type': types[path.extname(p)] || 'application/octet-stream' }, headersFor('/*'), headersFor(url.pathname))); res.end(fs.readFileSync(p));
 });
 if (process.argv[1] && process.argv[1].endsWith('dev-server.js')) server.listen(port, () => console.log('dev server on', port));

@@ -7,7 +7,18 @@
   /* Spanish: an unreviewed draft (listed for a native speaker in docs/DESIGN.md). */
   var ES = {
     openDesk: 'Abrir el Escritorio', kicker: 'Para reclamos de seguro por incendios en California',
-    h1: 'Cada palabra a su aseguradora cuenta. Que cada una sea la correcta.',
+    h1a: 'Cada palabra a su aseguradora cuenta.', h1b: 'Que cada una sea la correcta.', skip: 'Saltar al contenido',
+    line1: 'Maneje bien cada intercambio con su aseguradora,', line2: 'para que pida todo lo que su póliza le debe.',
+    faqTitle: 'Antes de empezar',
+    q1: '¿Next Step es gratis?', a1: 'Sí. No hay nada que pagar ni cuenta que crear.',
+    q2: '¿Una persona lee lo que escribo?', a2: 'No. Next Step es una guía de IA, no una persona, y nadie de aquí le devolverá la llamada. Si necesita a una persona, las líneas públicas de abajo sí tienen personal.',
+    q3: '¿Esto es asesoría legal o de seguros?', a3: 'No. Da información general tomada de fuentes públicas como el Departamento de Seguros de California y United Policyholders. Puede equivocarse, y lo que cuenta es su propia póliza.',
+    q4: '¿Qué pasa con lo que escribo?', a4: 'Sus conversaciones, cartas e Historial se quedan en este navegador. Cuando pide una carta o una respuesta, lo que escribió se envía a la IA para escribirla y no lo guardamos. Deje fuera lo que no quiera compartir.',
+    q5: '¿Esto me conseguirá más dinero?', a5: 'No puede prometer ningún resultado. Le ayuda a pedir una sola cosa clara a la vez, por escrito, para que su pedido quede claro y registrado.',
+    q6: '¿Next Step envía la carta por mí?', a6: 'No. Usted la copia en un correo a su ajustador, la abre en su aplicación de correo o la descarga como PDF. Usted decide cuándo se envía.',
+    q7: '¿Y si mi aseguradora responde?', a7: 'Pegue su respuesta en el Escritorio. Next Step se la explica en palabras sencillas, le sugiere qué pedir después y escribe su respuesta.',
+    q8: '¿Puedo usarlo en español?', a8: 'Sí. Todo lo que es para usted está en español. Las cartas a su aseguradora van en inglés, que es lo que lee el ajustador, con una copia en español al lado.',
+    close1: 'Dijeron que no, ofrecieron menos o dejaron de responder.', close2: 'Pida una sola cosa clara, por escrito.', closeNote: 'Gratis, sin nada que registrar.',
     lede1: 'Una herramienta gratuita que le ayuda a comunicarse con su aseguradora después de un incendio en California.',
     lede2: 'Empiece con una carta: responda unas preguntas y reciba una carta lista que pide una sola cosa clara. También le explica sus respuestas y le ayuda a prepararse para las llamadas y la visita del ajustador.',
     start: 'Empezar', watch: 'Demo',
@@ -43,6 +54,33 @@
   if (lb) { lb.textContent = W.langOther; lb.setAttribute('lang', LANG === 'es' ? 'en' : 'es'); lb.addEventListener('click', function () { window.nsLang.set(LANG === 'es' ? 'en' : 'es'); }); }
   function themeLabel() { var d = window.nsTheme && window.nsTheme.current() === 'dark'; tb.setAttribute('aria-pressed', d ? 'true' : 'false'); tb.setAttribute('aria-label', d ? W.light : W.dark); tb.title = d ? W.light : W.dark; }
   if (tb) { themeLabel(); tb.addEventListener('click', function () { window.nsTheme.toggle(); themeLabel(); }); }
+
+  // The one line: each word comes up from a faint ink to full ink as it crosses a line 60% down the screen,
+  // in reading order, once. One scroll listener, throttled to a frame. Reduced motion: full ink, no wrapping.
+  (function () {
+    var h = document.getElementById('lineTitle');
+    if (!h || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    var words = [];
+    [].forEach.call(h.querySelectorAll('.ln'), function (ln) {
+      var parts = ln.textContent.split(/(\s+)/); ln.textContent = '';
+      parts.forEach(function (t) { if (!t) return; if (/^\s+$/.test(t)) { ln.appendChild(document.createTextNode(t)); return; } var w = document.createElement('span'); w.className = 'w'; w.textContent = t; ln.appendChild(w); words.push(w); });
+    });
+    var next = 0, queued = false;
+    function check() {
+      queued = false;
+      // progress runs from the heading's top reaching the line to its bottom passing a third of a screen above it
+      var vh = window.innerHeight, r = h.getBoundingClientRect(), trigger = vh * 0.6;
+      var p = (trigger - r.top) / (r.height + vh * 0.3);
+      var want = Math.max(0, Math.min(words.length, Math.ceil(p * words.length)));
+      while (next < want) { words[next].classList.add('on'); next++; }
+      if (next >= words.length) window.removeEventListener('scroll', onScroll);
+    }
+    function onScroll() { if (!queued) { queued = true; requestAnimationFrame(check); } }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    check();
+    window.__line = { lit: function () { return next; }, total: words.length };
+  })();
 
   var dk = document.getElementById('dk'), thread = document.getElementById('dkThread'), input = document.getElementById('dkIn'), paper = document.getElementById('dkPaper'), sheet = document.getElementById('dkSheet');
   if (!thread) return;

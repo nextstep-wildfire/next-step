@@ -30,10 +30,12 @@
 <script src="/count.js"></script>
 <link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is Next Step free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. There is nothing to pay and no account to make."}}, {"@type": "Question", "name": "Is a person reading what I write?", "acceptedAnswer": {"@type": "Answer", "text": "No. Next Step is an AI guide, not a person, and no one here will call you back. If you need a person, the public phone lines below are staffed."}}, {"@type": "Question", "name": "Is this legal or insurance advice?", "acceptedAnswer": {"@type": "Answer", "text": "No. It gives general information drawn from public sources such as the California Department of Insurance and United Policyholders. It can be wrong, and your own policy is what counts."}}, {"@type": "Question", "name": "What happens to what I type?", "acceptedAnswer": {"@type": "Answer", "text": "Your chats, letters and Record stay in this browser. When you ask for a letter or an answer, what you typed is sent to the AI to write it and is not stored by us. Leave out anything you do not want to share."}}, {"@type": "Question", "name": "Will this get me more money?", "acceptedAnswer": {"@type": "Answer", "text": "It cannot promise any outcome. It helps you ask for one clear thing at a time, in writing, so your request is plain and on the record."}}, {"@type": "Question", "name": "Does Next Step send the letter for me?", "acceptedAnswer": {"@type": "Answer", "text": "No. You copy it into an email to your adjuster, open it in your email app, or download it as a PDF. You decide when it goes."}}, {"@type": "Question", "name": "What if my insurer writes back?", "acceptedAnswer": {"@type": "Answer", "text": "Paste their reply into the Desk. Next Step explains it in plain words, suggests what to ask for next, and writes your reply."}}, {"@type": "Question", "name": "Can I use it in Spanish?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Everything meant for you is in Spanish. Letters to your insurer stay in English, which is what the adjuster reads, with a Spanish copy beside them."}}]}</script>
 <link rel="stylesheet" href="/base.css">
 <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
+<a class="skip" href="#main" data-t="skip">Skip to content</a>
 <header class="top wrap">
   <a class="brand" href="/"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M1 16.5h5.5V11H12V5.5h5"/></svg>Next Step</a>
   <nav class="topnav">
@@ -43,17 +45,17 @@
   </nav>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
   <section class="hero wrap">
     <div class="hero-text">
-      <h1 data-t="h1">Every word to your insurer counts. Get each one right.</h1>
-      <p class="lede lede-big" data-t="lede1">A free tool that helps you communicate with your insurer after a California wildfire.</p>
-      <p class="lede" data-t="lede2">Start with a letter: answer a few questions and get a finished letter that asks for one clear thing. It also explains their replies and helps you prepare for calls and the adjuster’s visit.</p>
+      <h1 class="heading-1"><span class="ln" data-t="h1a">Every word to your insurer counts.</span> <span class="ln" data-t="h1b">Get each one right.</span></h1>
+      <p class="lede lede-big body-8" data-t="lede1">A free tool that helps you communicate with your insurer after a California wildfire.</p>
+      <p class="lede body-7" data-t="lede2">Start with a letter: answer a few questions and get a finished letter that asks for one clear thing. It also explains their replies and helps you prepare for calls and the adjuster’s visit.</p>
       <div class="cta">
         <a class="btn" id="startBtn" href="/app/" data-t="start">Start</a>
         <a class="btn ghost" href="#demo" id="watchBtn" data-t="watch">Demo</a>
       </div>
-      <p class="honest" data-t="honest">General information from public sources, not legal or insurance advice.</p>
+      <p class="honest body-3" data-t="honest">General information from public sources, not legal or insurance advice.</p>
     </div>
     <figure class="art" aria-hidden="true">
       <svg viewBox="16 88 448 214" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -100,28 +102,51 @@
   </section>
 
   <section class="ex wrap" aria-labelledby="exTitle">
-    <h2 id="exTitle" data-t="exTitle">One desk for everything that passes between you and your insurer.</h2>
+    <h2 class="heading-3" id="exTitle" data-t="exTitle">One desk for everything that passes between you and your insurer.</h2>
     <ul class="ex-list">
-      <li><h3 data-t="ex1h">The letter</h3><p data-t="ex1p">They said no, offered less or went quiet. Pick one clear ask and get a finished letter to copy into an email.</p><a href="/app/#/start/letter" data-t="ex1a">Write a letter</a></li>
-      <li><h3 data-t="ex2h">Their message</h3><p data-t="ex2p">Paste what they sent. Read it in plain words, see what to ask for, and get your reply.</p><a href="/app/#/start/msg" data-t="ex2a">Explain a message</a></li>
-      <li><h3 data-t="ex3h">The call</h3><p data-t="ex3p">A call sheet with what to say first, what to ask for, and a log to fill in while you talk.</p><a href="/app/#/start/call" data-t="ex3a">Get ready for a call</a></li>
-      <li><h3 data-t="ex4h">The visit</h3><p data-t="ex4p">A visit sheet with what to have ready, what to ask, and what to photograph before the adjuster comes.</p><a href="/app/#/start/visit" data-t="ex4a">Get ready for a visit</a></li>
+      <li><h3 class="heading-5" data-t="ex1h">The letter</h3><p class="body-7" data-t="ex1p">They said no, offered less or went quiet. Pick one clear ask and get a finished letter to copy into an email.</p><a href="/app/#/start/letter" data-t="ex1a">Write a letter</a></li>
+      <li><h3 class="heading-5" data-t="ex2h">Their message</h3><p class="body-7" data-t="ex2p">Paste what they sent. Read it in plain words, see what to ask for, and get your reply.</p><a href="/app/#/start/msg" data-t="ex2a">Explain a message</a></li>
+      <li><h3 class="heading-5" data-t="ex3h">The call</h3><p class="body-7" data-t="ex3p">A call sheet with what to say first, what to ask for, and a log to fill in while you talk.</p><a href="/app/#/start/call" data-t="ex3a">Get ready for a call</a></li>
+      <li><h3 class="heading-5" data-t="ex4h">The visit</h3><p class="body-7" data-t="ex4p">A visit sheet with what to have ready, what to ask, and what to photograph before the adjuster comes.</p><a href="/app/#/start/visit" data-t="ex4a">Get ready for a visit</a></li>
     </ul>
-    <p class="ex-more" data-t="exMore">Every letter, call and visit goes into one Record you can copy, kept on your device only.</p>
+    <p class="ex-more body-7" data-t="exMore">Every letter, call and visit goes into one Record you can copy, kept on your device only.</p>
+  </section>
+
+  <section class="line wrap" aria-labelledby="lineTitle">
+    <h2 class="heading-2" id="lineTitle"><span class="ln" data-t="line1">Handle every exchange with your insurer well,</span> <span class="ln" data-t="line2">so you ask for everything your policy owes you.</span></h2>
+  </section>
+
+  <section class="faq wrap" aria-labelledby="faqTitle">
+    <h2 class="heading-3" id="faqTitle" data-t="faqTitle">Before you start</h2>
+    <div class="faq-list">
+      <details><summary class="body-7"><span data-t="q1">Is Next Step free?</span></summary><p class="body-7" data-t="a1">Yes. There is nothing to pay and no account to make.</p></details>
+      <details><summary class="body-7"><span data-t="q2">Is a person reading what I write?</span></summary><p class="body-7" data-t="a2">No. Next Step is an AI guide, not a person, and no one here will call you back. If you need a person, the public phone lines below are staffed.</p></details>
+      <details><summary class="body-7"><span data-t="q3">Is this legal or insurance advice?</span></summary><p class="body-7" data-t="a3">No. It gives general information drawn from public sources such as the California Department of Insurance and United Policyholders. It can be wrong, and your own policy is what counts.</p></details>
+      <details><summary class="body-7"><span data-t="q4">What happens to what I type?</span></summary><p class="body-7" data-t="a4">Your chats, letters and Record stay in this browser. When you ask for a letter or an answer, what you typed is sent to the AI to write it and is not stored by us. Leave out anything you do not want to share.</p></details>
+      <details><summary class="body-7"><span data-t="q5">Will this get me more money?</span></summary><p class="body-7" data-t="a5">It cannot promise any outcome. It helps you ask for one clear thing at a time, in writing, so your request is plain and on the record.</p></details>
+      <details><summary class="body-7"><span data-t="q6">Does Next Step send the letter for me?</span></summary><p class="body-7" data-t="a6">No. You copy it into an email to your adjuster, open it in your email app, or download it as a PDF. You decide when it goes.</p></details>
+      <details><summary class="body-7"><span data-t="q7">What if my insurer writes back?</span></summary><p class="body-7" data-t="a7">Paste their reply into the Desk. Next Step explains it in plain words, suggests what to ask for next, and writes your reply.</p></details>
+      <details><summary class="body-7"><span data-t="q8">Can I use it in Spanish?</span></summary><p class="body-7" data-t="a8">Yes. Everything meant for you is in Spanish. Letters to your insurer stay in English, which is what the adjuster reads, with a Spanish copy beside them.</p></details>
+    </div>
   </section>
 
   <section class="band" aria-labelledby="bandTitle">
     <div class="wrap band-in">
       <div class="band-head">
-        <h2 id="bandTitle" data-t="bandTitle">Next Step isn’t staffed. These public lines are.</h2>
+        <h2 class="heading-2" id="bandTitle" data-t="bandTitle">Next Step isn’t staffed. These public lines are.</h2>
       </div>
       <ul class="nums">
         <li><span data-t="n1">California Department of Insurance, for your policy or a dispute with your insurer</span><a href="tel:18009274357">1-800-927-4357</a></li>
         <li><span data-t="n2">FEMA disaster assistance, for needs insurance does not cover</span><a href="tel:18006213362">1-800-621-3362</a></li>
         <li><span data-t="n3">988 Suicide &amp; Crisis Lifeline, call or text any time</span><a href="tel:988">988</a></li>
       </ul>
-      <p class="band-honest" id="disclaimer" data-t="disclaimer">Next Step is an AI guide, not a person, and no one here will call you back. It gives general information drawn from public sources such as the California Department of Insurance and United Policyholders. It is not legal or insurance advice, it can be wrong, and your own policy is what counts.</p>
+      <p class="band-honest body-7" id="disclaimer" data-t="disclaimer">Next Step is an AI guide, not a person, and no one here will call you back. It gives general information drawn from public sources such as the California Department of Insurance and United Policyholders. It is not legal or insurance advice, it can be wrong, and your own policy is what counts.</p>
     </div>
+  </section>
+  <section class="close wrap" aria-labelledby="closeTitle">
+    <h2 class="heading-2" id="closeTitle"><span class="ln" data-t="close1">They said no, offered less or went quiet.</span> <span class="ln" data-t="close2">Ask for one clear thing, in writing.</span></h2>
+    <div class="cta"><a class="btn" id="startBtn2" href="/app/" data-t="start">Start</a></div>
+    <p class="honest body-3" data-t="closeNote">Free, with nothing to sign up for.</p>
   </section>
 </main>
 

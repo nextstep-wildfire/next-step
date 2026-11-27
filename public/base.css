@@ -26,6 +26,11 @@
   --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   /* shape */
   --r: 4px; --r-sheet: 2px; --tap: 48px;
+  /* motion: one weighted curve that settles into place; never the browser's ease or linear */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1); --dur: 500ms; --dur-fast: 300ms;
+  /* spacing: only these steps */
+  --s-25: 2px; --s-50: 4px; --s-75: 8px; --s-100: 12px; --s-200: 16px; --s-300: 24px; --s-400: 32px;
+  --s-500: 40px; --s-600: 48px; --s-700: 64px; --s-800: 80px; --s-900: 96px;
   /* older names, kept so pages not yet rebuilt still read the new values */
   --bg: var(--paper); --surface: var(--sheet); --muted: var(--ink-2); --line: var(--rule);
   --accent: var(--ink); --accent-ink: var(--on-ink); --accent-soft: var(--fill); --error: var(--ink); --shadow: none; --radius: var(--r);
@@ -62,6 +67,9 @@ button, input, textarea, select { font: inherit; color: inherit; letter-spacing:
 
 /* One solid button per screen. Everything else is a ghost. */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--tap); padding: 0 20px; border-radius: var(--r); border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink); font-family: var(--sans); font-size: 16px; font-weight: 500; letter-spacing: -0.005em; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
+.btn { transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.btn:active:not(:disabled), .iconbtn:active { transform: scale(0.98); }
+.iconbtn { transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .btn:hover { text-decoration: none; background: #000; }
 :root[data-theme="dark"] .btn:not(.ghost):not(.quiet):hover { background: #fff; }
 .btn.ghost, .btn.quiet { background: transparent; color: var(--ink); border-color: var(--edge); }
@@ -73,6 +81,22 @@ button, input, textarea, select { font: inherit; color: inherit; letter-spacing:
 
 /* A quiet label: plain words, no ornament. */
 .label { display: inline-flex; align-items: center; font-size: 15px; color: var(--ink-3); letter-spacing: 0; }
+
+/* Named text styles. Every size is a step of one fixed scale, with that step's line height.
+   Headings keep the house weight (400, tight) rather than semibold, and nothing goes under 16px,
+   so the scale's 12 and 14px steps are not used. Applied on the landing page first. */
+.heading-1 { font-size: 60px; line-height: 60px; letter-spacing: -0.04em; }
+.heading-2 { font-size: 48px; line-height: 48px; letter-spacing: -0.035em; }
+.heading-3 { font-size: 36px; line-height: 40px; letter-spacing: -0.035em; }
+.heading-4 { font-size: 30px; line-height: 36px; letter-spacing: -0.03em; }
+.heading-5 { font-size: 24px; line-height: 32px; letter-spacing: -0.025em; }
+.heading-6 { font-size: 20px; line-height: 28px; letter-spacing: -0.02em; }
+.title-3 { font-size: 16px; line-height: 24px; font-weight: 500; }
+.body-3 { font-size: 16px; line-height: 24px; }
+.body-7 { font-size: 18px; line-height: 28px; }
+.body-8 { font-size: 24px; line-height: 32px; letter-spacing: -0.012em; }
+.heading-1, .heading-2, .heading-3, .heading-4, .heading-5, .heading-6 { font-weight: 400; text-wrap: balance; }
+.body-3, .body-7, .body-8 { text-wrap: pretty; }
 
 /* Kept for pages not yet rebuilt: a plain line, not a box. */
 .notice { font-size: 16px; color: var(--ink-2); }
